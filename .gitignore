@@ -1,0 +1,10 @@
+/vendor/
+/scoring_service/venv/
+/scoring_service/__pycache__/
+/public/uploads/*
+!/public/uploads/.gitkeep
+.env
+/logs/*.log
+/node_modules/
+*.log
+test_cookie*.txt
