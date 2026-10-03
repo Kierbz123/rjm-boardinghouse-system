@@ -57,6 +57,13 @@ class User
         return (int) $stmt->fetchColumn() > 0;
     }
 
+    /** 'active' or 'inactive' — inactive accounts can't log in and their open sessions end (AuthMiddleware). */
+    public static function setStatus(int $id, string $status): void
+    {
+        $stmt = Database::getConnection()->prepare('UPDATE users SET status = ? WHERE id = ?');
+        $stmt->execute([$status === 'active' ? 'active' : 'inactive', $id]);
+    }
+
     public static function updatePassword(int $id, string $password): void
     {
         $hash = password_hash($password, PASSWORD_DEFAULT);

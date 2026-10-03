@@ -19,6 +19,7 @@ class Router
     public function dispatch(string $method, string $uri): void
     {
         $path = parse_url($uri, PHP_URL_PATH) ?: '/';
+        $method = $method === 'HEAD' ? 'GET' : $method; // HEAD is GET without a body
         foreach ($this->routes as [$routeMethod, $pattern, $handler]) {
             if ($routeMethod !== $method) {
                 continue;

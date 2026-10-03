@@ -107,28 +107,27 @@ class LandingController
             ]
         ];
 
-        $stats = [
-            'total_rooms'     => 12,
-            'total_beds'      => 24,
-            'vacant_beds'     => 6,
-            'security_uptime' => '99.9%',
-            'ai_response'     => '< 15 mins',
-        ];
-
+        // Only real numbers from the database (owner decision 8): no invented figures.
+        $stats = ['total_rooms' => 0, 'total_beds' => 0, 'vacant_beds' => 0, 'residents' => 0,
+                  'occupancy_pct' => 0, 'avg_repair_hours' => null];
         try {
             $pdo = Database::getConnection();
-            $roomCount = (int) $pdo->query("SELECT COUNT(*) FROM rooms")->fetchColumn();
-            if ($roomCount > 0) {
-                $stats['total_rooms'] = $roomCount;
-            }
-            $totalBeds = (int) $pdo->query("SELECT COUNT(*) FROM beds")->fetchColumn();
-            $vacantBeds = (int) $pdo->query("SELECT COUNT(*) FROM beds WHERE status = 'vacant'")->fetchColumn();
-            if ($totalBeds > 0) {
-                $stats['total_beds'] = $totalBeds;
-                $stats['vacant_beds'] = $vacantBeds;
-            }
+            $row = $pdo->query("SELECT (SELECT COUNT(*) FROM rooms) AS total_rooms,
+                                       COUNT(*) AS total_beds,
+                                       COALESCE(SUM(status = 'vacant'), 0) AS vacant_beds
+                                FROM beds")->fetch();
+            $stats['total_rooms'] = (int) $row['total_rooms'];
+            $stats['total_beds'] = (int) $row['total_beds'];
+            $stats['vacant_beds'] = (int) $row['vacant_beds'];
+            $stats['occupancy_pct'] = $stats['total_beds'] > 0
+                ? (int) round(100 * ($stats['total_beds'] - $stats['vacant_beds']) / $stats['total_beds']) : 0;
+            $stats['residents'] = (int) $pdo->query("SELECT COUNT(*) FROM boarder_profiles bp JOIN users u ON u.id = bp.user_id
+                                                     WHERE bp.status IN ('active', 'on_notice') AND u.status = 'active'")->fetchColumn();
+            $hours = $pdo->query("SELECT AVG(TIMESTAMPDIFF(MINUTE, created_at, resolved_at)) / 60 FROM maintenance_requests
+                                  WHERE status = 'resolved' AND resolved_at IS NOT NULL")->fetchColumn();
+            $stats['avg_repair_hours'] = $hours !== null ? round((float) $hours, 1) : null;
         } catch (\Throwable $e) {
-            // Graceful degradation per architecture guidelines
+            \App\Support\Logger::warn('Landing stats unavailable: ' . $e->getMessage());
         }
 
         $inquirySuccess = $_SESSION['flash_inquiry_success'] ?? null;

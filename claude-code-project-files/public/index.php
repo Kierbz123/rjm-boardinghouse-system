@@ -5,6 +5,16 @@
  * per CLAUDE.md's "controllers stay thin" and PROJECT_STRUCTURE.md.
  */
 
+// Under `php -S ... public/index.php` every request comes here first: let the built-in
+// server send real files in public/ (CSS, JS, images) itself. Everything else, including
+// /uploads/... (kept outside public/), goes through the routes below.
+if (PHP_SAPI === 'cli-server') {
+    $static = realpath(__DIR__ . rawurldecode((string) parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH)));
+    if ($static !== false && is_file($static) && str_starts_with($static, __DIR__ . DIRECTORY_SEPARATOR) && !str_ends_with($static, '.php')) {
+        return false;
+    }
+}
+
 ini_set('session.use_strict_mode', '1'); // reject session IDs this server didn't issue
 session_set_cookie_params([
     'httponly' => true,
@@ -59,6 +69,7 @@ use App\Controllers\ProfileController;
 use App\Controllers\LandingController;
 use App\Controllers\AssistantController;
 use App\Controllers\InquiryController;
+use App\Controllers\StaffController;
 
 $router = new Router();
 
@@ -120,6 +131,18 @@ $router->add('POST', '/admin/boarders/{id}/dates', function ($id) {
 $router->add('POST', '/admin/boarders/{id}/notes', function ($id) {
     AuthMiddleware::require(); RoleMiddleware::require(['admin']);
     BoarderController::updateNotes($id);
+});
+$router->add('GET', '/admin/staff', function () {
+    AuthMiddleware::require(); RoleMiddleware::require(['admin']);
+    StaffController::index();
+});
+$router->add('POST', '/admin/staff', function () {
+    AuthMiddleware::require(); RoleMiddleware::require(['admin']);
+    StaffController::create();
+});
+$router->add('POST', '/admin/staff/{id}/status', function ($id) {
+    AuthMiddleware::require(); RoleMiddleware::require(['admin']);
+    StaffController::setStatus($id);
 });
 $router->add('GET', '/admin/rooms', function () {
     AuthMiddleware::require(); RoleMiddleware::require(['admin']);
@@ -292,6 +315,12 @@ $router->add('GET', '/portal/payments/new', function () {
 $router->add('POST', '/portal/payments', function () {
     AuthMiddleware::require(); RoleMiddleware::require(['boarder']);
     PaymentController::create();
+});
+
+// --- Uploaded receipts / repair photos (stored outside public/, access-checked) ---
+$router->add('GET', '/uploads/{subdir}/{file}', function ($subdir, $file) {
+    AuthMiddleware::require();
+    \App\Support\Uploads::serve($subdir, $file);
 });
 
 // --- Cross-role Profile & Account Management ---

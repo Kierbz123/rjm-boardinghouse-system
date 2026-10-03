@@ -23,6 +23,7 @@ $navSections = [
         'Boarding' => [
             ['href' => '/admin/boarders', 'label' => 'Boarders', 'icon' => 'boarders'],
             ['href' => '/admin/rooms', 'label' => 'Rooms & Beds', 'icon' => 'rooms'],
+            ['href' => '/admin/staff', 'label' => 'Staff Accounts', 'icon' => 'boarders'],
         ],
         'Finance' => [
             ['href' => '/admin/payments', 'label' => 'Payments', 'icon' => 'payments'],

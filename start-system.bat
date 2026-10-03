@@ -55,7 +55,7 @@ call :port_open %PORT%
 if not errorlevel 1 (
     echo       [INFO] Something is already serving port %PORT% - opening it.
 ) else (
-    start "RJM Boardinghouse - web server (keep this window open)" cmd /k ""%PHP%" -S 127.0.0.1:%PORT% -t public"
+    start "RJM Boardinghouse - web server (keep this window open)" cmd /k ""%PHP%" -S 127.0.0.1:%PORT% -t public public/index.php"
     call :wait_port %PORT% 15
 )
 

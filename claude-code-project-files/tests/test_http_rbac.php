@@ -260,6 +260,39 @@ echo "== Removed SSE stream; AI endpoints guarded (M2, M18) ==\n";
 check(http('GET', '/api/notifications/stream', $jars['admin'])['code'] === 404, 'stream endpoint gone');
 check(http('POST', '/api/assistant/summarize-queue', $jars['staff'], [])['code'] !== 200, 'summarize-queue now requires the CSRF token');
 
+echo "== Staff accounts page (decision 7b) ==\n";
+check(http('GET', '/admin/staff', $jars['admin'])['code'] === 200, 'admin opens Staff Accounts');
+check(http('GET', '/admin/staff', $jars['staff'])['code'] === 403, 'staff cannot manage staff');
+$token = csrfFrom(http('GET', '/admin/staff', $jars['admin'])['body']);
+http('POST', '/admin/staff', $jars['admin'], ['csrf_token' => $token, 'name' => 'New Staff', 'email' => 'newstaff@rjm.test', 'password' => 'StaffTemp123']);
+$newStaff = (int) $q("SELECT id FROM users WHERE email = 'newstaff@rjm.test' AND role = 'staff'");
+check($newStaff > 0, 'admin adds a staff member');
+$staffJar = loginAs('newstaff@rjm.test', 'StaffTemp123');
+check(http('GET', '/staff/dashboard', $staffJar)['code'] === 200, 'new staff member can log in');
+http('POST', "/admin/staff/{$newStaff}/status", $jars['admin'], ['csrf_token' => $token, 'status' => 'inactive']);
+check(http('GET', '/staff/dashboard', $staffJar)['code'] === 302, 'deactivating signs them out');
+check(http('GET', '/staff/dashboard', loginAs('newstaff@rjm.test', 'StaffTemp123'))['code'] === 302, 'deactivated staff cannot log in');
+http('POST', "/admin/staff/{$newStaff}/status", $jars['admin'], ['csrf_token' => $token, 'status' => 'active']);
+check($q("SELECT status FROM users WHERE id = {$newStaff}") === 'active', 'reactivation works');
+http('POST', '/admin/staff/1/status', $jars['admin'], ['csrf_token' => $token, 'status' => 'inactive']);
+check($q('SELECT status FROM users WHERE id = 1') === 'active', 'cannot deactivate a non-staff account from this page');
+
+echo "== Receipts are private (M12) ==\n";
+$receiptPath = (string) $q("SELECT proof_path FROM payments WHERE boarder_id = 3 AND proof_path IS NOT NULL ORDER BY id DESC LIMIT 1");
+check(str_starts_with($receiptPath, '/uploads/receipts/') && !is_file(__DIR__ . '/../public' . $receiptPath), 'receipt stored outside the web root');
+$ownerJar = loginAs('boarder@rjm.test', 'BoarderPass123!');
+check(http('GET', $receiptPath, $ownerJar)['code'] === 200, 'the boarder who paid can view it');
+check(http('GET', $receiptPath, $jars['admin'])['code'] === 200, 'admins can view it');
+check(http('GET', $receiptPath, $jars['staff'])['code'] === 404, 'staff cannot view receipts');
+check(http('GET', $receiptPath, loginAs('holder@rjm.test', 'Password123'))['code'] === 404, 'another boarder cannot view it');
+check(http('GET', $receiptPath, null)['code'] === 302, 'anonymous visitors are sent to login');
+check(http('GET', '/uploads/receipts/..%2F..%2F.env', $jars['admin'])['code'] === 404, 'path tricks are refused');
+
+echo "== Small fixes (L1, decision 8) ==\n";
+check(http('HEAD', '/login', null)['code'] === 200, 'HEAD /login works');
+$home = http('GET', '/', null)['body'];
+check(!str_contains($home, '99.9%') && !str_contains($home, '< 15 mins'), 'landing shows no invented figures');
+
 echo "== App and database clocks agree (H3) ==\n";
 check($pdo->query("SELECT DATE_FORMAT(NOW(), '%Y-%m-%d %H:%i')")->fetchColumn() === date('Y-m-d H:i'), 'NOW() matches PHP date()');
 

@@ -8,7 +8,7 @@ A boardinghouse management system: rent/payments, maintenance requests with loca
 ## Non-negotiable constraints
 - **Localhost only.** No cloud hosting, no public deployment.
 - **No outbound internet calls from the running app.** Both "AI" features (repair priority scoring, payment verification) are local rule-based logic — never a call to an external LLM/API. See `ARCHITECTURE.md` §3.2 for the exact contracts and what to do if a local service is unreachable (fail closed, never auto-approve).
-- **Stack:** HTML/CSS/JS frontend (Tailwind CSS for styling, GSAP for animation — see `UI-LIBRARY-EVALUATION.md`) · PHP backend (system of record, only thing the browser talks to) · a small **stateless** Python microservice for the two scoring/verification features only · MariaDB (PHP is the only writer).
+- **Stack:** HTML/CSS/JS frontend (Tailwind CSS for styling, GSAP for animation — see `UI-LIBRARY-EVALUATION.md`) · PHP backend (system of record, only thing the browser talks to) · MariaDB. Repair-priority scoring and payment checks are local PHP rules (`src/Services/ScoringClient.php`, `BillingService`); there is no Python service.
 
 ## How we work each session
 1. Start each phase in **Plan Mode** (`Shift+Tab` until the status bar shows `⏸ plan mode on`). Read `PHASES.md`, confirm which phase is next, and don't implement until the plan looks right.
@@ -21,21 +21,20 @@ A boardinghouse management system: rent/payments, maintenance requests with loca
 If you're ever unsure whether to keep going or ask: prefer asking when the ambiguity is a constraint (localhost/offline, tech stack) rather than an implementation detail (variable names, file layout) — pick a reasonable default for the latter and note it in the Progress Log.
 
 ## Commands (can't be guessed from the code)
-- PHP dev server: `php -S localhost:8080 -t public` — requires the **`php-curl`** extension enabled (`ScoringClient`/`VerificationClient` depend on it; a bare `apt install php-cli` does NOT include it — `apt install php-curl` separately, or use a full XAMPP/WAMP bundle which includes it by default).
-- Python service: `cd scoring_service && python3 -m venv venv && source venv/bin/activate && pip install -r requirements.txt && python3 main.py` (runs on `localhost:5000`)
+- PHP dev server: `php -S 127.0.0.1:8000 -t public public/index.php` (the router argument is required; on Windows just run `start-system.bat`). `php-curl` is only needed for the optional Ollama assistant.
 - PHP lint a file: `php -l path/to/file.php`
-- DB: apply migrations in `database/migrations/` in filename order against a local MariaDB instance (`mysql -u root boardinghouse < database/migrations/0001_....sql`)
-- Browser verification: use the `webapp-testing` skill (Playwright) against the running localhost app, not manual eyeballing
+- DB: `php database/migrate.php` applies new migrations and records them in `schema_migrations`; never edit an applied migration
+- Tests: `php tests/run.php` (throwaway `_test` database + private server; never run test files directly)
+- Browser verification: drive the running localhost app in a browser, not manual eyeballing
 
 ## Hard rules (also backstopped by hooks in `.claude/settings.json`)
 - PDO prepared statements only. Never string-concatenated SQL.
 - `password_hash()` / `password_verify()` only for credentials.
 - CSRF token on every state-changing form.
-- Python service binds `127.0.0.1` only, never `0.0.0.0`.
-- Never auto-approve a payment, or upgrade a repair request's priority, when the scoring/verification service is unreachable — record it as pending/medium and flag for human review instead.
+- Never auto-approve a payment: every boarder payment waits for an admin (amount mismatches are only flagged).
 
 ## Path-scoped conventions
-Coding conventions for PHP and Python live in `.claude/rules/` and load automatically only when you're touching matching files — see `.claude/rules/php-conventions.md` and `.claude/rules/python-conventions.md` rather than duplicating them here.
+Coding conventions for PHP live in `.claude/rules/php-conventions.md` and load automatically when you touch `*.php` files.
 
 ## File map
 | File | Read it when |
@@ -43,12 +42,11 @@ Coding conventions for PHP and Python live in `.claude/rules/` and load automati
 | `PROJECT_STRUCTURE.md` | Creating any new file — confirms where it belongs and what's already scaffolded vs. still to build |
 | `UI-LIBRARY-EVALUATION.md` | Building any UI/animation — why Tailwind + GSAP were chosen over the alternatives |
 | `FEATURES.md` | Implementing any of the 11 features — full functional spec per feature |
-| `ARCHITECTURE.md` | Working on anything crossing PHP↔Python↔MariaDB, or need the DB schema / sequence diagrams |
+| `ARCHITECTURE.md` | Original design, schema and sequence diagrams (historical: the Python service it describes was removed) |
 | `PHASES.md` | Start of every session — confirms current phase and its verification criteria |
 | `.claude/rules/php-conventions.md` | Auto-loads when editing `*.php` |
-| `.claude/rules/python-conventions.md` | Auto-loads when editing files under `scoring_service/` |
 | `.claude/agents/security-reviewer.md` | Dispatch explicitly before closing a phase touching auth/payments/uploads |
 
 ## What NOT to do
-- Don't reproduce the mcp-builder / canvas-design / web-artifacts-builder skill patterns here — this is a server-rendered local PHP/Python app, not an MCP server, a poster, or a claude.ai artifact.
+- Don't reproduce the mcp-builder / canvas-design / web-artifacts-builder skill patterns here — this is a server-rendered local PHP app, not an MCP server, a poster, or a claude.ai artifact.
 - Don't add SMS/email notifications, cloud storage, or a real LLM API call anywhere without the user explicitly changing the localhost-only constraint first.

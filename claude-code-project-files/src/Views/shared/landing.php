@@ -92,7 +92,7 @@ $roomTiers = $roomTiers ?? [
         'cta_label'   => 'Inquire for Bedspace'
     ]
 ];
-$stats = $stats ?? ['total_rooms' => 12, 'total_beds' => 24, 'vacant_beds' => 6, 'security_uptime' => '99.9%', 'ai_response' => '< 15 mins'];
+$stats = $stats ?? ['total_rooms' => 0, 'total_beds' => 0, 'vacant_beds' => 0];
 $inquirySuccess = $inquirySuccess ?? null;
 $inquiryError = $inquiryError ?? null;
 ?>
@@ -1948,7 +1948,7 @@ $inquiryError = $inquiryError ?? null;
             <!-- Metrics -->
             <div class="metrics-row">
                 <div>
-                    <div class="metric-val"><?= (int) ($stats['vacant_beds'] ?? 6) ?> Beds</div>
+                    <div class="metric-val"><?= (int) ($stats['vacant_beds'] ?? 0) ?> Beds</div>
                     <div class="metric-label">Immediate Room Vacancies</div>
                 </div>
                 <div>
@@ -2670,11 +2670,11 @@ $inquiryError = $inquiryError ?? null;
                         feedbackEl.style.display = 'block';
                         if (response.ok && result.success) {
                             feedbackEl.className = 'contact-alert success';
-                            feedbackEl.innerHTML = `<svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg> <span>${result.message}</span>`;
+                            feedbackEl.innerHTML = `<svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg> <span>${String(result.message).replace(/[&<>"']/g, c => '&#' + c.charCodeAt(0) + ';')}</span>`;
                             inquiryForm.reset();
                         } else {
                             feedbackEl.className = 'contact-alert error';
-                            feedbackEl.innerHTML = `<svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg> <span>${result.error || 'Failed to submit inquiry. Please try again or call us directly.'}</span>`;
+                            feedbackEl.innerHTML = `<svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg> <span>${String(result.error || 'Failed to submit inquiry. Please try again or call us directly.').replace(/[&<>"']/g, c => '&#' + c.charCodeAt(0) + ';')}</span>`;
                         }
                     } catch (err) {
                         feedbackEl.style.display = 'block';

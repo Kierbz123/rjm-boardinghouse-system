@@ -37,7 +37,7 @@ foreach (['database/migrate.php', 'database/seed.php'] as $script) {
 }
 
 $server = proc_open(
-    [$php, '-S', "127.0.0.1:{$port}", '-t', "{$root}/public"],
+    [$php, '-S', "127.0.0.1:{$port}", '-t', "{$root}/public", "{$root}/public/index.php"],
     [1 => ['file', 'NUL', 'w'], 2 => ['file', 'NUL', 'w']],
     $pipes,
     $root
@@ -51,8 +51,8 @@ if (!in_array('--with-ai', $argv, true)) {
     $tests = array_filter($tests, fn ($t) => basename($t) !== 'test_ai_assistant.php');
 }
 
-// Uploads from test requests land in the real public/uploads; remove them afterwards.
-$uploadsBefore = glob("{$root}/public/uploads/*/*");
+// Uploads from test requests land in the real storage/uploads; remove them afterwards.
+$uploadsBefore = glob("{$root}/storage/uploads/*/*");
 
 $failed = [];
 foreach ($tests as $test) {
@@ -64,7 +64,7 @@ foreach ($tests as $test) {
 }
 
 proc_terminate($server);
-array_map('unlink', array_diff(glob("{$root}/public/uploads/*/*"), $uploadsBefore));
+array_map('unlink', array_diff(glob("{$root}/storage/uploads/*/*"), $uploadsBefore));
 
 echo "\n" . str_repeat('=', 50) . "\n";
 echo count($tests) - count($failed) . '/' . count($tests) . " test files passed.\n";

@@ -290,7 +290,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     feedbackEl.style.background = '#f0fdf4';
                     feedbackEl.style.border = '1px solid #bbf7d0';
                     feedbackEl.style.color = '#166534';
-                    feedbackEl.innerHTML = `<svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="width: 1rem; height: 1rem; display: inline-block; vertical-align: middle; margin-right: 0.5rem;"><polyline points="20 6 9 17 4 12"/></svg> <span>${result.message}</span>`;
+                    feedbackEl.innerHTML = `<svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="width: 1rem; height: 1rem; display: inline-block; vertical-align: middle; margin-right: 0.5rem;"><polyline points="20 6 9 17 4 12"/></svg> <span>${String(result.message).replace(/[&<>"']/g, c => '&#' + c.charCodeAt(0) + ';')}</span>`;
                     inquiryForm.reset();
                     
                     // Refresh page after short delay to show updated notifications
@@ -302,7 +302,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     feedbackEl.style.background = '#fef2f2';
                     feedbackEl.style.border = '1px solid #fecaca';
                     feedbackEl.style.color = '#991b1b';
-                    feedbackEl.innerHTML = `<svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="width: 1rem; height: 1rem; display: inline-block; vertical-align: middle; margin-right: 0.5rem;"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg> <span>${result.error || 'Failed to submit inquiry. Please try again.'}</span>`;
+                    feedbackEl.innerHTML = `<svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="width: 1rem; height: 1rem; display: inline-block; vertical-align: middle; margin-right: 0.5rem;"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg> <span>${String(result.error || 'Failed to submit inquiry. Please try again.').replace(/[&<>"']/g, c => '&#' + c.charCodeAt(0) + ';')}</span>`;
                 }
             } catch (err) {
                 feedbackEl.style.display = 'block';

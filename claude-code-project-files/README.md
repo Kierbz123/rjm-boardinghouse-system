@@ -1,74 +1,50 @@
 # RJM Boardinghouse Rent, Maintenance and Security Management System
 
-A localhost web application for managing a boardinghouse: rent and payments, maintenance requests with automatic priority scoring, emergency SOS alerts, expense tracking, occupancy trends, bed-level room mapping, penalty automation, and notifications — across three roles (Admin, Maintenance Staff, Boarder).
+A localhost web application for running a boardinghouse: rent and payments, maintenance requests with automatic priority scoring, emergency SOS alerts, incidents, expenses, occupancy trends, bed-level room mapping, late fees and penalties, room inquiries and notifications — for three roles (Admin, Staff, Boarder).
 
-Built as a capstone project. Runs entirely on your own machine — no cloud hosting, no external APIs, no internet dependency once set up.
+Built as a capstone project. Runs entirely on your own machine: no cloud hosting, no external APIs. The only optional extra is a local [Ollama](https://ollama.com) model for the AI helper buttons; everything works without it.
 
-## Tech Stack
+## Tech stack
 
-- **Frontend:** HTML, CSS (Tailwind), JavaScript (GSAP for animation)
-- **Backend:** PHP 8.3 (main application) + Python (FastAPI microservice for repair-priority scoring and payment verification)
-- **Database:** MariaDB
+- **Backend:** PHP 8.2+ (no framework, no Composer) — `public/index.php` is the single entry point and route table.
+- **Database:** MariaDB / MySQL (XAMPP's is fine). Schema lives in `database/migrations/`, applied by `database/migrate.php`.
+- **Frontend:** server-rendered PHP views, Tailwind CSS (precompiled to `public/assets/css/app.css`) and GSAP, both served locally.
 
-## Prerequisites
+## Quick start on Windows with XAMPP
 
-Install these on your machine first:
-- PHP 8.3+ with the **`php-curl`**, `php-mysql`, `php-mbstring`, and `php-xml` extensions (a bare `apt install php-cli` is missing `php-curl` — the app needs it to talk to the Python service)
-- MariaDB (or MySQL 8+)
-- Python 3.10+
-- (Optional, for automated testing) `pip install playwright && playwright install chromium`
+1. Install [XAMPP](https://www.apachefriends.org) (includes PHP and MySQL) and start **MySQL** in the XAMPP Control Panel.
+2. Create the database once:
+   ```
+   C:\xampp\mysql\bin\mysql -uroot -e "CREATE DATABASE IF NOT EXISTS rjm_boardinghouse CHARACTER SET utf8mb4;"
+   ```
+3. Double-click **`start-system.bat`** in the repository root. It checks PHP and MySQL, applies any new migrations, starts the app and opens `http://127.0.0.1:8000`.
+4. First time only, create the demo accounts: `C:\xampp\php\php.exe database\seed.php` (run inside `claude-code-project-files`).
 
-## Setup
+Keep the "web server" window open while you use the system; close it to stop.
 
-**1. Extract this project** into a folder and open a terminal there.
+## Manual setup (any OS)
 
-**2. Create the database:**
 ```bash
-mysql -u root -e "CREATE DATABASE rjm_boardinghouse CHARACTER SET utf8mb4;"
-```
-If your MariaDB's `root` account is set to `unix_socket` auth (common on Debian/Ubuntu), TCP connections with a blank password will fail. Create a dedicated app user instead:
-```bash
-mysql -u root -e "CREATE USER 'boardinghouse_app'@'127.0.0.1' IDENTIFIED BY 'your_password_here'; GRANT ALL PRIVILEGES ON rjm_boardinghouse.* TO 'boardinghouse_app'@'127.0.0.1'; FLUSH PRIVILEGES;"
-```
+# 1. database (use a dedicated user if your root account can't log in over TCP)
+mysql -uroot -e "CREATE DATABASE IF NOT EXISTS rjm_boardinghouse CHARACTER SET utf8mb4;"
 
-**3. Apply the migrations, in order:**
-```bash
-for f in database/migrations/*.sql; do mysql -u root rjm_boardinghouse < "$f"; done
-```
+# 2. connection settings — the app reads real environment variables (it does NOT load .env)
+export DB_HOST=127.0.0.1 DB_PORT=3306 DB_NAME=rjm_boardinghouse DB_USER=root DB_PASS=
+# optional: APP_TIMEZONE (default Asia/Manila)
 
-**4. Configure your environment:**
-```bash
-cp .env.example .env
-```
-Edit `.env` with your DB credentials from step 2.
-
-**5. Seed demo accounts and sample data:**
-```bash
-export DB_HOST=127.0.0.1 DB_PORT=3306 DB_NAME=rjm_boardinghouse DB_USER=boardinghouse_app DB_PASS=your_password_here
+# 3. schema + demo data
+php database/migrate.php
 php database/seed.php
+
+# 4. run (index.php doubles as the router so private uploads are served through the app)
+php -S 127.0.0.1:8000 -t public public/index.php
 ```
 
-**6. Start the Python scoring service** (in its own terminal):
-```bash
-cd scoring_service
-python3 -m venv venv
-source venv/bin/activate        # Windows: venv\Scripts\activate
-pip install -r requirements.txt
-python3 main.py
-```
-This runs on `http://127.0.0.1:5000` and must stay running for repair-priority scoring and payment verification to work — but the app is designed to degrade safely if it's down (see "What happens if the Python service isn't running" below), not crash.
+`database/migrate.php` records what it applied in a `schema_migrations` table, so it is safe to run on every start.
 
-**7. Start the PHP app** (in another terminal, from the project root):
-```bash
-export DB_HOST=127.0.0.1 DB_PORT=3306 DB_NAME=rjm_boardinghouse DB_USER=boardinghouse_app DB_PASS=your_password_here SCORING_SERVICE_URL=http://127.0.0.1:5000
-php -S localhost:8080 -t public
-```
+## Demo accounts
 
-**8. Open `http://localhost:8080`** in your browser.
-
-## Demo Accounts
-
-Created by `database/seed.php`:
+Created by `database/seed.php` (change these before real use):
 
 | Role | Email | Password |
 |---|---|---|
@@ -76,45 +52,61 @@ Created by `database/seed.php`:
 | Staff | `staff@rjm.test` | `StaffPass123!` |
 | Boarder | `boarder@rjm.test` | `BoarderPass123!` |
 
-The seeded boarder is already assigned to Room 101 / Bed A. There's no public sign-up — new accounts (staff or boarders) are created by an Admin from the Boarders page, which is the intended model for this kind of system.
+There is no public sign-up. Admins create boarders (Boarders page) and staff (Staff Accounts page).
 
-## A Walkthrough for Demoing Each Feature
+## How billing works
 
-1. **Smart AI Repair Priority System** — log in as the boarder, go to *Report a Repair*, submit something containing a word like "gas leak" or "fire" and something mundane like "squeaky hinge." Log in as staff and check the *Maintenance Queue* — the urgent one should sort to the top, tagged Critical/High.
-2. **Emergency SOS** — as the boarder, hit the red SOS button on the dashboard. As staff, the alert appears on the dashboard with the boarder's room number; acknowledging it notifies the boarder back.
-3. **Command Center** — the Admin dashboard aggregates pending payments, open requests by priority, active SOS count, and recent expenses in one view.
-4. **Expense Logging** / **5. Ledger Export** — log an expense as Admin, then use *Export Ledger (CSV)* on the Payments page to download a combined record of payments, expenses, and penalties.
-5. **Occupancy Trend** — Admin → Occupancy shows bed occupancy over time.
-6. **Proof of Payment Verifier** — as the boarder, submit a payment with the claimed amount matching vs. not matching the expected rent, and watch the verification status differ (auto-matched vs. flagged) on the Admin Payments page.
-7. **Detailed Bed Mapping** — Admin → Rooms & Beds shows occupancy at the individual bed level, and rejects assigning an already-occupied bed.
-8. **Penalty Automation** — Admin → Penalty Rules, add a rule, then use *Run Penalty Check* (no cron on localhost, so this is a manual/on-login trigger by design).
-9. **Status Life System** — change a boarder's status on the Boarders page; the bed frees automatically on "moved_out," and the change is logged with who/when/why.
-10. **Notifications** — the bell icon in the top nav polls for updates; resolving a maintenance request or acknowledging an SOS notifies the relevant boarder.
+- Rent is charged **every month from the move-in date** (to the move-out date). Unpaid months carry over.
+- **Partial months are prorated by days** (moving in on the 11th of a 30-day month = 20/30 of the rent).
+- Rent is due on the **5th**. *Run Penalty Check* (Admin → Penalties) adds at most **one late fee per boarder per rule per month**; re-running only updates it to today's days late.
+- Boarders submit a receipt photo; **every payment waits for an admin** (it is flagged if the amount differs from what is owed). Approved payments are applied oldest-first: rent months, then penalties. Overpayment becomes credit. An admin can **reverse** an approved payment and the balance is recalculated.
+- A month keeps the room price it was billed at, even if the room price changes later.
 
-## What happens if the Python service isn't running
+## Walkthrough for a demo
 
-The app is deliberately built to **fail closed**, not crash, if `scoring_service` is down:
-- A submitted maintenance request still saves, defaulting to **Medium** priority with a visible "not yet AI-scored" flag for staff.
-- A submitted payment stays in **Pending** status for manual admin review — it is never auto-approved just because the checker was unreachable.
+1. **Repair priority** — as the boarder, *Report a Repair*; the live preview scores the text ("gas leak", "sparking outlet" vs "squeaky hinge"). Staff see the queue sorted by priority.
+2. **Emergency SOS** — the boarder's SOS button alerts staff with room and bed; acknowledging/resolving notifies the boarder.
+3. **Payments** — boarder submits a receipt; admin approves or rejects it on *Payments*; the boarder's balance updates.
+4. **Penalties** — admin issues a penalty or runs the late-fee check.
+5. **Rooms & beds** — bed-level occupancy; a bed can't be double-booked or exceed room capacity.
+6. **Resident lifecycle** — status changes are logged; *Remove* archives residents with payment history (restorable) and deletes only those with none.
+7. **Inquiries** — the public landing page form stores inquiries for admins (spam-protected).
+8. **Ledger** — *Export Ledger (CSV)* lists payments received, expenses and penalties with separate totals.
 
-## Automated Tests
+## Tests
 
-Real Playwright scripts exist for every phase in `tests/playwright/` — see that folder's `README.md` for how to run them. They haven't been run yet in a real browser as of this build; that's the natural next step once you have the app running locally.
+```bash
+php tests/run.php            # add --with-ai to include the Ollama test
+```
 
-## Project Documentation
+The runner never touches your real data: it rebuilds a throwaway `<DB_NAME>_test` database from the migrations and seed, starts a private server on port 8099, runs every `tests/test_*.php` (billing rules, scoring, roles/permissions, security headers, end-to-end HTTP flows) and removes any uploads it created. Lint everything with `php -l`.
 
-This README covers running the app. For anything about *how* and *why* it's built the way it is:
-- `PROJECT_STRUCTURE.md` — full annotated folder layout
-- `ARCHITECTURE.md` — component/connector diagrams, database schema, sequence diagrams
-- `FEATURES.md` — full functional spec per feature
-- `PHASES.md` — build history and exactly what has and hasn't been verified
-- `UI-LIBRARY-EVALUATION.md` — why Tailwind + GSAP were chosen
-- `Design-Decisions-Rationale.md` — methodology write-up, suitable for a report's system-design chapter
+## Deploying (local network / another PC)
 
-`CLAUDE.md` and the `.claude/` folder are project instructions for Claude Code specifically — not needed to just run the app, only relevant if you continue developing it with Claude Code's help.
+This system is designed for a single machine (localhost). To move it:
+1. Copy the repository, create the database, and run `php database/migrate.php` (and `seed.php` only for a demo).
+2. Change the demo passwords, and use a database user with a password instead of `root`.
+3. Uploaded receipts and repair photos are in `claude-code-project-files/storage/uploads/` (outside the web root) — back that folder up with the database (`mysqldump rjm_boardinghouse`).
+4. If you put it behind Apache instead of `php -S`, point the site's DocumentRoot at `claude-code-project-files/public` (never the repository root) and serve it over HTTPS; session cookies then become `Secure` automatically.
 
-## Known Limitations
+## Project layout
 
-- No self-service account registration (by design — see `FEATURES.md`).
-- OCR/text-extraction from payment receipt images is out of scope; verification is amount-matching only.
-- No automated task scheduler — penalty checks and rent-due reminders are manually triggered from the Admin panel, since a real cron daemon isn't guaranteed on a localhost dev setup.
+```
+claude-code-project-files/
+  public/            index.php (routes + front controller), assets/
+  src/Controllers/   thin HTTP handlers
+  src/Models/        database access (PDO, prepared statements only)
+  src/Services/      billing, penalties, scoring, notifications, ledger, AI client
+  src/Views/         server-rendered pages (admin/, staff/, portal/, shared/)
+  database/          migrations/, migrate.php, seed.php, backups/ (git-ignored)
+  storage/uploads/   receipts and repair photos (private, git-ignored)
+  tests/             run.php + test_*.php
+```
+
+`ARCHITECTURE.md`, `FEATURES.md` and `PROJECT_STRUCTURE.md` describe the original design; `PHASES.md`, `QA-VALIDATION-REPORT.md` and `DEBUGGING-REPORT.md` are the build history. `CLAUDE.md` and `.claude/` are instructions for AI-assisted development only.
+
+## Known limitations
+
+- No automatic scheduler: late-fee checks and rent reminders are run from the Admin panel.
+- Receipt verification is a human decision; the system only flags amount mismatches (no OCR).
+- The login page's "open on your phone" QR code only works if the server is reachable from the phone's network; `start-system.bat` serves on `127.0.0.1` (this machine only) by design.

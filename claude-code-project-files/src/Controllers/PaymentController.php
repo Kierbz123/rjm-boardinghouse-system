@@ -96,9 +96,9 @@ class PaymentController
     {
         $payments = Payment::all();
         // Attach payment allocation breakdown to each payment
-        $pdo = Database::getConnection();
+        $allocations = PaymentAllocationService::allGroupedByPayment();
         foreach ($payments as &$p) {
-            $p['allocations'] = PaymentAllocationService::getAllocationsForPayment((int) $p['id'], $pdo);
+            $p['allocations'] = $allocations[(int) $p['id']] ?? [];
         }
         unset($p);
 
