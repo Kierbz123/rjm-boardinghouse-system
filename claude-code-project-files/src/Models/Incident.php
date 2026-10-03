@@ -23,12 +23,16 @@ class Incident
         return $row ?: null;
     }
 
-    public static function all(): array
+    /** $reportedBy limits the list to one reporter (boarders only ever see their own). */
+    public static function all(?int $reportedBy = null): array
     {
         $sql = 'SELECT incidents.*, users.name AS reporter_name
-                FROM incidents JOIN users ON users.id = incidents.reported_by
-                ORDER BY incidents.created_at DESC';
-        return Database::getConnection()->query($sql)->fetchAll();
+                FROM incidents JOIN users ON users.id = incidents.reported_by'
+            . ($reportedBy !== null ? ' WHERE incidents.reported_by = ?' : '')
+            . ' ORDER BY incidents.created_at DESC';
+        $stmt = Database::getConnection()->prepare($sql);
+        $stmt->execute($reportedBy !== null ? [$reportedBy] : []);
+        return $stmt->fetchAll();
     }
 
     public static function resolve(int $id, string $notes, int $userId = 0): void
@@ -39,7 +43,7 @@ class Incident
         $stmt->execute([$notes, $userId ?: null, $id]);
     }
 
-    public static function allWithDetails(int $limit = 50, int $offset = 0): array
+    public static function allWithDetails(int $limit = 50, int $offset = 0, ?int $reportedBy = null): array
     {
         $sql = "SELECT incidents.*,
                 users.name AS reporter_name,
@@ -47,18 +51,22 @@ class Incident
                 resolver.name AS resolver_name
                 FROM incidents
                 JOIN users ON users.id = incidents.reported_by
-                LEFT JOIN users resolver ON resolver.id = incidents.resolved_by
-                ORDER BY incidents.created_at DESC
+                LEFT JOIN users resolver ON resolver.id = incidents.resolved_by"
+            . ($reportedBy !== null ? ' WHERE incidents.reported_by = ?' : '')
+            . " ORDER BY incidents.created_at DESC
                 LIMIT ? OFFSET ?";
         $stmt = Database::getConnection()->prepare($sql);
-        $stmt->execute([$limit, $offset]);
+        $stmt->execute($reportedBy !== null ? [$reportedBy, $limit, $offset] : [$limit, $offset]);
         return $stmt->fetchAll();
     }
 
-    public static function countAll(): int
+    public static function countAll(?int $reportedBy = null): int
     {
-        $sql = "SELECT COUNT(*) FROM incidents";
-        return (int) Database::getConnection()->query($sql)->fetchColumn();
+        $stmt = Database::getConnection()->prepare(
+            'SELECT COUNT(*) FROM incidents' . ($reportedBy !== null ? ' WHERE reported_by = ?' : '')
+        );
+        $stmt->execute($reportedBy !== null ? [$reportedBy] : []);
+        return (int) $stmt->fetchColumn();
     }
 
     public static function allForBoarder(int $boarderId, int $limit = 10): array

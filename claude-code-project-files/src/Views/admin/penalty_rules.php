@@ -6,8 +6,8 @@ $error = $_SESSION['flash_error'] ?? null; unset($_SESSION['flash_error']);
 
 // Compute summary metrics
 $totalRules = count($rules ?? []);
-$activeRules = count(array_filter($rules ?? [], fn($r) => !empty($r['active'])));
-$inactiveRules = $totalRules - $activeRules;
+$activeRuleCount = count(array_filter($rules ?? [], fn($r) => !empty($r['active'])));
+$inactiveRules = $totalRules - $activeRuleCount;
 
 // Find late fee policy
 $lateRule = null;
@@ -65,7 +65,7 @@ $totalPenaltyAmount = array_sum(array_map(fn($p) => (float) ($p['amount'] ?? 0),
                 <span class="text-caption font-semibold text-neutral-500 uppercase tracking-wider">Active Rules</span>
                 <span style="font-size:1.1rem; line-height:1;">🟢</span>
             </div>
-            <p class="text-3xl font-bold text-neutral-900 mt-1" style="font-variant-numeric: tabular-nums;"><?= $activeRules ?></p>
+            <p class="text-3xl font-bold text-neutral-900 mt-1" style="font-variant-numeric: tabular-nums;"><?= $activeRuleCount ?></p>
             <p class="text-caption text-neutral-400 mt-1">Enforced currently</p>
         </div>
         <div class="reveal-card card p-4 metric-accent-warning">
@@ -113,7 +113,7 @@ $totalPenaltyAmount = array_sum(array_map(fn($p) => (float) ($p['amount'] ?? 0),
                 <span class="text-caption font-semibold text-neutral-500 uppercase tracking-wider">Active Rules</span>
                 <span style="font-size:1.1rem; line-height:1;">📜</span>
             </div>
-            <p class="text-3xl font-bold text-neutral-900 mt-1" style="font-variant-numeric: tabular-nums;"><?= $activeRules ?></p>
+            <p class="text-3xl font-bold text-neutral-900 mt-1" style="font-variant-numeric: tabular-nums;"><?= $activeRuleCount ?></p>
             <p class="text-caption text-neutral-400 mt-1">Late rent &amp; fee rules</p>
         </div>
         <div class="reveal-card card p-4 metric-accent-info">

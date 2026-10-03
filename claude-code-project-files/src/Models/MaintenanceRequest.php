@@ -6,6 +6,10 @@ use App\Database;
 
 class MaintenanceRequest
 {
+    /** Must match the ENUMs in 0007_create_maintenance_requests.sql. */
+    public const CATEGORIES = ['electrical', 'plumbing', 'structural', 'appliance', 'other'];
+    public const STATUSES = ['open', 'in_progress', 'resolved'];
+
     public static function create(array $data): int
     {
         $stmt = Database::getConnection()->prepare(

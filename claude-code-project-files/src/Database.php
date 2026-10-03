@@ -28,6 +28,8 @@ class Database
                 \PDO::ATTR_DEFAULT_FETCH_MODE => \PDO::FETCH_ASSOC,
                 \PDO::ATTR_EMULATE_PREPARES   => false,
             ]);
+            // NOW()/CURDATE() must agree with PHP's date() (set in autoload.php).
+            self::$instance->exec("SET time_zone = '" . date('P') . "'");
         }
 
         return self::$instance;

@@ -89,7 +89,7 @@ class Notification
         return (int) $stmt->fetchColumn() > 0;
     }
 
-    public static function broadcastToStaff(string $type, string $message, string $details = '', ?string $actionUrl = null): void
+    public static function broadcastToStaff(string $type, string $message, string $details = '', ?string $actionUrl = null, ?string $entityType = null, ?int $entityId = null): void
     {
         $pdo = Database::getConnection();
         $stmt = $pdo->prepare('SELECT id FROM users WHERE role IN ("staff", "admin")');
@@ -98,7 +98,7 @@ class Notification
 
         foreach ($staffUsers as $user) {
             $fullMessage = $details ? "{$message} ({$details})" : $message;
-            self::create((int) $user['id'], $type, $fullMessage, $actionUrl);
+            self::create((int) $user['id'], $type, $fullMessage, $actionUrl, $entityType, $entityId);
         }
     }
 

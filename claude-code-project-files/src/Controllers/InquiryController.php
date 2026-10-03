@@ -14,7 +14,7 @@ class InquiryController
     public static function adminCenter(): void
     {
         $userId = (int) ($_SESSION['user_id'] ?? 0);
-        $userName = $_SESSION['user_name'] ?? 'Staff';
+        $userName = $_SESSION['name'] ?? 'Staff';
         $userRole = $_SESSION['role'] ?? '';
 
         // Get notifications for the current user
@@ -75,7 +75,7 @@ class InquiryController
         $message = trim((string) ($_POST['message'] ?? ''));
         $staffNotes = trim((string) ($_POST['staff_notes'] ?? ''));
 
-        $staffName = $_SESSION['user_name'] ?? 'Staff';
+        $staffName = $_SESSION['name'] ?? 'Staff';
 
         $isJson = isset($_SERVER['HTTP_ACCEPT']) && str_contains($_SERVER['HTTP_ACCEPT'], 'application/json');
 

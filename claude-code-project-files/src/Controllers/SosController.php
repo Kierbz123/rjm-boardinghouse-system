@@ -21,13 +21,23 @@ class SosController
         }
 
         $boarderId = (int) $_SESSION['user_id'];
-        $profile = BoarderProfile::find($boarderId);
-        $roomId = $profile['room_id'] ?? null;
+
+        // Repeated presses while help is already on the way don't page staff again.
+        $open = SosAlert::recentOpenFor($boarderId);
+        if ($open) {
+            echo json_encode(['ok' => true, 'alert_id' => (int) $open['id']]);
+            return;
+        }
+
+        $profile = BoarderProfile::findWithFullDetails($boarderId);
+        $roomId = !empty($profile['room_id']) ? (int) $profile['room_id'] : null;
 
         $id = SosAlert::create($boarderId, $roomId);
 
         // Notify staff & admin about SOS alert with deep link
-        $roomInfo = $roomId ? "Room {$roomId}" : null;
+        $roomInfo = $profile && $profile['room_number'] !== null
+            ? $profile['room_number'] . ($profile['bed_label'] ? ' / ' . $profile['bed_label'] : '')
+            : null;
         NotificationDispatcher::emergencySosTriggered($id, $boarderId, $roomInfo);
 
         echo json_encode(['ok' => true, 'alert_id' => $id]);
@@ -46,9 +56,8 @@ class SosController
             echo 'Invalid session, please retry.';
             return;
         }
-        SosAlert::acknowledge((int) $id, (int) $_SESSION['user_id']);
-        $alert = SosAlert::find((int) $id);
-        if ($alert) {
+        if (SosAlert::acknowledge((int) $id, (int) $_SESSION['user_id'])) {
+            $alert = SosAlert::find((int) $id);
             NotificationDispatcher::sosAcknowledged((int) $alert['boarder_id'], (int) $id);
         }
         header('Location: /staff/dashboard');
@@ -62,9 +71,8 @@ class SosController
             echo 'Invalid session, please retry.';
             return;
         }
-        SosAlert::resolve((int) $id);
-        $alert = SosAlert::find((int) $id);
-        if ($alert) {
+        if (SosAlert::resolve((int) $id)) {
+            $alert = SosAlert::find((int) $id);
             NotificationDispatcher::sosResolved((int) $alert['boarder_id'], (int) $id);
         }
         header('Location: /staff/dashboard');

@@ -9,9 +9,15 @@ use App\Support\Csrf;
 
 class IncidentController
 {
+    /** Boarders may file and follow their own reports, never see anyone else's. */
+    private static function reporterScope(): ?int
+    {
+        return ($_SESSION['role'] ?? '') === 'boarder' ? (int) $_SESSION['user_id'] : null;
+    }
+
     public static function index(): void
     {
-        $incidents = Incident::all();
+        $incidents = Incident::all(self::reporterScope());
         require __DIR__ . '/../Views/staff/incidents.php';
     }
 
@@ -23,9 +29,9 @@ class IncidentController
             echo 'Invalid session, please retry.';
             return;
         }
-        $type = trim((string) $_POST['type']);
-        $description = trim((string) $_POST['description']);
-        if ($type === '' || $description === '') {
+        $type = trim((string) ($_POST['type'] ?? ''));
+        $description = trim((string) ($_POST['description'] ?? ''));
+        if ($type === '' || $description === '' || mb_strlen($description) > 5000) {
             $_SESSION['flash_error'] = 'Type and description are both required.';
             header('Location: /staff/incidents');
             exit;
@@ -69,6 +75,11 @@ class IncidentController
         }
         $userId = (int) ($_SESSION['user_id'] ?? 0);
         $inc = Incident::find((int) $id);
+        if (!$inc || (int) $inc['resolved'] === 1) {
+            $_SESSION['flash_error'] = 'Incident not found or already resolved.';
+            header('Location: /staff/incidents');
+            exit;
+        }
         Incident::resolve((int) $id, $notes, $userId);
 
         if ($inc) {
@@ -86,8 +97,8 @@ class IncidentController
         $limit = 50; // Show 50 records per page
         $offset = ($page - 1) * $limit;
 
-        $history = Incident::allWithDetails($limit, $offset);
-        $totalCount = Incident::countAll();
+        $history = Incident::allWithDetails($limit, $offset, self::reporterScope());
+        $totalCount = Incident::countAll(self::reporterScope());
         $totalPages = ceil($totalCount / $limit);
 
         require __DIR__ . '/../Views/staff/incident_history.php';

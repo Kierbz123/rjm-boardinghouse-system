@@ -12,8 +12,7 @@ class LandingController
     public static function index(): void
     {
         $sessionRole = $_SESSION['role'] ?? null;
-        $userName = $_SESSION['user_name'] ?? null;
-        $userEmail = $_SESSION['user_email'] ?? null;
+        $userName = $_SESSION['name'] ?? null;
 
         $dashboardUrl = match ($sessionRole) {
             'admin'   => '/admin/dashboard',

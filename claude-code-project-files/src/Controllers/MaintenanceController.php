@@ -42,13 +42,18 @@ class MaintenanceController
             return;
         }
 
-        $description = trim((string) $_POST['description']);
-        $category = (string) $_POST['category'];
+        $description = trim((string) ($_POST['description'] ?? ''));
+        $category = (string) ($_POST['category'] ?? '');
 
         // Bug found during Phase 8 QA pass: the form's HTML `required` attribute
         // was the only validation — trivially bypassed by posting directly.
-        if ($description === '') {
-            $_SESSION['flash_error'] = 'Description is required.';
+        if ($description === '' || mb_strlen($description) > 5000) {
+            $_SESSION['flash_error'] = 'Description is required (5,000 characters max).';
+            header('Location: /portal/maintenance/new');
+            exit;
+        }
+        if (!in_array($category, MaintenanceRequest::CATEGORIES, true)) {
+            $_SESSION['flash_error'] = 'Please choose a valid category.';
             header('Location: /portal/maintenance/new');
             exit;
         }
@@ -70,9 +75,13 @@ class MaintenanceController
 
         $result = ScoringClient::score($description, $category, $mediaPath !== null);
 
-        MaintenanceRequest::create([
-            'boarder_id' => (int) $_SESSION['user_id'],
-            'room_id' => !empty($_POST['room_id']) ? (int) $_POST['room_id'] : null,
+        // The room comes from the boarder's own profile, never from the form.
+        $boarderId = (int) $_SESSION['user_id'];
+        $profile = \App\Models\BoarderProfile::find($boarderId);
+
+        $requestId = MaintenanceRequest::create([
+            'boarder_id' => $boarderId,
+            'room_id' => !empty($profile['room_id']) ? (int) $profile['room_id'] : null,
             'category' => $category,
             'description' => $description,
             'media_path' => $mediaPath,
@@ -84,6 +93,7 @@ class MaintenanceController
         // Notify staff and admin about new maintenance request with deep link
         NotificationDispatcher::maintenanceSubmitted($requestId, $category, $result['tier'], $description);
 
+        $_SESSION['flash_success'] = "Maintenance request #{$requestId} submitted.";
         header('Location: /portal/dashboard');
         exit;
     }
@@ -101,12 +111,17 @@ class MaintenanceController
             echo 'Invalid session, please retry.';
             return;
         }
-        $status = (string) $_POST['status'];
+        $status = (string) ($_POST['status'] ?? '');
         $userId = (int) ($_SESSION['user_id'] ?? 0);
+        $request = MaintenanceRequest::find((int) $id);
+        if (!$request || !in_array($status, MaintenanceRequest::STATUSES, true)) {
+            $_SESSION['flash_error'] = 'Request not found or invalid status.';
+            header('Location: /staff/maintenance');
+            exit;
+        }
         MaintenanceRequest::updateStatus((int) $id, $status, $userId);
 
-        $request = MaintenanceRequest::find((int) $id);
-        if ($request) {
+        if ($request['status'] !== $status) {
             if ($status === 'resolved') {
                 NotificationDispatcher::maintenanceResolved((int) $request['boarder_id'], (int) $id);
             } elseif ($status === 'in_progress') {

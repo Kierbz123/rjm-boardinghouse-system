@@ -117,6 +117,40 @@ echo "== Wrong password does not log in ==\n";
 $jar = loginAs('admin@rjm.test', 'wrong-password');
 check(http('GET', '/admin/dashboard', $jar)['code'] === 302, 'bad credentials stay logged out');
 
+require_once __DIR__ . '/../src/autoload.php';
+$pdo = App\Database::getConnection();
+
+echo "== Maintenance submission (C2, M4) ==\n";
+$token = csrfFrom(http('GET', '/portal/maintenance/new', $jars['boarder'])['body']);
+$r = http('POST', '/portal/maintenance', $jars['boarder'], ['csrf_token' => $token, 'category' => 'plumbing',
+    'description' => 'Sink leak test-c2', 'room_id' => 999]);
+check($r['code'] === 302 && $r['location'] === '/portal/dashboard', "submit redirects to dashboard (got {$r['code']})");
+$row = $pdo->query("SELECT * FROM maintenance_requests WHERE description = 'Sink leak test-c2'")->fetch();
+$profileRoom = $pdo->query('SELECT room_id FROM boarder_profiles WHERE user_id = 3')->fetchColumn();
+check($row && $row['room_id'] == $profileRoom, 'room taken from profile, not the form');
+check((int) $pdo->query("SELECT COUNT(*) FROM notifications WHERE message LIKE 'New maintenance request #{$row['id']} %'")->fetchColumn() >= 1, 'staff notified with the request id');
+$r = http('POST', '/portal/maintenance', $jars['boarder'], ['csrf_token' => $token, 'category' => 'bogus', 'description' => 'x']);
+check($r['location'] === '/portal/maintenance/new', 'invalid category rejected');
+
+echo "== Boarders only see their own incidents (H4) ==\n";
+$token = csrfFrom(http('GET', '/staff/incidents', $jars['staff'])['body']);
+http('POST', '/staff/incidents', $jars['staff'], ['csrf_token' => $token, 'type' => 'Noise', 'description' => 'staff-only-incident-h4']);
+check(str_contains(http('GET', '/staff/incidents', $jars['admin'])['body'], 'staff-only-incident-h4'), 'admin sees the staff report');
+foreach (['/portal/incidents', '/staff/incidents', '/staff/incidents/history'] as $path) {
+    check(!str_contains(http('GET', $path, $jars['boarder'])['body'], 'staff-only-incident-h4'), "boarder cannot see it at {$path}");
+}
+
+echo "== SOS (M1) ==\n";
+$token = csrfFrom(http('GET', '/portal/dashboard', $jars['boarder'])['body']);
+$first = json_decode(http('POST', '/api/sos', $jars['boarder'], ['csrf_token' => $token])['body'], true);
+$second = json_decode(http('POST', '/api/sos', $jars['boarder'], ['csrf_token' => $token])['body'], true);
+check(!empty($first['alert_id']) && $first['alert_id'] === $second['alert_id'], 'repeat press reuses the open alert');
+$msg = $pdo->query("SELECT message FROM notifications WHERE entity_type = 'sos_alert' AND entity_id = {$first['alert_id']} LIMIT 1")->fetchColumn();
+check($msg !== false && str_contains($msg, 'Room 101'), 'staff notice is linked to the alert and shows the room number');
+
+echo "== App and database clocks agree (H3) ==\n";
+check($pdo->query("SELECT DATE_FORMAT(NOW(), '%Y-%m-%d %H:%i')")->fetchColumn() === date('Y-m-d H:i'), 'NOW() matches PHP date()');
+
 echo "== Security headers ==\n";
 $h = http('GET', '/login', null)['headers'];
 foreach (['X-Frame-Options: DENY', 'X-Content-Type-Options: nosniff', 'Content-Security-Policy:', 'Referrer-Policy:'] as $needle) {
