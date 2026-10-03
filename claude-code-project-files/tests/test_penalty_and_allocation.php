@@ -161,7 +161,7 @@ assertEqual($cachedBal, 0.00, "Cached Balance synchronized to ₱0.00");
 echo "\nStep 5: Partial Combined Payment (Deterministic Allocation Order)\n";
 // Create next test cycle scenario:
 // Next month billing period e.g. 2026-10
-$nextPeriod = '2026-10';
+$nextPeriod = date('Y-m', strtotime('first day of next month'));
 $pen4Id = Penalty::createManual($boarderId, $ruleTrashId, 100.00, "Trash penalty", '2026-10-15', $adminId);
 $pen5Id = Penalty::createManual($boarderId, $ruleApplianceId, 200.00, "Appliance penalty", '2026-10-20', $staffId);
 
