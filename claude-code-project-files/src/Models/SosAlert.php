@@ -65,10 +65,4 @@ class SosAlert
         return $stmt->rowCount() === 1;
     }
 
-    public static function activeCount(): int
-    {
-        return (int) Database::getConnection()
-            ->query("SELECT COUNT(*) FROM sos_alerts WHERE status != 'resolved'")
-            ->fetchColumn();
-    }
 }

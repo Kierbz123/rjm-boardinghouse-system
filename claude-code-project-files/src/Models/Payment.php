@@ -80,12 +80,6 @@ class Payment
         return $stmt->fetch() ?: null;
     }
 
-    public static function pendingOrFlaggedCount(): int
-    {
-        return (int) Database::getConnection()
-            ->query("SELECT COUNT(*) FROM payments WHERE verification_status IN ('pending','flagged')")
-            ->fetchColumn();
-    }
 
     public static function allForBoarder(int $boarderId, int $limit = 12): array
     {

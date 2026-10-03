@@ -127,16 +127,6 @@ class NotificationDispatcher
         );
     }
 
-    public static function paymentApproved(int $boarderId, string $billingPeriod): void
-    {
-        // Sent ONLY to the boarder
-        Notification::create(
-            $boarderId,
-            'payment_approved',
-            "Your rent payment proof for {$billingPeriod} was APPROVED.",
-            '/portal/dashboard'
-        );
-    }
 
     public static function paymentRejected(int $boarderId, string $billingPeriod): void
     {

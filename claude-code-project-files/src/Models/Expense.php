@@ -23,11 +23,4 @@ class Expense
         return Database::getConnection()->query($sql)->fetchAll();
     }
 
-    public static function recent(int $limit = 5): array
-    {
-        $stmt = Database::getConnection()->prepare('SELECT * FROM expenses ORDER BY created_at DESC LIMIT ?');
-        $stmt->bindValue(1, $limit, \PDO::PARAM_INT);
-        $stmt->execute();
-        return $stmt->fetchAll();
-    }
 }

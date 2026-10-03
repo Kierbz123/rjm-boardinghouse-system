@@ -60,11 +60,6 @@ class MaintenanceRequest
         }
     }
 
-    public static function countsByTier(): array
-    {
-        $sql = "SELECT priority_tier, COUNT(*) AS c FROM maintenance_requests WHERE status != 'resolved' GROUP BY priority_tier";
-        return Database::getConnection()->query($sql)->fetchAll();
-    }
 
     public static function allWithDetails(int $limit = 50, int $offset = 0): array
     {

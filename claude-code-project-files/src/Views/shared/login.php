@@ -3,8 +3,6 @@ $pageTitle = 'Log in — RJM Boardinghouse';
 $error = $error ?? null;
 $lastEmail = $_SESSION['flash_email'] ?? '';
 unset($_SESSION['flash_email']);
-$qrToken = $qrToken ?? null;
-$qrLoginUrl = $qrLoginUrl ?? '/login';
 $defaultMobileUrl = $defaultMobileUrl ?? 'http://127.0.0.1:8000/login';
 
 ob_start();

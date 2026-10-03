@@ -117,16 +117,4 @@ class Notification
         }
     }
 
-    public static function broadcastToBoarders(string $type, string $message, string $details = '', ?string $actionUrl = null): void
-    {
-        $pdo = Database::getConnection();
-        $stmt = $pdo->prepare('SELECT id FROM users WHERE role = "boarder"');
-        $stmt->execute();
-        $boarders = $stmt->fetchAll();
-
-        foreach ($boarders as $user) {
-            $fullMessage = $details ? "{$message} ({$details})" : $message;
-            self::create((int) $user['id'], $type, $fullMessage, $actionUrl);
-        }
-    }
 }

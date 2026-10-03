@@ -248,6 +248,14 @@ $token = csrfFrom(http('GET', '/admin/inquiry-center', $jars['staff'])['body']);
 http('POST', '/admin/inquiry-center/submit', $jars['staff'], ['csrf_token' => $token, 'name' => 'Walk In', 'phone' => '09171234567']);
 check($q("SELECT source FROM inquiries WHERE name = 'Walk In'") === 'staff', 'staff-logged inquiry stored (not rate limited)');
 
+echo "== Removed features stay removed; live score preview (B6) ==\n";
+check(http('GET', '/qr/' . str_repeat('a', 64), null)['code'] === 404, 'unused QR approval routes are gone');
+$token = csrfFrom(http('GET', '/portal/maintenance/new', $jars['boarder'])['body']);
+$preview = json_decode(http('POST', '/api/maintenance/score-preview', $jars['boarder'],
+    ['csrf_token' => $token, 'description' => 'Outlet sparking', 'category' => 'electrical'])['body'], true);
+check(($preview['tier'] ?? null) === 'high', 'preview uses the server scoring (sparking outlet = high)');
+check(http('POST', '/api/maintenance/score-preview', $jars['staff'], ['csrf_token' => $token])['code'] === 403, 'preview is boarder-only');
+
 echo "== Removed SSE stream; AI endpoints guarded (M2, M18) ==\n";
 check(http('GET', '/api/notifications/stream', $jars['admin'])['code'] === 404, 'stream endpoint gone');
 check(http('POST', '/api/assistant/summarize-queue', $jars['staff'], [])['code'] !== 200, 'summarize-queue now requires the CSRF token');

@@ -98,6 +98,20 @@ class MaintenanceController
         exit;
     }
 
+    /** POST /api/maintenance/score-preview — the form's live preview uses the same scoring as submission. */
+    public static function scorePreview(): void
+    {
+        header('Content-Type: application/json');
+        if (!Csrf::verify($_POST['csrf_token'] ?? $_SERVER['HTTP_X_CSRF_TOKEN'] ?? null)) {
+            http_response_code(400);
+            echo json_encode(['ok' => false]);
+            return;
+        }
+        $description = mb_substr((string) ($_POST['description'] ?? ''), 0, 5000);
+        $category = (string) ($_POST['category'] ?? 'other');
+        echo json_encode(['ok' => true] + ScoringClient::score($description, $category, !empty($_POST['has_media'])));
+    }
+
     public static function queue(): void
     {
         $queue = MaintenanceRequest::queueSorted();

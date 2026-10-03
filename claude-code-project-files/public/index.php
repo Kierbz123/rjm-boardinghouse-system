@@ -71,10 +71,6 @@ $router->add('POST', '/inquire', [LandingController::class, 'handleInquiry']);
 $router->add('GET', '/login', [AuthController::class, 'showLogin']);
 $router->add('POST', '/login', [AuthController::class, 'login']);
 $router->add('POST', '/logout', [AuthController::class, 'logout']);
-$router->add('GET', '/qr/{token}/status', [AuthController::class, 'qrStatus']);
-$router->add('POST', '/qr/{token}/claim', [AuthController::class, 'claimQr']);
-$router->add('GET', '/qr/{token}', [AuthController::class, 'showQr']);
-$router->add('POST', '/qr/{token}', [AuthController::class, 'approveQr']);
 
 // --- Admin (Phase 1 RBAC: admin only) ---
 $router->add('GET', '/admin/dashboard', function () {
@@ -284,6 +280,10 @@ $router->add('GET', '/portal/maintenance/new', function () {
 $router->add('POST', '/portal/maintenance', function () {
     AuthMiddleware::require(); RoleMiddleware::require(['boarder']);
     MaintenanceController::create();
+});
+$router->add('POST', '/api/maintenance/score-preview', function () {
+    AuthMiddleware::require(); RoleMiddleware::require(['boarder']);
+    MaintenanceController::scorePreview();
 });
 $router->add('GET', '/portal/payments/new', function () {
     AuthMiddleware::require(); RoleMiddleware::require(['boarder']);

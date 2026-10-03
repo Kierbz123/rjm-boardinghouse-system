@@ -112,55 +112,19 @@
     }
 
     // ────────────────────────────────────────────────────────
-    //  Live Priority Preview (Client-Side Keyword Scoring)
+    //  Live Priority Preview — scored by the server, same rules as on submit
     // ────────────────────────────────────────────────────────
-    const KEYWORD_WEIGHTS = {
-        // Critical tier (+35)
-        sparking: 35, fire: 35, flame: 35, smoke: 35, shock: 35,
-        electrocute: 35, electrocution: 35, 'live wire': 35, explosion: 35,
-        'gas leak': 35, flooded: 35, flooding: 35, collapse: 35, collapsed: 35,
-
-        // High tier (+20)
-        leak: 20, leaking: 20, burst: 20, clogged: 20, clog: 20, overflow: 20,
-        blackout: 20, 'no power': 20, 'broken lock': 20, 'broken door': 20,
-        'cannot lock': 20, unlockable: 20, intruder: 20, emergency: 20,
-
-        // Medium tier (+10)
-        broken: 10, cracked: 10, stuck: 10, noisy: 10, smell: 10, odor: 10,
-        dark: 10, loose: 10, warm: 10, dripping: 10, damage: 10, damaged: 10,
-
-        // Low tier (+5)
-        squeak: 5, squeaking: 5, dirty: 5, paint: 5, stain: 5,
-        'loose screw': 5, 'light bulb': 5, bulb: 5, cosmetic: 5, flickers: 5, flickering: 5
-    };
-
-    function calculatePriorityScore(text) {
-        if (!text || !text.trim()) {
-            return { score: 10, tier: 'low', matches: [] };
-        }
-
-        const lower = text.toLowerCase();
-        let totalScore = 10; // base score
-        const matched = [];
-
-        // Check multi-word keys first, then single words
-        const keys = Object.keys(KEYWORD_WEIGHTS).sort((a, b) => b.length - a.length);
-
-        for (const kw of keys) {
-            const regex = new RegExp('\\b' + kw.replace(' ', '\\s+') + '\\b', 'i');
-            if (regex.test(lower)) {
-                totalScore += KEYWORD_WEIGHTS[kw];
-                matched.push({ keyword: kw, weight: KEYWORD_WEIGHTS[kw] });
-            }
-        }
-
-        const score = Math.min(totalScore, 100);
-        let tier = 'low';
-        if (score >= 70) tier = 'critical';
-        else if (score >= 45) tier = 'high';
-        else if (score >= 25) tier = 'medium';
-
-        return { score, tier, matches: matched };
+    async function fetchPriorityScore(text) {
+        const body = new URLSearchParams({
+            description: text,
+            category: (document.getElementById('category') || {}).value || 'other',
+            csrf_token: getCsrfToken()
+        });
+        const res = await fetch('/api/maintenance/score-preview', {
+            method: 'POST', body, credentials: 'same-origin', headers: { 'Accept': 'application/json' }
+        });
+        if (!res.ok) throw new Error('HTTP ' + res.status);
+        return res.json();
     }
 
     function initLivePriorityPreview() {
@@ -170,9 +134,13 @@
 
         let debounceTimer = null;
 
-        function updatePreview() {
-            const text = descTextarea.value;
-            const result = calculatePriorityScore(text);
+        async function updatePreview() {
+            let result;
+            try {
+                result = await fetchPriorityScore(descTextarea.value);
+            } catch (e) {
+                return; // keep the last preview; the real score is assigned on submit anyway
+            }
 
             const scoreEl = document.getElementById('preview-score-val');
             const tierEl = document.getElementById('preview-tier-badge');
@@ -209,6 +177,9 @@
             clearTimeout(debounceTimer);
             debounceTimer = setTimeout(updatePreview, 250);
         });
+
+        const categorySelect = document.getElementById('category');
+        if (categorySelect) categorySelect.addEventListener('change', updatePreview);
 
         // Initial run
         updatePreview();
@@ -816,6 +787,6 @@
     window.AiAssistant = {
         checkStatus: checkAiStatus,
         isOnline: () => isAiOnline,
-        calculatePriority: calculatePriorityScore
+        calculatePriority: fetchPriorityScore
     };
 })();

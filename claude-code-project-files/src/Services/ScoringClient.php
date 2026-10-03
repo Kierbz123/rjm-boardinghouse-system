@@ -3,79 +3,40 @@
 namespace App\Services;
 
 /**
- * PHP-only scoring system - no Python dependency needed.
- * Implements the same keyword-based priority scoring logic as the Python service.
+ * Feature 1 — maintenance priority scoring. Local, rule-based (no external service):
+ * category base weight + keyword weights + a bonus for attached photo/video.
+ *
+ * This is the only keyword list; the boarder form's live preview asks the server
+ * (MaintenanceController::scorePreview) so what they see is what staff will get.
  */
 class ScoringClient
 {
+    /** Matched as whole words, plus plural/past/-ing forms ("leak" → leaks, leaked, leaking). */
     private const KEYWORD_WEIGHTS = [
-        // Safety emergencies (highest priority)
-        'gas leak' => 45,
-        'exposed wire' => 40,
-        'electrocut' => 40,
-        'fire' => 40,
-        'smoke' => 32,
-        'gas' => 35,
-        'sparking' => 32,
-        'ceiling collapse' => 45,
-        'flooding' => 32,
-        'flood' => 30,
-        
-        // Security and theft (critical)
-        'stole' => 45,
-        'stolen' => 45,
-        'theft' => 45,
-        'thief' => 45,
-        'robbery' => 45,
-        'break-in' => 40,
-        'burglary' => 40,
-        'intruder' => 40,
-        'forced entry' => 40,
-        'assault' => 45,
-        'attack' => 40,
-        'threat' => 35,
-        'weapon' => 45,
-        'cctv' => 20,
-        'camera' => 15,
-        'security' => 25,
-        
-        // Injury and medical emergencies (critical)
-        'injured' => 45,
-        'injury' => 45,
-        'hurt' => 35,
-        'bleeding' => 45,
-        'blood' => 40,
-        'unconscious' => 45,
-        'fainted' => 40,
-        'medical' => 35,
-        'emergency' => 45,
-        'ambulance' => 45,
-        'hospital' => 40,
-        
-        // Vehicle and structural damage (high)
-        'crash' => 40,
-        'crashed' => 40,
-        'collision' => 40,
-        'accident' => 40,
-        'vehicle' => 25,
-        'car' => 25,
-        'door destroyed' => 40,
-        'window broken' => 35,
-        'smashed' => 30,
-        'structural damage' => 35,
-        
-        // Building issues (medium/high)
-        'no water' => 20,
-        'leak' => 15,
-        'broken lock' => 20,
-        'no lights' => 12,
-        
-        // Minor issues (low)
-        'squeaky' => 2,
-        'cosmetic' => 2,
-        'scratch' => 2,
-        'loose handle' => 4,
-        'paint' => 3,
+        // Life-safety
+        'gas leak' => 45, 'electrocution' => 45, 'electrocuted' => 45, 'explosion' => 45, 'ceiling collapse' => 45,
+        'exposed wire' => 40, 'live wire' => 40, 'fire' => 40, 'spark' => 40,
+        'smoke' => 35, 'shock' => 35, 'collapse' => 35, 'structural damage' => 35, 'flood' => 32,
+
+        // Security & medical
+        'robbery' => 45, 'assault' => 45, 'weapon' => 45, 'injured' => 45, 'injury' => 45, 'bleeding' => 45,
+        'unconscious' => 45, 'ambulance' => 45, 'emergency' => 45, 'stolen' => 45, 'theft' => 45, 'thief' => 45,
+        'break-in' => 40, 'burglary' => 40, 'intruder' => 40, 'forced entry' => 40, 'hospital' => 40, 'fainted' => 40,
+        'medical' => 35, 'threat' => 35, 'hurt' => 35, 'security' => 25, 'cctv' => 20, 'camera' => 15,
+
+        // Building damage
+        'door destroyed' => 40, 'window broken' => 35, 'smashed' => 30, 'crash' => 30,
+
+        // Service outages
+        'no power' => 20, 'blackout' => 20, 'no water' => 20, 'burst' => 20, 'leak' => 20, 'overflow' => 20,
+        'clog' => 20, 'clogged' => 20, 'broken lock' => 20, 'broken door' => 20, 'cannot lock' => 20, 'no lights' => 12,
+
+        // Everyday wear
+        'broken' => 10, 'cracked' => 10, 'stuck' => 10, 'smell' => 10, 'odor' => 10, 'drip' => 10, 'damaged' => 10,
+
+        // Cosmetic
+        'loose handle' => 4, 'loose screw' => 4, 'flicker' => 4, 'bulb' => 3, 'paint' => 3, 'stain' => 3,
+        'squeak' => 2, 'squeaky' => 2, 'scratch' => 2, 'cosmetic' => 2,
     ];
 
     private const CATEGORY_BASE_WEIGHT = [
@@ -87,49 +48,39 @@ class ScoringClient
     ];
 
     private const MEDIA_BONUS = 10;
-    private const MAX_TIME_DECAY_BONUS = 20;
-    private const TIME_DECAY_PER_HOUR = 0.5;
 
-    public static function score(string $description, string $category, bool $hasMedia, float $hoursSinceSubmission = 0): array
+    /** @return array{score: float, tier: string, matched_keywords: string[], matches: list<array{keyword:string, weight:int}>, scoring_pending: bool} */
+    public static function score(string $description, string $category, bool $hasMedia): array
     {
-        $text = strtolower($description);
-        $matched = [];
+        $matches = [];
         $keywordScore = 0;
-
-        // Check for matching keywords
         foreach (self::KEYWORD_WEIGHTS as $keyword => $weight) {
-            if (str_contains($text, $keyword)) {
-                $matched[] = $keyword;
+            $pattern = '/\b' . str_replace(' ', '\s+', preg_quote($keyword, '/')) . '(?:s|es|ed|ing)?\b/i';
+            if (preg_match($pattern, $description)) {
+                $matches[] = ['keyword' => $keyword, 'weight' => $weight];
                 $keywordScore += $weight;
             }
         }
 
         $base = self::CATEGORY_BASE_WEIGHT[$category] ?? 5;
-        $mediaBonus = $hasMedia ? self::MEDIA_BONUS : 0;
-        $decay = min($hoursSinceSubmission * self::TIME_DECAY_PER_HOUR, self::MAX_TIME_DECAY_BONUS);
-
-        $score = min($base + $keywordScore + $mediaBonus + $decay, 100);
-        $tier = self::getTierForScore($score);
+        $score = (float) min($base + $keywordScore + ($hasMedia ? self::MEDIA_BONUS : 0), 100);
 
         return [
-            'tier' => $tier,
+            'tier' => self::getTierForScore($score),
             'score' => $score,
-            'matched_keywords' => $matched,
+            'matched_keywords' => array_column($matches, 'keyword'),
+            'matches' => $matches,
             'scoring_pending' => false,
         ];
     }
 
     private static function getTierForScore(float $score): string
     {
-        if ($score >= 70) {
-            return 'critical';
-        }
-        if ($score >= 45) {
-            return 'high';
-        }
-        if ($score >= 20) {
-            return 'medium';
-        }
-        return 'low';
+        return match (true) {
+            $score >= 70 => 'critical',
+            $score >= 45 => 'high',
+            $score >= 20 => 'medium',
+            default => 'low',
+        };
     }
 }
