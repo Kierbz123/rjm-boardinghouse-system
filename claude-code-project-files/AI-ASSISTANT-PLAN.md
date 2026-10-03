@@ -67,7 +67,7 @@ Every "prepare" action ends on the normal page with the normal form and the norm
 - Prompt-injection guard: text from the database (repair descriptions, notes) is passed to the model only as quoted data, never as instructions.
 - No silent actions: anything that changes data needs the person to press a button on the real page.
 - Keeps the existing limits (10 AI requests/minute, 4,000 characters) and adds a timeout fallback: if the model is slow, the router's answer is shown immediately.
-- Activity log (`assistant_log` table, new migration): user, role, matched intent/tool, page opened, time — **not** the message text, so private questions aren't stored.
+- Nothing is logged: no record of questions, intents or pages opened (owner decision).
 - Conversation memory: last few turns kept in the user's session only, cleared on logout.
 
 ## 7. Build phases
@@ -79,7 +79,7 @@ Every "prepare" action ends on the normal page with the normal form and the norm
 | **A2 Role lookups** | Balance, payments, repairs, SOS, occupancy… as answer cards with links | No | M |
 | **A3 Help library** | `docs/help/*.md` articles; answers with source and "Read more" | No | S |
 | **A4 AI layer** | Ollama picks tools (JSON-only output) for questions the router can't place; phrases answers from tool results only; follow-up questions | Yes | L |
-| **A5 Prepare actions** | Pre-filled repair/payment/incident forms; confirm-button actions for staff/admin | No | M |
+| **A5 Prepare actions** | Pre-filled repair/payment/incident forms (no confirm-button actions, see decision 3) | No | M |
 | **A6 Accessibility & language** | Dialog/focus polish, starter questions per page, Tagalog/Bisaya keywords | No | S |
 | **A7 Evaluation** | ~60 test questions per role with expected page/tool/permission, plus "try to break it" questions; offline test with Ollama stopped | Optional | M |
 
@@ -92,10 +92,20 @@ A0–A3 alone already give a fast, reliable assistant that navigates and answers
 - Router answers in under 0.1 s; AI answers in under ~8 s on the current machine.
 - With Ollama stopped: navigation, lookups and help still work; the chat says AI conversation is offline.
 
-## 9. Decisions needed from the owner
+## Progress
 
-1. **Go button vs automatic jump:** should the assistant move to the page straight away, or show a Go button first? (Recommended: Go button.)
-2. **Languages:** English only, or English + Tagalog (+ Bisaya keywords)?
-3. **Staff/admin "confirm" actions** (mark repair in progress, run late-fee check): allow from the assistant with a confirm button, or navigation only?
-4. **Model:** keep llama3.2:3b, or try qwen2.5:3b, which is generally better at choosing tools at the same size? (Both run locally.)
-5. **Activity log:** keep it (intents and pages only, no message text), or no logging at all?
+| Phase | Status | Notes |
+|---|---|---|
+| A0 Foundations | Done (3 Oct 2026) | `src/Support/NavRegistry.php` feeds the sidebar and the assistant; `POST /api/assistant/ask` returns answer cards; the old `/api/assistant/chat` route was folded into it. |
+| A1 Navigate + palette | Done (3 Oct 2026) | `Ctrl+K` opens the drawer; live page matches while typing; one "Open …" button per answer; English/Tagalog switch. Works with Ollama stopped. |
+| A2–A7 | Not started | |
+
+Differences from the plan as written: the rules live in one file, `src/Services/AssistantService.php`, until there are enough tools to split; the palette is the same drawer rather than a second search box; the drawer does not trap focus because it is a side panel, not a blocking dialog (`Esc` closes it and returns focus).
+
+## 9. Owner decisions (3 October 2026)
+
+1. **Go button, not automatic jump.** The assistant shows the page as a button; the person presses it.
+2. **Language is the user's choice.** A language switch in the assistant (English / Tagalog), remembered per browser. The router understands Tagalog and Bisaya keywords in either setting; the switch sets the language of the replies.
+3. **Staff/admin "confirm" actions: not answered, so navigation and pre-filled forms only.** The assistant never changes data; it opens the page where the person does it. Can be revisited after A5.
+4. **Model: keep llama3.2:3b.** Measured on this PC (Ryzen 5 6600H, 15.3 GB RAM, RTX 2050 4 GB): loads at 2.9 GB, 80% on the GPU, picks a tool in 0.6–1.3 s. qwen2.5:3b is the same size and would run equally well, but needs a 1.9 GB download and its 3b build has a research-only licence. Revisit only if llama3.2 misses the 90% target in A7.
+5. **No activity log.** No `assistant_log` table, no migration.
