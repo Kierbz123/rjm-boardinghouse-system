@@ -2428,6 +2428,10 @@ $inquiryError = $inquiryError ?? null;
                     </div>
 
                     <form id="inquiry-form" action="/inquire" method="POST" class="inquiry-form-body">
+                        <!-- Spam trap: hidden from people and screen readers; bots that fill it are ignored. -->
+                        <div aria-hidden="true" style="position:absolute;left:-10000px;width:1px;height:1px;overflow:hidden">
+                            <label>Website <input type="text" name="website" tabindex="-1" autocomplete="off"></label>
+                        </div>
                         <div class="form-row">
                             <div class="form-group">
                                 <label for="inq-name">Your Full Name <span class="req">*</span></label>

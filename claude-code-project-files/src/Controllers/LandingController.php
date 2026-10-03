@@ -139,62 +139,45 @@ class LandingController
         require __DIR__ . '/../Views/shared/landing.php';
     }
 
-    /**
-     * Handles public prospective resident room inquiry submissions.
-     */
+    /** Public room inquiry form on the landing page. */
     public static function handleInquiry(): void
     {
-        $name = trim((string) ($_POST['name'] ?? ''));
-        $phone = trim((string) ($_POST['phone'] ?? ''));
-        $email = trim((string) ($_POST['email'] ?? ''));
-        $roomType = trim((string) ($_POST['room_type'] ?? 'General Inquiry'));
-        $moveInDate = trim((string) ($_POST['move_in_date'] ?? ''));
-        $message = trim((string) ($_POST['message'] ?? ''));
+        $isJson = str_contains($_SERVER['HTTP_ACCEPT'] ?? '', 'application/json');
 
-        $isJson = isset($_SERVER['HTTP_ACCEPT']) && str_contains($_SERVER['HTTP_ACCEPT'], 'application/json');
-
-        if ($name === '' || $phone === '') {
-            $errorMsg = 'Please provide both your name and a valid contact phone number.';
-            if ($isJson) {
-                header('Content-Type: application/json');
-                http_response_code(422);
-                echo json_encode(['success' => false, 'error' => $errorMsg]);
-                exit;
-            }
-            $_SESSION['flash_inquiry_error'] = $errorMsg;
-            header('Location: /#contact');
-            exit;
+        // Bots fill every field, including the hidden "website" one that people never see.
+        if (trim((string) ($_POST['website'] ?? '')) !== '') {
+            self::respondToInquiry($isJson, true, 'Thank you! Your inquiry has been sent.', '/#contact');
         }
 
         try {
-            $pdo = Database::getConnection();
-            $adminIds = $pdo->query("SELECT id FROM users WHERE role = 'admin'")->fetchAll(\PDO::FETCH_COLUMN);
-
-            $notifMsg = "New Room Inquiry from {$name} ({$phone})";
-            $notifDetails = "Requested: {$roomType}" . ($moveInDate ? " | Move-in: {$moveInDate}" : "") . ($email ? " | Email: {$email}" : "") . ($message ? " | Notes: {$message}" : "");
-
-            foreach ($adminIds as $adminId) {
-                \App\Models\Notification::create(
-                    (int) $adminId,
-                    'inquiry',
-                    $notifMsg . ' — ' . $notifDetails,
-                    '/admin/inquiry-center'
-                );
+            $result = \App\Models\Inquiry::submit($_POST, 'website', null, $_SERVER['REMOTE_ADDR'] ?? null);
+            if ($result['ok']) {
+                \App\Services\NotificationDispatcher::inquiryReceived($result);
             }
         } catch (\Throwable $e) {
-            // Graceful resilience: log or ignore notification error
+            \App\Support\Logger::error('Inquiry could not be saved: ' . $e->getMessage());
+            $result = ['ok' => false, 'error' => 'Sorry, we could not send your inquiry right now. Please call us instead.'];
         }
 
-        $successMsg = "Thank you, {$name}! Your room inquiry has been transmitted to our front desk caretaker. We will call/SMS {$phone} promptly.";
+        self::respondToInquiry(
+            $isJson,
+            $result['ok'],
+            $result['ok'] ? "Thank you, {$result['name']}! Our caretaker will call or text {$result['phone']} soon." : $result['error'],
+            '/#contact'
+        );
+    }
 
+    /** JSON for the fetch()-based forms, flash + redirect otherwise. Shared with InquiryController. */
+    public static function respondToInquiry(bool $isJson, bool $ok, string $message, string $redirect): never
+    {
         if ($isJson) {
             header('Content-Type: application/json');
-            echo json_encode(['success' => true, 'message' => $successMsg]);
+            http_response_code($ok ? 200 : 422);
+            echo json_encode($ok ? ['success' => true, 'message' => $message] : ['success' => false, 'error' => $message]);
             exit;
         }
-
-        $_SESSION['flash_inquiry_success'] = $successMsg;
-        header('Location: /#contact');
+        $_SESSION[$ok ? 'flash_inquiry_success' : 'flash_inquiry_error'] = $message;
+        header('Location: ' . $redirect);
         exit;
     }
 }

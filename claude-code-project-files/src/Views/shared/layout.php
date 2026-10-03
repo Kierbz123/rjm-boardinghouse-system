@@ -606,6 +606,22 @@
 <body class="bg-neutral-50 text-neutral-900 min-h-screen" data-user-role="<?= htmlspecialchars($_SESSION['role'] ?? '') ?>">
     <?php if (session_status() !== PHP_SESSION_NONE): require __DIR__ . '/nav.php'; endif; ?>
     <main id="app-main-content" class="min-w-0 transition-all duration-200">
+        <?php
+        // Views that show their own messages have already consumed them; anything left
+        // (e.g. a redirect to a page without its own banner) is shown here, once.
+        $flashStyles = [
+            'flash_error'   => 'background:#fef2f2;color:#991b1b;border-color:#fecaca',
+            'flash_success' => 'background:#ecfdf5;color:#065f46;border-color:#a7f3d0',
+            'flash_info'    => 'background:#eff6ff;color:#1e40af;border-color:#bfdbfe',
+        ];
+        foreach ($flashStyles as $flashKey => $flashStyle):
+            if (!empty($_SESSION[$flashKey])): ?>
+            <div class="max-w-5xl mx-auto px-5 pt-4">
+                <div role="<?= $flashKey === 'flash_error' ? 'alert' : 'status' ?>" style="<?= $flashStyle ?>;border:1px solid;border-radius:.5rem;padding:.75rem 1rem;font-size:.875rem">
+                    <?= htmlspecialchars((string) $_SESSION[$flashKey]) ?>
+                </div>
+            </div>
+        <?php unset($_SESSION[$flashKey]); endif; endforeach; ?>
         <?= $content ?? '' ?>
     </main>
     <script src="/assets/js/app.js"></script>

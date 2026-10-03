@@ -692,6 +692,8 @@ function renderNavSvg(string $icon): string {
             cached = await res.json();
             updateCountBadges();
             renderDropdown();
+            // The single notifications poll for the page; app.js listens for the new-item banner.
+            document.dispatchEvent(new CustomEvent('rjm:notifications', { detail: cached }));
         } catch (e) { /* network retry on next interval */ }
     }
 

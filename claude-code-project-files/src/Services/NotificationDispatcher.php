@@ -171,6 +171,18 @@ class NotificationDispatcher
         );
     }
 
+    /** Room inquiries — admins only; the full record lives in the inquiries table. */
+    public static function inquiryReceived(array $inquiry, ?string $loggedBy = null): void
+    {
+        $via = $loggedBy ? " (logged by {$loggedBy})" : '';
+        Notification::broadcastToAdmins(
+            'inquiry',
+            "New room inquiry #{$inquiry['id']} from {$inquiry['name']} ({$inquiry['phone']}){$via}",
+            "Requested: {$inquiry['room_type']}",
+            '/admin/inquiry-center'
+        );
+    }
+
     /** Bed & Room Assignments */
     public static function bedAssigned(int $boarderId, string $roomNumber, string $bedLabel): void
     {

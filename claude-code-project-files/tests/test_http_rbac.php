@@ -231,6 +231,27 @@ check(http('GET', '/portal/dashboard', loginAs('boarder@rjm.test', 'BoarderPass1
 http('POST', '/admin/boarders/3/restore', $jars['admin'], ['csrf_token' => $token]);
 check($q('SELECT status FROM users WHERE id = 3') === 'active', 'restore re-enables the account');
 
+echo "== Inquiries (H10) ==\n";
+$inq = fn (array $f) => http('POST', '/inquire', null, $f + ['name' => 'Prospect', 'phone' => '0917 123 4567', 'room_type' => 'Solo']);
+$r = $inq(['message' => str_repeat('a', 300)]);
+check($r['code'] === 302 && (int) $q("SELECT COUNT(*) FROM inquiries WHERE name = 'Prospect'") === 1, 'website inquiry stored in the inquiries table');
+check((int) $q("SELECT COUNT(*) FROM notifications WHERE type = 'inquiry' AND message LIKE '%Prospect%'") >= 1, 'admins notified');
+$inq(['website' => 'http://spam.example']);
+check((int) $q("SELECT COUNT(*) FROM inquiries WHERE name = 'Prospect'") === 1, 'honeypot submissions are dropped');
+$inq(['phone' => 'call me']);
+check((int) $q("SELECT COUNT(*) FROM inquiries WHERE name = 'Prospect'") === 1, 'invalid phone rejected');
+for ($i = 0; $i < 6; $i++) {
+    $inq([]);
+}
+check((int) $q("SELECT COUNT(*) FROM inquiries WHERE name = 'Prospect'") === 5, 'at most 5 website inquiries per IP per hour');
+$token = csrfFrom(http('GET', '/admin/inquiry-center', $jars['staff'])['body']);
+http('POST', '/admin/inquiry-center/submit', $jars['staff'], ['csrf_token' => $token, 'name' => 'Walk In', 'phone' => '09171234567']);
+check($q("SELECT source FROM inquiries WHERE name = 'Walk In'") === 'staff', 'staff-logged inquiry stored (not rate limited)');
+
+echo "== Removed SSE stream; AI endpoints guarded (M2, M18) ==\n";
+check(http('GET', '/api/notifications/stream', $jars['admin'])['code'] === 404, 'stream endpoint gone');
+check(http('POST', '/api/assistant/summarize-queue', $jars['staff'], [])['code'] !== 200, 'summarize-queue now requires the CSRF token');
+
 echo "== App and database clocks agree (H3) ==\n";
 check($pdo->query("SELECT DATE_FORMAT(NOW(), '%Y-%m-%d %H:%i')")->fetchColumn() === date('Y-m-d H:i'), 'NOW() matches PHP date()');
 

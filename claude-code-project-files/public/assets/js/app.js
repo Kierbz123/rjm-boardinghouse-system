@@ -4,45 +4,18 @@
 // This file is the hook for genuinely cross-page behavior as it emerges,
 // so views don't each need to remember to include a new shared script tag.
 
-// Real-time notifications via short-polling (replaces SSE which blocks
-// PHP's single-threaded built-in dev server).
+// In-app banner when a new notification arrives (data comes from nav.php's poll).
 (function() {
     const userRole = document.body.dataset.userRole;
     if (!userRole) return; // Not logged in — nothing to poll
 
-    let pollTimer = null;
     let lastKnownCount = -1;
-    const POLL_INTERVAL = 15000; // 15 seconds — lightweight for dev server
 
-    /**
-     * Fetch unread notification count and update the bell badge.
-     * If new notifications appeared since the last poll, show an in-app banner.
-     */
-    function pollNotifications() {
-        fetch('/api/notifications/unread', {
-            headers: { 'Accept': 'application/json' },
-            credentials: 'same-origin'
-        })
-        .then(function(res) {
-            if (!res.ok) throw new Error('HTTP ' + res.status);
-            return res.json();
-        })
-        .then(function(data) {
+    // nav.php polls /api/notifications/unread and broadcasts the result; this only adds
+    // the "new notification" banner, so each page makes one request per interval.
+    document.addEventListener('rjm:notifications', function (e) {
+            var data = e.detail;
             var count = Array.isArray(data) ? data.length : 0;
-            var countEl = document.getElementById('notif-count');
-            var bellEl  = document.getElementById('notif-bell');
-
-            // Update badge
-            if (countEl) {
-                if (count > 0) {
-                    countEl.textContent = count > 99 ? '99+' : count;
-                    countEl.classList.remove('hidden');
-                    if (bellEl) bellEl.classList.add('text-white');
-                } else {
-                    countEl.classList.add('hidden');
-                    if (bellEl) bellEl.classList.remove('text-white');
-                }
-            }
 
             // Show banner for brand-new notifications
             if (lastKnownCount >= 0 && count > lastKnownCount && Array.isArray(data) && data.length > 0) {
@@ -53,11 +26,7 @@
                 });
             }
             lastKnownCount = count;
-        })
-        .catch(function() {
-            // Silently ignore — next poll will retry
-        });
-    }
+    });
 
     function showInAppNotification(data) {
         var banner = document.getElementById('poll-notification-banner');
@@ -121,27 +90,4 @@
         return div.innerHTML;
     }
 
-    // Start polling once DOM is ready
-    function startPolling() {
-        pollNotifications(); // immediate first check
-        pollTimer = setInterval(pollNotifications, POLL_INTERVAL);
-    }
-
-    if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', startPolling);
-    } else {
-        startPolling();
-    }
-
-    // Pause polling when tab is hidden, resume when visible
-    document.addEventListener('visibilitychange', function() {
-        if (document.hidden) {
-            if (pollTimer) { clearInterval(pollTimer); pollTimer = null; }
-        } else {
-            if (!pollTimer) {
-                pollNotifications();
-                pollTimer = setInterval(pollNotifications, POLL_INTERVAL);
-            }
-        }
-    });
 })();

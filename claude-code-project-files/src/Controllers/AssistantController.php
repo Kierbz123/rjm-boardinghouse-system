@@ -188,6 +188,10 @@ class AssistantController
     {
         header('Content-Type: application/json');
 
+        if (self::readJsonBody() === null) { // CSRF + rate limit, like every other AI endpoint
+            return;
+        }
+
         $queue  = MaintenanceRequest::queueSorted();
         $result = OllamaClient::summarizeQueue($queue);
 
@@ -226,6 +230,22 @@ class AssistantController
             echo json_encode(['ok' => false, 'error' => 'Invalid session token. Please refresh the page.']);
             return null;
         }
+
+        // Each call can hold the single-threaded dev server for up to 30s, so keep them small and few.
+        foreach ($input as $value) {
+            if (is_string($value) && mb_strlen($value) > 4000) {
+                http_response_code(413);
+                echo json_encode(['ok' => false, 'error' => 'Please keep your message under 4,000 characters.']);
+                return null;
+            }
+        }
+        $recent = array_filter($_SESSION['ai_calls'] ?? [], fn ($t) => $t > time() - 60);
+        if (count($recent) >= 10) {
+            http_response_code(429);
+            echo json_encode(['ok' => false, 'error' => 'Too many AI requests. Please wait a minute.']);
+            return null;
+        }
+        $_SESSION['ai_calls'] = [...$recent, time()];
 
         return $input;
     }

@@ -345,10 +345,6 @@ $router->add('GET', '/api/notifications/unread', function () {
     AuthMiddleware::require();
     NotificationController::unreadJson();
 });
-$router->add('GET', '/api/notifications/stream', function () {
-    AuthMiddleware::require();
-    NotificationController::stream();
-});
 $router->add('POST', '/api/notifications/{id}/read', function ($id) {
     AuthMiddleware::require();
     NotificationController::markRead($id);
