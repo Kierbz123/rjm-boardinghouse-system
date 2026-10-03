@@ -5,12 +5,25 @@
  * per CLAUDE.md's "controllers stay thin" and PROJECT_STRUCTURE.md.
  */
 
+ini_set('session.use_strict_mode', '1'); // reject session IDs this server didn't issue
 session_set_cookie_params([
     'httponly' => true,
     'samesite' => 'Strict',
-    'secure' => false, // set true once served over HTTPS — plain HTTP on localhost by default
+    'secure' => !empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off',
 ]);
 session_start();
+
+header_remove('X-Powered-By');
+header('X-Frame-Options: DENY');
+header('X-Content-Type-Options: nosniff');
+header('Referrer-Policy: same-origin');
+// Views still use inline <script>/<style> and the landing page embeds remote
+// fonts/video/map; those allowances go once the views are cleaned up.
+header("Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline'; "
+    . "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; "
+    . "img-src 'self' data: blob:; media-src 'self' https://d8j0ntlcm91z4.cloudfront.net; "
+    . "frame-src https://maps.google.com https://www.google.com; connect-src 'self'; "
+    . "frame-ancestors 'none'; base-uri 'self'; form-action 'self'");
 
 require_once __DIR__ . '/../src/autoload.php';
 
@@ -57,7 +70,6 @@ $router->add('POST', '/inquire', [LandingController::class, 'handleInquiry']);
 // --- Auth ---
 $router->add('GET', '/login', [AuthController::class, 'showLogin']);
 $router->add('POST', '/login', [AuthController::class, 'login']);
-$router->add('GET', '/logout', [AuthController::class, 'logout']); // For debugging/direct access
 $router->add('POST', '/logout', [AuthController::class, 'logout']);
 $router->add('GET', '/qr/{token}/status', [AuthController::class, 'qrStatus']);
 $router->add('POST', '/qr/{token}/claim', [AuthController::class, 'claimQr']);

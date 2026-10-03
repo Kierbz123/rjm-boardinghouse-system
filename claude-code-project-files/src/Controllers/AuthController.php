@@ -12,6 +12,7 @@ class AuthController
 {
     private const MAX_FAILED_ATTEMPTS = 5;
     private const LOCKOUT_WINDOW_MINUTES = 15;
+    private const MAX_FAILED_ATTEMPTS_PER_IP = 20; // slows password spraying across many emails
 
     public static function showLogin(): void
     {
@@ -63,8 +64,7 @@ class AuthController
 
     public static function logout(): void
     {
-        // Only check CSRF for POST requests (GET is for debugging/direct access)
-        if ($_SERVER['REQUEST_METHOD'] === 'POST' && !Csrf::verify($_POST['csrf_token'] ?? null)) {
+        if (!Csrf::verify($_POST['csrf_token'] ?? null)) {
             http_response_code(400);
             echo 'Invalid session, please retry.';
             return;
@@ -193,9 +193,12 @@ class AuthController
     private static function verifyCredentials(string $email, string $password): array
     {
         $ip = $_SERVER['REMOTE_ADDR'] ?? null;
-        $recentFailures = LoginAttempt::recentFailedCount($email, self::LOCKOUT_WINDOW_MINUTES);
-        if ($recentFailures >= self::MAX_FAILED_ATTEMPTS) {
-            Logger::warn("Login locked out for email: {$email} ({$recentFailures} recent failures)");
+        $masked = Logger::maskEmail($email);
+        if (
+            LoginAttempt::recentFailedCount($email, self::LOCKOUT_WINDOW_MINUTES) >= self::MAX_FAILED_ATTEMPTS
+            || ($ip !== null && LoginAttempt::recentFailedCountByIp($ip, self::LOCKOUT_WINDOW_MINUTES) >= self::MAX_FAILED_ATTEMPTS_PER_IP)
+        ) {
+            Logger::warn("Login locked out for {$masked} from {$ip}");
             return [
                 'ok' => false,
                 'error' => 'Too many failed attempts. Please wait ' . self::LOCKOUT_WINDOW_MINUTES . ' minutes and try again.',
@@ -203,9 +206,12 @@ class AuthController
         }
 
         $user = User::findByEmail($email);
-        if (!$user || !password_verify($password, $user['password_hash'])) {
+        // Verify against a dummy hash for unknown emails so response time doesn't reveal which accounts exist.
+        $hash = $user['password_hash'] ?? '$2y$10$fWfP4shAj5Sb.lFNx10hq.zIgFMlpyqkmeog9v3bu6Lw/8/IIDK/G';
+        $passwordOk = password_verify($password, $hash);
+        if (!$user || !$passwordOk || ($user['status'] ?? 'active') !== 'active') {
             LoginAttempt::record($email, false, $ip);
-            Logger::warn("Failed login attempt for email: {$email}");
+            Logger::warn("Failed login attempt for {$masked} from {$ip}");
             return ['ok' => false, 'error' => 'Invalid email or password.'];
         }
 
@@ -219,6 +225,8 @@ class AuthController
         $_SESSION['user_id'] = (int) $user['id'];
         $_SESSION['role'] = $user['role'];
         $_SESSION['name'] = $user['name'];
+        $_SESSION['last_activity'] = time();
+        $_SESSION['pw_fp'] = \App\Middleware\AuthMiddleware::passwordFingerprint($user);
         Logger::info("User {$user['id']} ({$user['role']}) logged in");
     }
 

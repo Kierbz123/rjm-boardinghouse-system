@@ -1,0 +1,5 @@
+# This repo sits inside XAMPP's htdocs, so Apache would otherwise serve every
+# file in it (.env, logs, .git, source) and execute stray PHP scripts.
+# The app is served only by `php -S ... -t claude-code-project-files/public`
+# (see start-system.bat), which ignores this file.
+Require all denied

@@ -125,7 +125,9 @@ class BoarderController
         } catch (RuntimeException $e) {
             $_SESSION['flash_error'] = $e->getMessage();
         }
-        $redirect = !empty($_SERVER['HTTP_REFERER']) ? $_SERVER['HTTP_REFERER'] : '/admin/rooms';
+        // Only ever bounce back to a page of this app, never to wherever Referer points.
+        $refererPath = (string) parse_url($_SERVER['HTTP_REFERER'] ?? '', PHP_URL_PATH);
+        $redirect = preg_match('#^/admin/[a-z0-9/_-]*$#', $refererPath) ? $refererPath : '/admin/rooms';
         header('Location: ' . $redirect);
         exit;
     }

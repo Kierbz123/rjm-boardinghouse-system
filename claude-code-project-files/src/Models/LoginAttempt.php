@@ -13,6 +13,21 @@ class LoginAttempt
             'INSERT INTO login_attempts (email, ip_address, successful) VALUES (?, ?, ?)'
         );
         $stmt->execute([$email, $ipAddress, $successful ? 1 : 0]);
+
+        // Keep the table bounded; lockout only ever looks back minutes.
+        if ($successful) {
+            Database::getConnection()->exec('DELETE FROM login_attempts WHERE created_at < NOW() - INTERVAL 30 DAY');
+        }
+    }
+
+    public static function recentFailedCountByIp(string $ipAddress, int $windowMinutes): int
+    {
+        $stmt = Database::getConnection()->prepare(
+            'SELECT COUNT(*) FROM login_attempts
+             WHERE ip_address = ? AND successful = 0 AND created_at > (NOW() - INTERVAL ? MINUTE)'
+        );
+        $stmt->execute([$ipAddress, $windowMinutes]);
+        return (int) $stmt->fetchColumn();
     }
 
     /** Failed attempts for this email within the trailing $windowMinutes — a plain

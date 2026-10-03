@@ -434,7 +434,7 @@ ob_start();
                             <div id="qrcode-target" class="flex items-center justify-center" style="width: 196px; height: 196px; min-width: 196px; min-height: 196px;">
                                 <!-- Fallback image if JS is disabled -->
                                 <noscript>
-                                    <img src="https://api.qrserver.com/v1/create-qr-code/?size=196x196&data=<?= urlencode($defaultMobileUrl) ?>" alt="QR Code" width="196" height="196" />
+                                    <p class="text-xs text-neutral-500">Enable JavaScript to show the QR code, or open <?= htmlspecialchars($defaultMobileUrl) ?> on your phone.</p>
                                 </noscript>
                             </div>
                         </div>

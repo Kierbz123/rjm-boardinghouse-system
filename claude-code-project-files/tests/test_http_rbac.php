@@ -40,7 +40,7 @@ function http(string $method, string $path, ?string $jar, array $form = []): arr
     curl_close($ch);
     $headers = substr($raw, 0, $headerSize);
     preg_match('/^Location:\s*(\S+)/mi', $headers, $m);
-    return ['code' => $code, 'body' => substr($raw, $headerSize), 'location' => $m[1] ?? ''];
+    return ['code' => $code, 'body' => substr($raw, $headerSize), 'location' => $m[1] ?? '', 'headers' => $headers];
 }
 
 function csrfFrom(string $html): string
@@ -116,6 +116,23 @@ check(http('POST', '/admin/rooms', $jars['admin'], ['room_number' => 'X1', 'capa
 echo "== Wrong password does not log in ==\n";
 $jar = loginAs('admin@rjm.test', 'wrong-password');
 check(http('GET', '/admin/dashboard', $jar)['code'] === 302, 'bad credentials stay logged out');
+
+echo "== Security headers ==\n";
+$h = http('GET', '/login', null)['headers'];
+foreach (['X-Frame-Options: DENY', 'X-Content-Type-Options: nosniff', 'Content-Security-Policy:', 'Referrer-Policy:'] as $needle) {
+    check(stripos($h, $needle) !== false, "header {$needle}");
+}
+check(stripos($h, 'X-Powered-By') === false, 'X-Powered-By hidden');
+check(http('GET', '/logout', $jars['admin'])['code'] === 404, 'GET /logout no longer logs out');
+
+echo "== Password change ends the user's other sessions ==\n";
+$a = loginAs('boarder@rjm.test', 'BoarderPass123!');
+$b = loginAs('boarder@rjm.test', 'BoarderPass123!');
+$token = csrfFrom(http('GET', '/profile', $a)['body']);
+http('POST', '/profile/password', $a, ['csrf_token' => $token, 'current_password' => 'BoarderPass123!',
+    'new_password' => 'NewBoarderPass1!', 'confirm_password' => 'NewBoarderPass1!']);
+check(http('GET', '/portal/dashboard', $a)['code'] === 200, 'session that changed the password stays in');
+check(http('GET', '/portal/dashboard', $b)['code'] === 302, 'other session is logged out');
 
 echo $failures === 0 ? "All HTTP checks passed.\n" : "{$failures} HTTP check(s) failed.\n";
 exit($failures === 0 ? 0 : 1);

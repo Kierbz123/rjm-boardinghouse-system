@@ -188,6 +188,9 @@ class ProfileController
         }
 
         User::updatePassword($userId, $newPassword);
+        // Other sessions now fail AuthMiddleware's fingerprint check; keep this one.
+        session_regenerate_id(true);
+        $_SESSION['pw_fp'] = \App\Middleware\AuthMiddleware::passwordFingerprint(User::findById($userId));
 
         $_SESSION['flash_success'] = 'Your password has been changed successfully.';
         header('Location: /profile');
