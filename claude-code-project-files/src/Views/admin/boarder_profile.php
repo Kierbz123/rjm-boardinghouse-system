@@ -1190,16 +1190,16 @@ input[type="date"].profile-input {
             <span class="text-xl text-error-600">⚠️</span>
             <div>
                 <h2 class="text-heading-sm font-bold text-error-900">Danger Zone</h2>
-                <p class="text-caption text-error-700">Irreversible resident account deletion</p>
+                <p class="text-caption text-error-700">Archive or delete this resident</p>
             </div>
         </div>
 
         <div class="profile-danger-content text-xs">
             <div class="text-neutral-600 max-w-xl leading-relaxed">
-                Permanently deletes <strong><?= htmlspecialchars($boarder['name']) ?></strong>'s user account, vacates their assigned bed, and deletes associated profile, notifications, and login credentials.
+                Removes <strong><?= htmlspecialchars($boarder['name']) ?></strong>: frees their bed and disables login. Residents with payment or penalty records are <strong>archived</strong> (records kept, restorable from the resident list); others are deleted.
             </div>
             <button type="button" id="delete-boarder-trigger-btn" class="btn-danger !py-2.5 !px-4 !text-xs font-semibold self-start sm:self-auto cursor-pointer">
-                Delete Resident Account
+                Remove Resident
             </button>
         </div>
     </div>
@@ -1212,13 +1212,13 @@ input[type="date"].profile-input {
         <div class="flex items-center gap-3 text-error-600">
             <span style="font-size:1.75rem;">⚠️</span>
             <div>
-                <h3 class="text-heading-sm font-bold text-neutral-900">Confirm Account Deletion</h3>
-                <p class="text-caption text-error-700">This action cannot be undone</p>
+                <h3 class="text-heading-sm font-bold text-neutral-900">Confirm Removal</h3>
+                <p class="text-caption text-error-700">Archived residents can be restored; deleted ones cannot</p>
             </div>
         </div>
 
         <p class="text-xs text-neutral-600 leading-relaxed">
-            Are you sure you want to permanently delete the resident account for <strong class="text-neutral-900"><?= htmlspecialchars($boarder['name']) ?></strong> (<code class="text-xs"><?= htmlspecialchars($boarder['email']) ?></code>)?
+            Remove the resident <strong class="text-neutral-900"><?= htmlspecialchars($boarder['name']) ?></strong> (<code class="text-xs"><?= htmlspecialchars($boarder['email']) ?></code>)?
             Their bed will be set to vacant immediately.
         </p>
 
@@ -1229,7 +1229,7 @@ input[type="date"].profile-input {
                     Cancel
                 </button>
                 <button type="submit" class="btn-danger !py-2 !px-4 !text-xs font-bold cursor-pointer">
-                    Yes, Delete Permanently
+                    Yes, Remove
                 </button>
             </div>
         </form>

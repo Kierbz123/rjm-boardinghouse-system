@@ -855,6 +855,9 @@ $totalBalancesOwed  = array_sum(array_column($boarders, 'outstanding_balance'));
                     <button type="button" data-filter="moved_out" class="filter-tab filter-tab-btn">
                         Moved Out (<?= $movedOutCount ?>)
                     </button>
+                    <a href="<?= !empty($showArchived) ? '/admin/boarders' : '/admin/boarders?archived=1' ?>" class="filter-tab">
+                        <?= !empty($showArchived) ? '&larr; Current residents' : 'Show archived' ?>
+                    </a>
                 </div>
 
                 <!-- Live Search Box with Verified Padded Field -->
@@ -955,17 +958,24 @@ $totalBalancesOwed  = array_sum(array_column($boarders, 'outstanding_balance'));
                                             title="Edit basic info &amp; status">
                                         Edit
                                     </button>
+                                    <?php if (($b['account_status'] ?? '') === 'archived'): ?>
+                                    <form method="post" action="/admin/boarders/<?= (int) $b['user_id'] ?>/restore" class="inline">
+                                        <?= \App\Support\Csrf::field() ?>
+                                        <button type="submit" class="tbl-btn tbl-btn-edit cursor-pointer" title="Allow this resident to log in again">Restore</button>
+                                    </form>
+                                    <?php else: ?>
                                     <button type="button"
                                             class="tbl-btn tbl-btn-delete delete-trigger-btn cursor-pointer"
                                             data-id="<?= (int) $b['user_id'] ?>"
                                             data-name="<?= htmlspecialchars($b['name']) ?>"
-                                            title="Delete resident and free assigned bed">
-                                        Delete
+                                            title="Archive resident (or delete if they have no payment history)">
+                                        Remove
                                     </button>
                                     <!-- Hidden delete form for confirmation submit -->
                                     <form id="delete-form-<?= (int) $b['user_id'] ?>" method="post" action="/admin/boarders/<?= (int) $b['user_id'] ?>/delete" class="hidden">
                                         <?= \App\Support\Csrf::field() ?>
                                     </form>
+                                    <?php endif; ?>
                                 </div>
                             </td>
                         </tr>
@@ -1433,9 +1443,9 @@ $totalBalancesOwed  = array_sum(array_column($boarders, 'outstanding_balance'));
                 const form = document.getElementById('delete-form-' + id);
                 showConfirmModal({
                     type: 'delete',
-                    title: 'Delete Resident?',
-                    desc:  "Are you sure you want to delete " + name + "? Their assigned bed will be vacated and made available immediately.",
-                    confirmLabel: 'Delete',
+                    title: 'Remove Resident?',
+                    desc:  "Remove " + name + "? Their bed is freed and their login disabled. If they have any payment or penalty records they are archived (records kept, can be restored); otherwise the account is deleted.",
+                    confirmLabel: 'Remove',
                     onConfirm: function() { if (form) form.submit(); }
                 });
                 return;

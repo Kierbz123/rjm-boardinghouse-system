@@ -30,6 +30,9 @@ class Database
             ]);
             // NOW()/CURDATE() must agree with PHP's date() (set in autoload.php).
             self::$instance->exec("SET time_zone = '" . date('P') . "'");
+            // XAMPP's default mode silently stores '' for a bad ENUM and truncates long text.
+            // Strict mode turns those into errors so bad data never lands quietly.
+            self::$instance->exec("SET SESSION sql_mode = 'STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION'");
         }
 
         return self::$instance;

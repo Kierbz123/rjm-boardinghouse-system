@@ -76,24 +76,33 @@ class Bed
     public static function assign(int $bedId, int $boarderId): void
     {
         $pdo = Database::getConnection();
-        $pdo->beginTransaction();
-
-        $stmt = $pdo->prepare('SELECT status FROM beds WHERE id = ? FOR UPDATE');
-        $stmt->execute([$bedId]);
-        $bed = $stmt->fetch();
-
-        if (!$bed) {
-            $pdo->rollBack();
-            throw new RuntimeException('Bed not found.');
-        }
-        if ($bed['status'] === 'occupied') {
-            $pdo->rollBack();
-            throw new RuntimeException('This bed is already occupied.');
+        $ownTx = !$pdo->inTransaction(); // join the caller's transaction so multi-step moves are all-or-nothing
+        if ($ownTx) {
+            $pdo->beginTransaction();
         }
 
-        $update = $pdo->prepare('UPDATE beds SET status = "occupied", current_boarder_id = ? WHERE id = ?');
-        $update->execute([$boarderId, $bedId]);
-        $pdo->commit();
+        try {
+            $stmt = $pdo->prepare('SELECT status FROM beds WHERE id = ? FOR UPDATE');
+            $stmt->execute([$bedId]);
+            $bed = $stmt->fetch();
+
+            if (!$bed) {
+                throw new RuntimeException('Bed not found.');
+            }
+            if ($bed['status'] === 'occupied') {
+                throw new RuntimeException('This bed is already occupied.');
+            }
+
+            $pdo->prepare('UPDATE beds SET status = "occupied", current_boarder_id = ? WHERE id = ?')->execute([$boarderId, $bedId]);
+            if ($ownTx) {
+                $pdo->commit();
+            }
+        } catch (\Throwable $e) {
+            if ($ownTx) {
+                $pdo->rollBack();
+            }
+            throw $e;
+        }
     }
 
     public static function vacate(int $bedId): void

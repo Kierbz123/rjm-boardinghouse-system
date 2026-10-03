@@ -13,6 +13,7 @@ use App\Models\MaintenanceRequest;
 use App\Models\Incident;
 use App\Services\BillingService;
 use App\Services\NotificationDispatcher;
+use App\Database;
 use App\Support\Csrf;
 use RuntimeException;
 
@@ -20,7 +21,8 @@ class BoarderController
 {
     public static function index(): void
     {
-        $boarders = BoarderProfile::all();
+        $showArchived = ($_GET['archived'] ?? '') === '1';
+        $boarders = BoarderProfile::all($showArchived);
         $rooms = Room::all();
         $beds = Bed::all();
         require __DIR__ . '/../Views/admin/boarders.php';
@@ -49,6 +51,11 @@ class BoarderController
             header('Location: /admin/boarders');
             exit;
         }
+        if (!filter_var($email, FILTER_VALIDATE_EMAIL) || mb_strlen($password) < 8) {
+            $_SESSION['flash_error'] = 'Enter a valid email and a password of at least 8 characters.';
+            header('Location: /admin/boarders');
+            exit;
+        }
 
         // Bug found during Phase 8 QA pass: creating a boarder with an email that
         // already exists threw an uncaught PDO integrity-constraint exception
@@ -59,22 +66,24 @@ class BoarderController
             exit;
         }
 
-        $userId = User::create('boarder', $name, $email, $password);
-        $roomId = !empty($_POST['room_id']) ? (int) $_POST['room_id'] : null;
-
-        if ($bedId) {
-            $bed = Bed::find($bedId);
-            $roomId = !empty($bed['room_id']) ? (int) $bed['room_id'] : $roomId;
-            try {
+        // Account, bed and profile are created together or not at all.
+        $pdo = Database::getConnection();
+        $pdo->beginTransaction();
+        try {
+            $userId = User::create('boarder', $name, $email, $password);
+            $roomId = !empty($_POST['room_id']) ? (int) $_POST['room_id'] : null;
+            if ($bedId) {
+                $bed = Bed::find($bedId) ?? throw new RuntimeException('Bed not found.');
+                $roomId = (int) $bed['room_id'];
                 Bed::assign($bedId, $userId);
-            } catch (RuntimeException $e) {
-                $_SESSION['flash_error'] = $e->getMessage();
-                header('Location: /admin/boarders');
-                exit;
             }
+            BoarderProfile::create($userId, $roomId, $bedId);
+            $pdo->commit();
+            $_SESSION['flash_success'] = "Added {$name}.";
+        } catch (RuntimeException $e) {
+            $pdo->rollBack();
+            $_SESSION['flash_error'] = $e->getMessage();
         }
-
-        BoarderProfile::create($userId, $roomId, $bedId);
         header('Location: /admin/boarders');
         exit;
     }
@@ -105,25 +114,37 @@ class BoarderController
             echo 'Invalid session, please retry.';
             return;
         }
-        $boarderId = (int) $_POST['boarder_id'];
-        $bedId = (int) $_POST['bed_id'];
+        $boarderId = (int) ($_POST['boarder_id'] ?? 0);
+        $bedId = (int) ($_POST['bed_id'] ?? 0);
+        $pdo = Database::getConnection();
+        $pdo->beginTransaction();
         try {
-            $bed = Bed::find($bedId);
-            // Fix stale-bed bug: if boarder already occupies a different bed, vacate it first
-            $currentProfile = BoarderProfile::find($boarderId);
-            if (!empty($currentProfile['bed_id']) && (int) $currentProfile['bed_id'] !== $bedId) {
-                Bed::vacate((int) $currentProfile['bed_id']);
+            $bed = Bed::find($bedId) ?? throw new RuntimeException('Bed not found.');
+            $currentProfile = BoarderProfile::find($boarderId) ?? throw new RuntimeException('Boarder not found.');
+            if ($currentProfile['status'] === 'moved_out') {
+                throw new RuntimeException('A moved-out boarder cannot be assigned a bed. Change their status first.');
+            }
+            if ((int) $currentProfile['bed_id'] === $bedId) {
+                throw new RuntimeException('That boarder already has this bed.');
             }
 
+            // Moving beds: free the old one. If the new bed turns out to be taken,
+            // the rollback below puts the boarder back in the old bed.
+            if (!empty($currentProfile['bed_id'])) {
+                Bed::vacate((int) $currentProfile['bed_id']);
+            }
             Bed::assign($bedId, $boarderId);
             BoarderProfile::assignRoomAndBed($boarderId, (int) $bed['room_id'], $bedId);
-            BillingService::calculateBalance($boarderId); // the new room's price applies from this month
+            BillingService::calculateBalance($boarderId, $pdo); // the new room's price applies from this month
+            $pdo->commit();
 
             $room = Room::find((int) $bed['room_id']);
-            $roomNumber = $room['room_number'] ?? (string) $bed['room_id'];
-            $bedLabel = $bed['label'] ?? 'Bed';
-            NotificationDispatcher::bedAssigned($boarderId, $roomNumber, $bedLabel);
+            NotificationDispatcher::bedAssigned($boarderId, $room['room_number'] ?? (string) $bed['room_id'], $bed['label'] ?? 'Bed');
+            $_SESSION['flash_success'] = "{$currentProfile['name']} assigned to Room " . ($room['room_number'] ?? '') . " / {$bed['label']}.";
         } catch (RuntimeException $e) {
+            if ($pdo->inTransaction()) {
+                $pdo->rollBack();
+            }
             $_SESSION['flash_error'] = $e->getMessage();
         }
         // Only ever bounce back to a page of this app, never to wherever Referer points.
@@ -165,6 +186,11 @@ class BoarderController
         }
         if (mb_strlen($contactNumber) > 50 || mb_strlen($emergencyContactNumber) > 50) {
             $_SESSION['flash_error'] = 'Contact numbers must be 50 characters or fewer.';
+            header('Location: ' . $redirectUrl);
+            exit;
+        }
+        if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+            $_SESSION['flash_error'] = 'Please enter a valid email address.';
             header('Location: ' . $redirectUrl);
             exit;
         }
@@ -213,12 +239,34 @@ class BoarderController
             return;
         }
 
+        // Owner decision: residents with payment/penalty history are archived (records kept);
+        // only those added by mistake, with no financial history, are erased.
+        $id = (int) $userId;
         try {
-            BoarderProfile::delete((int) $userId);
+            if (BoarderProfile::hasFinancialHistory($id)) {
+                BoarderProfile::archive($id, (int) $_SESSION['user_id']);
+                $_SESSION['flash_success'] = 'Resident archived: moved out, login disabled, payment history kept. See "Show archived" to restore.';
+            } else {
+                BoarderProfile::delete($id);
+                $_SESSION['flash_success'] = 'Resident deleted (no payment or penalty history existed).';
+            }
         } catch (\Throwable $e) {
             $_SESSION['flash_error'] = $e->getMessage();
         }
 
+        header('Location: /admin/boarders');
+        exit;
+    }
+
+    public static function restore(string $userId): void
+    {
+        if (!Csrf::verify($_POST['csrf_token'] ?? null)) {
+            http_response_code(400);
+            echo 'Invalid session, please retry.';
+            return;
+        }
+        BoarderProfile::restore((int) $userId);
+        $_SESSION['flash_success'] = 'Resident restored. They can log in again; assign a bed and set them active to resume rent.';
         header('Location: /admin/boarders');
         exit;
     }

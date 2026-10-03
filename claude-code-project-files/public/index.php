@@ -109,6 +109,10 @@ $router->add('POST', '/admin/boarders/{id}/delete', function ($id) {
     AuthMiddleware::require(); RoleMiddleware::require(['admin']);
     BoarderController::delete($id);
 });
+$router->add('POST', '/admin/boarders/{id}/restore', function ($id) {
+    AuthMiddleware::require(); RoleMiddleware::require(['admin']);
+    BoarderController::restore($id);
+});
 $router->add('GET', '/admin/boarders/{id}', function ($id) {
     AuthMiddleware::require(); RoleMiddleware::require(['admin']);
     BoarderController::show($id);

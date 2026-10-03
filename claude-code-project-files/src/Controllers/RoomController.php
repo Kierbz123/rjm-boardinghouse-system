@@ -23,9 +23,9 @@ class RoomController
             echo 'Invalid session, please retry.';
             return;
         }
-        $roomNumber = trim((string) $_POST['room_number']);
+        $roomNumber = trim((string) ($_POST['room_number'] ?? ''));
         $floor = trim((string) ($_POST['floor'] ?? ''));
-        $capacity = (int) $_POST['capacity'];
+        $capacity = (int) ($_POST['capacity'] ?? 0);
         if ($roomNumber === '' || $capacity <= 0) {
             $_SESSION['flash_error'] = 'Room number is required and capacity must be greater than zero.';
             header('Location: /admin/rooms');
@@ -41,7 +41,9 @@ class RoomController
             header('Location: /admin/rooms');
             exit;
         }
-        Room::create($roomNumber, $floor ?: null, $capacity, (float) $_POST['base_price']);
+        $basePrice = self::basePriceOrRedirect();
+        Room::create($roomNumber, $floor ?: null, $capacity, $basePrice);
+        $_SESSION['flash_success'] = "Room {$roomNumber} added.";
         header('Location: /admin/rooms');
         exit;
     }
@@ -54,9 +56,9 @@ class RoomController
             echo 'Invalid session, please retry.';
             return;
         }
-        $roomNumber = trim((string) $_POST['room_number']);
+        $roomNumber = trim((string) ($_POST['room_number'] ?? ''));
         $floor = trim((string) ($_POST['floor'] ?? ''));
-        $capacity = (int) $_POST['capacity'];
+        $capacity = (int) ($_POST['capacity'] ?? 0);
         if ($roomNumber === '' || $capacity <= 0) {
             $_SESSION['flash_error'] = 'Room number is required and capacity must be greater than zero.';
             header('Location: /admin/rooms');
@@ -72,7 +74,15 @@ class RoomController
             header('Location: /admin/rooms');
             exit;
         }
-        Room::update((int) $id, $roomNumber, $floor ?: null, $capacity, (float) $_POST['base_price']);
+        $basePrice = self::basePriceOrRedirect();
+        $bedCount = count(array_filter(Bed::all(), fn ($b) => (int) $b['room_id'] === (int) $id));
+        if ($capacity < $bedCount) {
+            $_SESSION['flash_error'] = "This room already has {$bedCount} beds; capacity cannot be lower. Remove beds first.";
+            header('Location: /admin/rooms');
+            exit;
+        }
+        Room::update((int) $id, $roomNumber, $floor ?: null, $capacity, $basePrice);
+        $_SESSION['flash_success'] = "Room {$roomNumber} updated.";
         header('Location: /admin/rooms');
         exit;
     }
@@ -120,6 +130,13 @@ class RoomController
 
         if ($rawLabel === '') {
             $_SESSION['flash_error'] = 'Bed label is required.';
+            header('Location: /admin/rooms');
+            exit;
+        }
+
+        $existingBeds = count(array_filter(Bed::all(), fn ($b) => (int) $b['room_id'] === $roomId));
+        if ($existingBeds + $count > (int) $room['capacity']) {
+            $_SESSION['flash_error'] = "Room {$room['room_number']} holds {$room['capacity']} and already has {$existingBeds} bed(s). Raise its capacity first.";
             header('Location: /admin/rooms');
             exit;
         }
@@ -224,6 +241,18 @@ class RoomController
         return $labels;
     }
 
+    /** Monthly rent per bed: a number from 0 to 1,000,000, or back to the form with an error. */
+    private static function basePriceOrRedirect(): float
+    {
+        $raw = $_POST['base_price'] ?? null;
+        if (!is_numeric($raw) || (float) $raw < 0 || (float) $raw > 1000000) {
+            $_SESSION['flash_error'] = 'Monthly price must be a number from 0 up.';
+            header('Location: /admin/rooms');
+            exit;
+        }
+        return round((float) $raw, 2);
+    }
+
     /** Closes the CRUD gap from QA-VALIDATION-REPORT.md — edit a bed's label. */
     public static function updateBed(string $id): void
     {
@@ -232,7 +261,7 @@ class RoomController
             echo 'Invalid session, please retry.';
             return;
         }
-        $label = trim((string) $_POST['label']);
+        $label = trim((string) ($_POST['label'] ?? ''));
         if ($label === '') {
             $_SESSION['flash_error'] = 'Bed label is required.';
             header('Location: /admin/rooms');

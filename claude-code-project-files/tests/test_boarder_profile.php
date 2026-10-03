@@ -254,7 +254,9 @@ assertEqual($logWithSystem[0]['changer_name'], 'System', "Status log contains 'S
 // ---------------------------------------------------------
 Bed::vacate($bed1Id);
 Bed::vacate($bed2Id);
-BoarderProfile::delete($testBoarderId);
+// This boarder has a payment (Step 9), so it can only be archived, never erased.
+BoarderProfile::archive($testBoarderId, null);
+assertEqual(User::findById($testBoarderId)['status'], 'archived', 'Boarder with payments is archived on removal');
 
 echo "\n=========================================================\n";
 echo "  ALL BOARDER PROFILE & LIFECYCLE TESTS PASSED!          \n";

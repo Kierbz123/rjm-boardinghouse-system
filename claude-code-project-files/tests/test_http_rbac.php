@@ -178,6 +178,59 @@ http('POST', '/staff/penalties/issue', $jars['staff'], ['csrf_token' => $token, 
 $issued = $pdo->query("SELECT amount FROM penalties WHERE reason = 'staff-amount-test'")->fetchColumn();
 check($issued !== false && abs((float) $issued - (float) $rule['amount']) < 0.01, 'staff cannot set a custom amount');
 
+echo "== Data integrity (B4) ==\n";
+$q = fn (string $sql) => $pdo->query($sql)->fetchColumn();
+$bedA = (int) $q("SELECT id FROM beds WHERE label = 'Bed A' LIMIT 1");
+$bedB = (int) $q("SELECT id FROM beds WHERE label = 'Bed B' LIMIT 1");
+$roomId = (int) $q("SELECT room_id FROM beds WHERE id = {$bedA}");
+$token = csrfFrom(http('GET', '/admin/boarders', $jars['admin'])['body']);
+$add = fn (array $f) => http('POST', '/admin/boarders', $jars['admin'], $f + ['csrf_token' => $token, 'password' => 'Password123']);
+
+// Earlier test files move beds around; start this section from two known-vacant beds.
+App\Models\Bed::vacate($bedA);
+App\Models\Bed::vacate($bedB);
+$pdo->exec("UPDATE boarder_profiles SET bed_id = NULL WHERE bed_id IN ({$bedA}, {$bedB})");
+
+$add(['name' => 'Bad Email', 'email' => 'not-an-email']);
+check($q("SELECT COUNT(*) FROM users WHERE name = 'Bad Email'") == 0, 'invalid email rejected');
+$add(['name' => 'Mistake', 'email' => 'mistake@rjm.test', 'bed_id' => $bedB]);
+$mistake = (int) $q("SELECT id FROM users WHERE email = 'mistake@rjm.test'");
+check($mistake > 0 && $q("SELECT current_boarder_id FROM beds WHERE id = {$bedB}") == $mistake, 'boarder created on Bed B');
+$add(['name' => 'Orphan', 'email' => 'orphan@rjm.test', 'bed_id' => $bedB]);
+check($q("SELECT COUNT(*) FROM users WHERE email = 'orphan@rjm.test'") == 0, 'creating a boarder on an occupied bed leaves no orphan account');
+$add(['name' => 'Holder', 'email' => 'holder@rjm.test', 'bed_id' => $bedA]);
+
+http('POST', '/admin/beds/assign', $jars['admin'], ['csrf_token' => $token, 'boarder_id' => $mistake, 'bed_id' => $bedA]);
+check((int) $q("SELECT bed_id FROM boarder_profiles WHERE user_id = {$mistake}") === $bedB
+    && $q("SELECT status FROM beds WHERE id = {$bedB}") === 'occupied', 'moving to an occupied bed keeps the boarder in their old bed');
+
+http('POST', "/admin/boarders/{$mistake}/status", $jars['admin'], ['csrf_token' => $token, 'status' => 'bogus']);
+check($q("SELECT status FROM boarder_profiles WHERE user_id = {$mistake}") === 'pending', 'invalid status rejected');
+try {
+    $pdo->exec("UPDATE boarder_profiles SET status = 'bogus' WHERE user_id = {$mistake}");
+    check(false, 'strict SQL mode rejects bad ENUM values');
+} catch (PDOException $e) {
+    check(true, 'strict SQL mode rejects bad ENUM values');
+}
+
+http('POST', '/admin/beds', $jars['admin'], ['csrf_token' => $token, 'room_id' => $roomId, 'label' => 'Bed C']);
+check((int) $q("SELECT COUNT(*) FROM beds WHERE room_id = {$roomId}") === 2, 'cannot add beds beyond room capacity');
+
+http('POST', "/admin/boarders/{$mistake}/delete", $jars['admin'], ['csrf_token' => $token]);
+check($q("SELECT COUNT(*) FROM users WHERE id = {$mistake}") == 0, 'boarder without payment history is deleted');
+check($q("SELECT status FROM beds WHERE id = {$bedB}") === 'vacant', 'their bed is freed');
+
+$paymentsBefore = (int) $q('SELECT COUNT(*) FROM payments WHERE boarder_id = 3');
+http('POST', '/admin/boarders/3/delete', $jars['admin'], ['csrf_token' => $token]);
+check($q('SELECT status FROM users WHERE id = 3') === 'archived', 'boarder with payment history is archived, not deleted');
+check((int) $q('SELECT COUNT(*) FROM payments WHERE boarder_id = 3') === $paymentsBefore && $paymentsBefore > 0, 'their payments are kept');
+check($q('SELECT status FROM boarder_profiles WHERE user_id = 3') === 'moved_out' && $q('SELECT bed_id FROM boarder_profiles WHERE user_id = 3') === null, 'archived boarder is moved out with no bed');
+check(!str_contains(http('GET', '/admin/boarders', $jars['admin'])['body'], 'boarder@rjm.test'), 'hidden from the resident list');
+check(str_contains(http('GET', '/admin/boarders?archived=1', $jars['admin'])['body'], 'boarder@rjm.test'), 'listed under Show archived');
+check(http('GET', '/portal/dashboard', loginAs('boarder@rjm.test', 'BoarderPass123!'))['code'] === 302, 'archived boarder cannot log in');
+http('POST', '/admin/boarders/3/restore', $jars['admin'], ['csrf_token' => $token]);
+check($q('SELECT status FROM users WHERE id = 3') === 'active', 'restore re-enables the account');
+
 echo "== App and database clocks agree (H3) ==\n";
 check($pdo->query("SELECT DATE_FORMAT(NOW(), '%Y-%m-%d %H:%i')")->fetchColumn() === date('Y-m-d H:i'), 'NOW() matches PHP date()');
 

@@ -11,6 +11,8 @@ class Notification
         $stmt = Database::getConnection()->prepare(
             'INSERT INTO notifications (user_id, type, message, action_url, entity_type, entity_id) VALUES (?, ?, ?, ?, ?, ?)'
         );
+        // message is VARCHAR(255): shorten deliberately rather than fail under strict mode.
+        $message = mb_strlen($message) > 255 ? mb_substr($message, 0, 254) . '…' : $message;
         $stmt->execute([$userId, $type, $message, $actionUrl, $entityType, $entityId]);
         return (int) Database::getConnection()->lastInsertId();
     }
@@ -79,7 +81,7 @@ class Notification
         $stmt = Database::getConnection()->prepare(
             'UPDATE notifications SET message = ? WHERE entity_type = ? AND entity_id = ?'
         );
-        $stmt->execute([$newMessage, $entityType, $entityId]);
+        $stmt->execute([mb_substr($newMessage, 0, 255), $entityType, $entityId]);
     }
 
     public static function belongsTo(int $id, int $userId): bool

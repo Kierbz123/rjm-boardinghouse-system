@@ -17,15 +17,49 @@ class BoarderProfile
         return $stmt->fetch() ?: null;
     }
 
-    public static function all(): array
+    /** Current residents by default; $archived = true lists only archived ones. */
+    public static function all(bool $archived = false): array
     {
-        $sql = 'SELECT boarder_profiles.*, users.name, users.email, rooms.room_number, beds.label AS bed_label
+        $sql = 'SELECT boarder_profiles.*, users.name, users.email, users.status AS account_status,
+                       rooms.room_number, beds.label AS bed_label
                 FROM boarder_profiles
                 JOIN users ON users.id = boarder_profiles.user_id
                 LEFT JOIN rooms ON rooms.id = boarder_profiles.room_id
                 LEFT JOIN beds ON beds.id = boarder_profiles.bed_id
+                WHERE users.status ' . ($archived ? '=' : '<>') . ' "archived"
                 ORDER BY users.name';
         return Database::getConnection()->query($sql)->fetchAll();
+    }
+
+    /** Payments or penalties on record — such a boarder is archived, never erased. */
+    public static function hasFinancialHistory(int $userId): bool
+    {
+        $stmt = Database::getConnection()->prepare(
+            'SELECT (SELECT COUNT(*) FROM payments WHERE boarder_id = ?) + (SELECT COUNT(*) FROM penalties WHERE boarder_id = ?)'
+        );
+        $stmt->execute([$userId, $userId]);
+        return (int) $stmt->fetchColumn() > 0;
+    }
+
+    /**
+     * Retires a boarder while keeping every record: moves them out today (frees the
+     * bed, stops rent) unless already moved out, blocks login, hides them from lists.
+     */
+    public static function archive(int $userId, ?int $changedBy): void
+    {
+        $profile = self::find($userId);
+        if ($profile === null) {
+            throw new \RuntimeException('Boarder not found.');
+        }
+        if ($profile['status'] !== 'moved_out') {
+            self::updateDatesAndStatus($userId, $profile['move_in_date'], $profile['move_out_date'] ?? date('Y-m-d'), $changedBy);
+        }
+        Database::getConnection()->prepare('UPDATE users SET status = "archived" WHERE id = ? AND role = "boarder"')->execute([$userId]);
+    }
+
+    public static function restore(int $userId): void
+    {
+        Database::getConnection()->prepare('UPDATE users SET status = "active" WHERE id = ? AND role = "boarder"')->execute([$userId]);
     }
 
     public static function create(int $userId, ?int $roomId, ?int $bedId): void
@@ -193,11 +227,16 @@ class BoarderProfile
     }
 
     /**
-     * Fully deletes a boarder: vacates their bed, deletes relational records,
-     * profile, and the user account inside a single transaction.
+     * Fully deletes a boarder who was added by mistake: vacates their bed, deletes
+     * relational records, profile, and the user account inside a single transaction.
+     * Refused when payments or penalties exist — financial records are never erased; archive() instead.
      */
     public static function delete(int $userId): void
     {
+        if (self::hasFinancialHistory($userId)) {
+            throw new \RuntimeException('This boarder has payment or penalty records and can only be archived.');
+        }
+
         $pdo = Database::getConnection();
         $pdo->beginTransaction();
         try {
@@ -222,8 +261,6 @@ class BoarderProfile
                 'notifications' => 'user_id',
                 'sos_alerts' => 'boarder_id',
                 'maintenance_requests' => 'boarder_id',
-                'penalties' => 'boarder_id',
-                'payments' => 'boarder_id',
                 'rent_charges' => 'boarder_id',
                 'incidents' => 'reported_by',
                 'boarder_profiles' => 'user_id',

@@ -20,9 +20,15 @@ class ExpenseController
             echo 'Invalid session, please retry.';
             return;
         }
-        $amount = (float) $_POST['amount'];
-        $category = trim((string) $_POST['category']);
-        if ($category === '' || $amount <= 0) {
+        $amount = round((float) ($_POST['amount'] ?? 0), 2);
+        $category = trim((string) ($_POST['category'] ?? ''));
+        $description = trim((string) ($_POST['description'] ?? ''));
+        if (mb_strlen($description) > 255) {
+            $_SESSION['flash_error'] = 'Description must be 255 characters or fewer.';
+            header('Location: /admin/expenses');
+            exit;
+        }
+        if ($category === '' || $amount <= 0 || $amount > 10000000) {
             $_SESSION['flash_error'] = 'Category is required and amount must be greater than zero.';
             header('Location: /admin/expenses');
             exit;
@@ -36,9 +42,10 @@ class ExpenseController
             (int) $_SESSION['user_id'],
             $category,
             $amount,
-            $_POST['description'] ?: null,
+            $description !== '' ? $description : null,
             null
         );
+        $_SESSION['flash_success'] = 'Expense recorded.';
         header('Location: /admin/expenses');
         exit;
     }
