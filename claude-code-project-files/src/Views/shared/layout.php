@@ -58,6 +58,12 @@
         <?php endif; ?>
         <?= $content ?? '' ?>
     </main>
+    <?php if (!empty($_SESSION['role'])): // the assistant's type-ahead: only pages this role may open ?>
+    <script type="application/json" id="assistant-pages"><?= json_encode(array_map(
+        fn ($page) => ['href' => $page['href'], 'label' => $page['label'], 'words' => $page['words'], 'about' => $page['about']],
+        \App\Support\NavRegistry::forRole($_SESSION['role'])
+    ), JSON_HEX_TAG | JSON_HEX_AMP | JSON_UNESCAPED_UNICODE) ?></script>
+    <?php endif; ?>
     <script src="/assets/js/app.js"></script>
     <script src="/assets/js/ai-assistant.js"></script>
 </body>

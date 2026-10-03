@@ -383,9 +383,9 @@ $router->add('GET', '/api/assistant/status', function () {
     AuthMiddleware::require();
     AssistantController::status();
 });
-$router->add('POST', '/api/assistant/chat', function () {
+$router->add('POST', '/api/assistant/ask', function () {
     AuthMiddleware::require();
-    AssistantController::chat();
+    AssistantController::ask();
 });
 $router->add('POST', '/api/assistant/suggest-description', function () {
     AuthMiddleware::require(); RoleMiddleware::require(['boarder']);

@@ -12,56 +12,8 @@ $dashboardHome = match ($role) {
     default   => '/',
 };
 
-// Logical grouping matching the Master Prompt specifications
-$navSections = [
-    'admin' => [
-        'Overview' => [
-            ['href' => '/admin/dashboard', 'label' => 'Dashboard', 'icon' => 'dashboard'],
-            ['href' => '/admin/inquiry-center', 'label' => 'Inquiry Center', 'icon' => 'inquiry'],
-            ['href' => '/admin/occupancy', 'label' => 'Occupancy', 'icon' => 'occupancy'],
-        ],
-        'Boarding' => [
-            ['href' => '/admin/boarders', 'label' => 'Boarders', 'icon' => 'boarders'],
-            ['href' => '/admin/rooms', 'label' => 'Rooms & Beds', 'icon' => 'rooms'],
-            ['href' => '/admin/staff', 'label' => 'Staff Accounts', 'icon' => 'boarders'],
-        ],
-        'Finance' => [
-            ['href' => '/admin/payments', 'label' => 'Payments', 'icon' => 'payments'],
-            ['href' => '/admin/expenses', 'label' => 'Expenses', 'icon' => 'expenses'],
-            ['href' => '/admin/penalty-rules', 'label' => 'Penalties', 'icon' => 'penalties'],
-        ],
-        'Records' => [
-            ['href' => '/staff/maintenance/history', 'label' => 'Maintenance History', 'icon' => 'maintenance'],
-            ['href' => '/staff/incidents/history', 'label' => 'Incident History', 'icon' => 'incidents'],
-        ],
-    ],
-    'staff' => [
-        'Overview' => [
-            ['href' => '/staff/dashboard', 'label' => 'Dashboard', 'icon' => 'dashboard'],
-            ['href' => '/admin/inquiry-center', 'label' => 'Inquiry Center', 'icon' => 'inquiry'],
-        ],
-        'Active Tasks' => [
-            ['href' => '/staff/maintenance', 'label' => 'Maintenance Queue', 'icon' => 'maintenance'],
-            ['href' => '/staff/incidents', 'label' => 'Incidents', 'icon' => 'incidents'],
-        ],
-        'Records' => [
-            ['href' => '/staff/maintenance/history', 'label' => 'Maintenance History', 'icon' => 'maintenance'],
-            ['href' => '/staff/incidents/history', 'label' => 'Incident History', 'icon' => 'incidents'],
-        ],
-    ],
-    'boarder' => [
-        'Overview' => [
-            ['href' => '/portal/dashboard', 'label' => 'Dashboard', 'icon' => 'dashboard'],
-        ],
-        'Resident Services' => [
-            ['href' => '/portal/maintenance/new', 'label' => 'Report a Repair', 'icon' => 'maintenance'],
-            ['href' => '/portal/payments/new', 'label' => 'Pay Rent', 'icon' => 'payments'],
-        ],
-        'Community' => [
-            ['href' => '/staff/incidents', 'label' => 'Incidents', 'icon' => 'incidents'],
-        ],
-    ],
-];
+// One page list shared with the assistant, so the sidebar and its answers cannot disagree.
+$navSections = [$role => \App\Support\NavRegistry::sidebar($role)];
 
 // Helper to check if a section contains the currently active route
 function sectionHasActiveRoute(array $items, string $currentPath): bool {

@@ -304,6 +304,38 @@ foreach (['X-Frame-Options: DENY', 'X-Content-Type-Options: nosniff', 'Content-S
 check(stripos($h, 'X-Powered-By') === false, 'X-Powered-By hidden');
 check(http('GET', '/logout', $jars['admin'])['code'] === 404, 'GET /logout no longer logs out');
 
+echo "== Assistant answers with pages the role may open (plan A0/A1) ==\n";
+$ask = function (string $role, array $body, bool $withToken = true) use ($jars, $base): array {
+    if ($withToken) {
+        $body['csrf_token'] = csrfFrom(http('GET', '/profile', $jars[$role])['body']);
+    }
+    $ch = curl_init($base . '/api/assistant/ask');
+    curl_setopt_array($ch, [CURLOPT_RETURNTRANSFER => true, CURLOPT_POST => true, CURLOPT_TIMEOUT => 20,
+        CURLOPT_COOKIEFILE => $jars[$role], CURLOPT_HTTPHEADER => ['Content-Type: application/json'],
+        CURLOPT_POSTFIELDS => json_encode($body)]);
+    $json = json_decode((string) curl_exec($ch), true);
+    $code = curl_getinfo($ch, CURLINFO_RESPONSE_CODE);
+    curl_close($ch);
+    return ['code' => $code, 'json' => is_array($json) ? $json : []];
+};
+$r = $ask('boarder', ['message' => 'where do I pay rent?']);
+check($r['code'] === 200 && ($r['json']['actions'][0] ?? null) === ['label' => 'Open Pay Rent', 'href' => '/portal/payments/new'],
+    'boarder "where do I pay rent?" -> Open Pay Rent button');
+$r = $ask('boarder', ['message' => 'saan ako magbabayad ng renta', 'lang' => 'tl']);
+check(($r['json']['actions'][0]['label'] ?? '') === 'Buksan ang Pay Rent' && str_contains($r['json']['reply'] ?? '', 'resibo'), 'Tagalog setting answers in Tagalog');
+$r = $ask('staff', ['message' => 'open the maintenance queue']);
+check(($r['json']['actions'][0]['href'] ?? '') === '/staff/maintenance', 'staff "maintenance queue" -> /staff/maintenance');
+$r = $ask('admin', ['message' => 'show flagged payments']);
+check(($r['json']['actions'][0]['href'] ?? '') === '/admin/payments', 'admin "flagged payments" -> /admin/payments');
+$r = $ask('boarder', ['message' => 'payments expenses boarders staff accounts rooms occupancy maintenance queue']);
+$hrefs = array_column($r['json']['actions'] ?? [], 'href');
+check($r['code'] === 200 && $hrefs && !array_filter($hrefs, fn ($h) => http('GET', $h, $jars['boarder'])['code'] !== 200),
+    'every page offered to a boarder opens for a boarder (' . implode(', ', $hrefs) . ')');
+check($ask('boarder', ['message' => 'pay rent'], false)['code'] === 403, 'ask requires the CSRF token');
+check($ask('boarder', ['message' => '  '])['code'] === 400, 'ask rejects an empty message');
+check(http('POST', '/api/assistant/ask', null, [])['code'] === 302, 'ask requires a login');
+check(str_contains(http('GET', '/portal/dashboard', $jars['boarder'])['body'], 'href="/portal/payments/new"'), 'sidebar still links Pay Rent for boarders');
+
 echo "== Password change ends the user's other sessions ==\n";
 $a = loginAs('boarder@rjm.test', 'BoarderPass123!');
 $b = loginAs('boarder@rjm.test', 'BoarderPass123!');

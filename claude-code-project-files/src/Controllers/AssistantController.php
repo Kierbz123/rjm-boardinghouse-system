@@ -4,8 +4,10 @@ namespace App\Controllers;
 
 use App\Database;
 use App\Models\MaintenanceRequest;
+use App\Services\AssistantService;
 use App\Services\OllamaClient;
 use App\Support\Csrf;
+use App\Support\NavRegistry;
 
 /**
  * JSON API controller for AI assistant endpoints.
@@ -30,16 +32,16 @@ class AssistantController
     }
 
     /**
-     * POST /api/assistant/chat
-     * General AI chat for boarders. Injects boarder context from DB
-     * so the AI can answer personal questions (room, balance, etc.)
-     * without guessing — same pattern as boarderContext in assistant.js.
+     * POST /api/assistant/ask
+     * The assistant's front door, for any signed-in role. PHP rules answer first
+     * (pages the role may open), so this works with Ollama stopped; only a message
+     * no rule matches goes to the local model as free-form chat.
      */
-    public static function chat(): void
+    public static function ask(): void
     {
         header('Content-Type: application/json');
 
-        $input = self::readJsonBody();
+        $input = self::readJsonBody(false);
         if (!$input) {
             return;
         }
@@ -50,19 +52,34 @@ class AssistantController
             echo json_encode(['ok' => false, 'error' => 'Message is required.']);
             return;
         }
+        $lang = ($input['lang'] ?? 'en') === 'tl' ? 'tl' : 'en';
+        $role = (string) ($_SESSION['role'] ?? '');
 
-        // Build boarder context from real DB data (only the logged-in user's own data)
-        $boarderContext = self::buildBoarderContext();
-
-        $result = OllamaClient::chat($message, $boarderContext);
-
-        if (!$result['ok']) {
-            http_response_code(503);
-            echo json_encode(['ok' => false, 'error' => $result['error']]);
+        $card = AssistantService::answer($message, $role, $lang);
+        if ($card) {
+            echo json_encode(['ok' => true] + $card);
             return;
         }
 
-        echo json_encode(['ok' => true, 'reply' => $result['reply']]);
+        if (self::aiLimitReached()) {
+            return;
+        }
+        $result = OllamaClient::chat($message, self::buildBoarderContext());
+        if ($result['ok']) {
+            echo json_encode(['ok' => true, 'reply' => $result['reply'], 'actions' => [], 'source' => 'ai']);
+            return;
+        }
+
+        // Model stopped or busy: say so plainly and offer the role's main pages instead of an error.
+        $pages = array_merge(...array_values(NavRegistry::sidebar($role)));
+        echo json_encode([
+            'ok' => true,
+            'reply' => $lang === 'tl'
+                ? 'Wala akong nahanap na page para diyan, at naka-off ang AI chat ngayon. Subukan ang pangalan ng page, o pumili sa ibaba.'
+                : "I couldn't match that to a page, and AI chat is off right now. Try a page name, or pick one below.",
+            'actions' => array_map(fn ($p) => ['label' => $p['label'], 'href' => $p['href']], array_slice($pages, 0, 4)),
+            'source' => 'pages',
+        ]);
     }
 
     /**
@@ -212,7 +229,7 @@ class AssistantController
      * Read JSON request body with CSRF validation.
      * Returns the parsed array or null (and sends the error response).
      */
-    private static function readJsonBody(): ?array
+    private static function readJsonBody(bool $countsAsAiCall = true): ?array
     {
         $raw   = file_get_contents('php://input');
         $input = json_decode($raw, true);
@@ -239,15 +256,25 @@ class AssistantController
                 return null;
             }
         }
+        if ($countsAsAiCall && self::aiLimitReached()) {
+            return null;
+        }
+
+        return $input;
+    }
+
+    /** Counts one call to the model; sends the 429 and returns true once a session passes 10 a minute. */
+    private static function aiLimitReached(): bool
+    {
         $recent = array_filter($_SESSION['ai_calls'] ?? [], fn ($t) => $t > time() - 60);
         if (count($recent) >= 10) {
             http_response_code(429);
             echo json_encode(['ok' => false, 'error' => 'Too many AI requests. Please wait a minute.']);
-            return null;
+            return true;
         }
         $_SESSION['ai_calls'] = [...$recent, time()];
 
-        return $input;
+        return false;
     }
 
     /**

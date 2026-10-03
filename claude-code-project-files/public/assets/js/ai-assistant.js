@@ -9,7 +9,8 @@
  *  - Boarder: Real-time Live Priority Preview (client-side keyword scoring)
  *  - Staff: Per-ticket AI analysis (root cause, action steps, safety warnings)
  *  - Staff: Queue summary generation
- *  - Floating AI Chat Drawer with quick prompt chips & session persistence
+ *  - Assistant drawer (Ctrl+K): finds pages for the role without the AI model,
+ *    answers in English or Tagalog, and chats through Ollama when it is running
  */
 
 (function () {
@@ -109,6 +110,8 @@
         if (chatStatus) {
             chatStatus.className = 'ai-status-dot ' + (online ? 'bg-emerald-400' : 'bg-slate-400');
         }
+        const chatStatusText = document.getElementById('ai-chat-status-text');
+        if (chatStatusText) chatStatusText.textContent = t(online ? 'aiOn' : 'aiOff');
     }
 
     // ────────────────────────────────────────────────────────
@@ -527,154 +530,243 @@
     }
 
     // ────────────────────────────────────────────────────────
-    //  Interactive AI Chat Drawer
+    //  Assistant drawer: finds pages without the AI model, chats when it is on
     // ────────────────────────────────────────────────────────
-    function initChatDrawer() {
-        // Only inject if user is logged in
-        const userRole = document.body.dataset.userRole;
-        if (!userRole) return;
-
-        // Create FAB if not already present
-        if (!document.getElementById('ai-chat-fab')) {
-            const fab = document.createElement('button');
-            fab.id = 'ai-chat-fab';
-            fab.type = 'button';
-            fab.innerHTML = `
-                <span style="font-size: 1.1rem;">💬</span>
-                <span>Ask AI</span>
-                <span id="ai-chat-status-dot" class="ai-status-dot ${isAiOnline ? 'bg-emerald-400' : 'bg-slate-400'}"></span>
-            `;
-            document.body.appendChild(fab);
-
-            fab.addEventListener('click', toggleChatWindow);
+    const TEXT = {
+        en: {
+            greeting: 'Ask a question or type a page name. I only show pages you can open.',
+            placeholder: 'Ask or type a page name',
+            send: 'Send',
+            clear: 'Clear',
+            cleared: 'Chat cleared. What do you need?',
+            aiOn: 'AI chat on',
+            aiOff: 'AI chat off',
+            aiHint: 'Finding pages always works. Free-form chat needs the local AI model (Ollama) running.',
+            waking: 'The local AI model is starting. The first answer can take about 10 seconds.',
+            failed: 'The assistant could not be reached. Check that the system is still running, then try again.',
+            chips: {
+                boarder: ['Where do I pay rent?', 'Something in my room is broken', 'Change my password'],
+                staff: ['Open the maintenance queue', 'Who asked about a room?', 'Log an incident'],
+                admin: ['Payments waiting for review', 'Which beds are vacant?', 'Add a staff account']
+            }
+        },
+        tl: {
+            greeting: 'Magtanong o i-type ang pangalan ng page. Mga page lang na mabubuksan mo ang ipapakita ko.',
+            placeholder: 'Magtanong o mag-type ng page',
+            send: 'Ipadala',
+            clear: 'Burahin',
+            cleared: 'Nabura na ang chat. Ano ang kailangan mo?',
+            aiOn: 'Naka-on ang AI chat',
+            aiOff: 'Naka-off ang AI chat',
+            aiHint: 'Laging gumagana ang paghahanap ng page. Kailangan ng lokal na AI model (Ollama) para sa malayang chat.',
+            waking: 'Nagsisimula pa ang lokal na AI model. Maaaring umabot ng mga 10 segundo ang unang sagot.',
+            failed: 'Hindi maabot ang assistant. Tiyaking tumatakbo pa ang system, saka subukan ulit.',
+            chips: {
+                boarder: ['Saan ako magbabayad ng renta?', 'May sira sa kuwarto ko', 'Palitan ang password ko'],
+                staff: ['Buksan ang maintenance queue', 'Sino ang nagtanong tungkol sa kuwarto?', 'Mag-ulat ng insidente'],
+                admin: ['Mga bayad na susuriin', 'Aling higaan ang bakante?', 'Magdagdag ng staff account']
+            }
         }
+    };
 
-        // Create Chat Window if not present
-        if (!document.getElementById('ai-chat-window')) {
-            const win = document.createElement('div');
-            win.id = 'ai-chat-window';
-            win.className = 'hidden';
+    let lang = 'en';
+    try { lang = localStorage.getItem('rjm_assistant_lang') === 'tl' ? 'tl' : 'en'; } catch (e) { /* storage blocked: English */ }
+    const t = (key) => TEXT[lang][key];
 
-            const quickPrompts = userRole === 'boarder' ? [
-                'How do I submit a maintenance request?',
-                'How do I pay my rent?',
-                'What are the dorm rules and penalties?',
-                'How do I use the SOS alert feature?'
-            ] : userRole === 'admin' ? [
-                'How do I manage rooms and beds?',
-                'How do I view boarder payments?',
-                'How do penalty rules work?',
-                'How do I check occupancy reports?'
-            ] : [
-                'How do I handle maintenance requests?',
-                'How do I log a boarder incident?',
-                'What maintenance requests are pending?',
-                'How do I resolve a maintenance request?'
-            ];
-
-            win.innerHTML = `
-                <div class="ai-chat-header">
-                    <div style="display:flex;align-items:center;gap:0.5rem;">
-                        <span style="font-size:1.15rem;">🤖</span>
-                        <div>
-                            <div style="font-weight:700;font-size:0.875rem;line-height:1.2;">RJM AI Assistant</div>
-                            <div style="font-size:0.65rem;color:#d4d2ce;">Powered by local llama3.2:3b</div>
-                        </div>
-                    </div>
-                    <div style="display:flex;align-items:center;gap:0.5rem;">
-                        <button id="ai-chat-clear" title="Clear chat history" style="background:transparent;border:none;color:#9d9b97;cursor:pointer;font-size:0.75rem;">Clear</button>
-                        <button id="ai-chat-close" style="background:transparent;border:none;color:white;cursor:pointer;font-size:1.25rem;line-height:1;">&times;</button>
-                    </div>
-                </div>
-                <div id="ai-chat-messages" class="ai-chat-messages">
-                    <div class="ai-bubble ai-bubble-assistant">
-                        Hello ${userRole === 'boarder' ? 'resident' : userRole === 'admin' ? 'Admin' : 'staff member'}! I am the local RJM Assistant. How can I help you with maintenance, dorm rules, or facilities today?
-                    </div>
-                </div>
-                <div class="ai-chat-input-area">
-                    <div class="ai-quick-chips">
-                        ${quickPrompts.map(p => `<button type="button" class="ai-quick-chip" data-prompt="${escapeHtml(p)}">${escapeHtml(p)}</button>`).join('')}
-                    </div>
-                    <form id="ai-chat-form" style="display:flex;gap:0.35rem;margin-top:0.35rem;">
-                        <input id="ai-chat-input" type="text" placeholder="Type a question..." class="input w-full text-xs" style="padding:0.45rem 0.65rem;border-radius:0.5rem;" autocomplete="off" />
-                        <button id="ai-chat-send" type="submit" class="btn btn-primary !px-3 !py-1 !text-xs font-semibold" style="border-radius:0.5rem;">Send</button>
-                    </form>
-                </div>
-            `;
-            document.body.appendChild(win);
-
-            // Wire chat event listeners
-            win.querySelector('#ai-chat-close').onclick = toggleChatWindow;
-            win.querySelector('#ai-chat-clear').onclick = () => {
-                sessionStorage.removeItem('ai_chat_history');
-                const msgBox = win.querySelector('#ai-chat-messages');
-                msgBox.innerHTML = `
-                    <div class="ai-bubble ai-bubble-assistant">
-                        Chat cleared. How can I help you?
-                    </div>
-                `;
-            };
-
-            win.querySelectorAll('.ai-quick-chip').forEach(chip => {
-                chip.onclick = function () {
-                    const prompt = this.dataset.prompt;
-                    const input = win.querySelector('#ai-chat-input');
-                    input.value = prompt;
-                    win.querySelector('#ai-chat-form').dispatchEvent(new Event('submit'));
-                };
-            });
-
-            const form = win.querySelector('#ai-chat-form');
-            form.onsubmit = async function (e) {
-                e.preventDefault();
-                const input = win.querySelector('#ai-chat-input');
-                const text = input.value.trim();
-                if (!text) return;
-
-                input.value = '';
-                appendChatMessage('user', text);
-
-                const thinkingBubble = appendChatMessage('assistant', 'Thinking...', true);
-
-                // Progress update if taking long
-                const wakingTimer = setTimeout(() => {
-                    if (thinkingBubble && thinkingBubble.dataset.thinking === 'true') {
-                        thinkingBubble.innerHTML = '<span class="inline-block animate-spin mr-1">⏳</span> Waking up local AI model (first inference can take ~10s)...';
-                    }
-                }, 3500);
-
-                try {
-                    const res = await apiRequest('/api/assistant/chat', { message: text });
-                    clearTimeout(wakingTimer);
-
-                    if (!res.ok) {
-                        thinkingBubble.innerHTML = `<span class="text-red-500">⚠ ${escapeHtml(res.data.error || 'AI is currently offline or unreachable.')}</span>`;
-                        thinkingBubble.dataset.thinking = 'false';
-                        return;
-                    }
-
-                    thinkingBubble.innerHTML = escapeHtml(res.data.reply).replace(/\n/g, '<br>');
-                    thinkingBubble.dataset.thinking = 'false';
-                    saveChatHistory();
-                } catch (err) {
-                    clearTimeout(wakingTimer);
-                    thinkingBubble.innerHTML = '<span class="text-red-500">⚠ Connection failed. Ollama may be stopped.</span>';
-                    thinkingBubble.dataset.thinking = 'false';
-                }
-            };
-
-            // Restore chat history from sessionStorage
-            restoreChatHistory();
-        }
+    // The role's pages, printed by layout.php from the same registry the server answers from.
+    function assistantPages() {
+        try { return JSON.parse(document.getElementById('assistant-pages').textContent) || []; } catch (e) { return []; }
     }
 
-    function toggleChatWindow() {
+    // Type-ahead only: a quick filter while typing. The server decides the real answer on Send.
+    function matchPages(query, pages) {
+        const split = (s) => s.toLowerCase().split(/[^\p{L}\p{N}]+/u).filter(w => w.length >= 3);
+        const typed = split(query);
+        if (!typed.length) return [];
+        return pages
+            .map((page, i) => {
+                const words = split(page.label + ' ' + page.words.join(' '));
+                const score = typed.filter(tk => words.some(w =>
+                    w === tk || (tk.length >= 4 && w.startsWith(tk)) || (tk.length > w.length && tk.startsWith(w)))).length;
+                return { page, score, i };
+            })
+            .filter(m => m.score > 0)
+            .sort((a, b) => b.score - a.score || a.i - b.i)
+            .slice(0, 4)
+            .map(m => m.page);
+    }
+
+    function answerHtml(data) {
+        // Only same-site paths become buttons, whatever the reply contains.
+        const actions = (data.actions || []).filter(a => /^\/(?!\/)/.test(a.href || ''));
+        const buttons = actions.map((a, i) =>
+            `<a class="ai-action${i === 0 ? ' ai-action-primary' : ''}" href="${escapeHtml(a.href)}">${escapeHtml(a.label)}</a>`).join('');
+        return escapeHtml(data.reply).replace(/\n/g, '<br>') + (buttons ? `<div class="ai-actions">${buttons}</div>` : '');
+    }
+
+    function initChatDrawer() {
+        const userRole = document.body.dataset.userRole;
+        if (!userRole || document.getElementById('ai-chat-fab')) return;
+
+        const pages = assistantPages();
+
+        const fab = document.createElement('button');
+        fab.id = 'ai-chat-fab';
+        fab.type = 'button';
+        fab.setAttribute('aria-haspopup', 'dialog');
+        fab.setAttribute('aria-controls', 'ai-chat-window');
+        fab.setAttribute('aria-expanded', 'false');
+        fab.innerHTML = '<span>Assistant</span><kbd class="ai-kbd">Ctrl K</kbd>';
+        document.body.appendChild(fab);
+
+        const win = document.createElement('div');
+        win.id = 'ai-chat-window';
+        win.className = 'hidden';
+        win.setAttribute('role', 'dialog');
+        win.setAttribute('aria-label', 'Assistant');
+        win.innerHTML = `
+            <div class="ai-chat-header">
+                <div>
+                    <div class="ai-chat-title">Assistant</div>
+                    <div class="ai-chat-status">
+                        <span id="ai-chat-status-dot" class="ai-status-dot bg-slate-400"></span>
+                        <span id="ai-chat-status-text"></span>
+                    </div>
+                </div>
+                <div class="ai-chat-tools">
+                    <div class="ai-lang" role="group" aria-label="Answer language">
+                        <button type="button" data-lang="en">English</button>
+                        <button type="button" data-lang="tl">Tagalog</button>
+                    </div>
+                    <button type="button" id="ai-chat-clear"></button>
+                    <button type="button" id="ai-chat-close" aria-label="Close assistant" style="font-size:1.25rem;line-height:1;">&times;</button>
+                </div>
+            </div>
+            <div id="ai-chat-messages" class="ai-chat-messages" role="log" aria-live="polite"></div>
+            <div class="ai-chat-input-area">
+                <div id="ai-matches" class="ai-matches" aria-label="Matching pages"></div>
+                <div id="ai-quick-chips" class="ai-quick-chips"></div>
+                <form id="ai-chat-form" style="display:flex;gap:0.35rem;margin-top:0.35rem;">
+                    <input id="ai-chat-input" type="text" class="input w-full text-xs" style="padding:0.45rem 0.65rem;" autocomplete="off" />
+                    <button id="ai-chat-send" type="submit" class="btn btn-primary !px-3 !py-1 !text-xs font-semibold"></button>
+                </form>
+            </div>
+        `;
+        document.body.appendChild(win);
+
+        const input = win.querySelector('#ai-chat-input');
+        const form = win.querySelector('#ai-chat-form');
+        const msgBox = win.querySelector('#ai-chat-messages');
+        const matchBox = win.querySelector('#ai-matches');
+        const chipBox = win.querySelector('#ai-quick-chips');
+
+        // Everything whose wording depends on the chosen language.
+        function applyLanguage() {
+            win.querySelectorAll('.ai-lang button').forEach(b => b.setAttribute('aria-pressed', b.dataset.lang === lang ? 'true' : 'false'));
+            input.placeholder = t('placeholder');
+            input.setAttribute('aria-label', t('placeholder'));
+            win.querySelector('#ai-chat-send').textContent = t('send');
+            win.querySelector('#ai-chat-clear').textContent = t('clear');
+            win.querySelector('.ai-chat-status').title = t('aiHint');
+            win.querySelector('#ai-chat-status-text').textContent = t(isAiOnline ? 'aiOn' : 'aiOff');
+            chipBox.innerHTML = (t('chips')[userRole] || []).map(p =>
+                `<button type="button" class="ai-quick-chip">${escapeHtml(p)}</button>`).join('');
+            showMatches();
+        }
+
+        function showMatches() {
+            const found = matchPages(input.value, pages);
+            matchBox.innerHTML = found.map(p =>
+                `<a class="ai-match" href="${escapeHtml(p.href)}"><strong>${escapeHtml(p.label)}</strong><span>${escapeHtml(p.about[lang])}</span></a>`).join('');
+            chipBox.classList.toggle('hidden', input.value.trim() !== '');
+        }
+
+        win.querySelector('.ai-lang').addEventListener('click', (e) => {
+            const choice = e.target.closest('button[data-lang]');
+            if (!choice) return;
+            lang = choice.dataset.lang;
+            try { localStorage.setItem('rjm_assistant_lang', lang); } catch (err) { /* stays for this page only */ }
+            applyLanguage();
+        });
+
+        fab.addEventListener('click', () => setChatOpen(win.classList.contains('hidden')));
+        win.querySelector('#ai-chat-close').addEventListener('click', () => setChatOpen(false));
+        win.querySelector('#ai-chat-clear').addEventListener('click', () => {
+            sessionStorage.removeItem('ai_chat_history');
+            msgBox.innerHTML = '';
+            appendChatMessage('assistant', t('cleared'));
+        });
+
+        chipBox.addEventListener('click', (e) => {
+            const chip = e.target.closest('.ai-quick-chip');
+            if (!chip) return;
+            input.value = chip.textContent;
+            form.requestSubmit();
+        });
+
+        input.addEventListener('input', showMatches);
+
+        // Arrow keys move between the box and the matching pages; Enter on a page opens it.
+        win.addEventListener('keydown', (e) => {
+            if (e.key !== 'ArrowDown' && e.key !== 'ArrowUp') return;
+            const stops = [input, ...matchBox.querySelectorAll('.ai-match')];
+            const at = stops.indexOf(document.activeElement);
+            if (at === -1 || stops.length === 1) return;
+            e.preventDefault();
+            stops[(at + (e.key === 'ArrowDown' ? 1 : stops.length - 1)) % stops.length].focus();
+        });
+
+        document.addEventListener('keydown', (e) => {
+            if ((e.ctrlKey || e.metaKey) && !e.altKey && e.key.toLowerCase() === 'k') {
+                e.preventDefault();
+                setChatOpen(true);
+            } else if (e.key === 'Escape' && !win.classList.contains('hidden')) {
+                setChatOpen(false);
+            }
+        });
+
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const text = input.value.trim();
+            if (!text) return;
+
+            input.value = '';
+            showMatches();
+            appendChatMessage('user', text);
+            const bubble = appendChatMessage('assistant', '…', true);
+
+            // Page answers come back at once; only free-form chat waits on the model.
+            const wakingTimer = setTimeout(() => {
+                if (bubble.dataset.thinking === 'true') bubble.textContent = t('waking');
+            }, 3500);
+
+            try {
+                const res = await apiRequest('/api/assistant/ask', { message: text, lang: lang });
+                bubble.innerHTML = res.ok ? answerHtml(res.data) : escapeHtml(res.data.error || t('failed'));
+            } catch (err) {
+                bubble.textContent = t('failed');
+            }
+            clearTimeout(wakingTimer);
+            bubble.dataset.thinking = 'false';
+            msgBox.scrollTop = msgBox.scrollHeight;
+            saveChatHistory();
+        });
+
+        applyLanguage();
+        if (!restoreChatHistory()) appendChatMessage('assistant', t('greeting'));
+    }
+
+    function setChatOpen(open) {
         const win = document.getElementById('ai-chat-window');
-        if (!win) return;
-        win.classList.toggle('hidden');
-        if (!win.classList.contains('hidden')) {
-            const input = win.querySelector('#ai-chat-input');
-            if (input) setTimeout(() => input.focus(), 100);
+        const fab = document.getElementById('ai-chat-fab');
+        if (!win || !fab) return;
+        const hadFocus = win.contains(document.activeElement);
+        win.classList.toggle('hidden', !open);
+        fab.setAttribute('aria-expanded', open ? 'true' : 'false');
+        if (open) {
+            win.querySelector('#ai-chat-input').focus();
+        } else if (hadFocus) {
+            fab.focus();
         }
     }
 
@@ -684,12 +776,8 @@
 
         const bubble = document.createElement('div');
         bubble.className = 'ai-bubble ai-bubble-' + sender;
-        if (isThinking) {
-            bubble.dataset.thinking = 'true';
-            bubble.innerHTML = '<span class="inline-block animate-spin mr-1">⏳</span> ' + escapeHtml(text);
-        } else {
-            bubble.innerHTML = escapeHtml(text).replace(/\n/g, '<br>');
-        }
+        if (isThinking) bubble.dataset.thinking = 'true';
+        bubble.innerHTML = escapeHtml(text).replace(/\n/g, '<br>');
 
         msgBox.appendChild(bubble);
         msgBox.scrollTop = msgBox.scrollHeight;
@@ -708,23 +796,23 @@
         sessionStorage.setItem('ai_chat_history', JSON.stringify(messages));
     }
 
+    /** @returns {boolean} whether an earlier conversation was put back */
     function restoreChatHistory() {
-        const raw = sessionStorage.getItem('ai_chat_history');
-        if (!raw) return;
         try {
-            const messages = JSON.parse(raw);
-            if (!Array.isArray(messages) || !messages.length) return;
+            const messages = JSON.parse(sessionStorage.getItem('ai_chat_history') || '[]');
+            if (!Array.isArray(messages) || !messages.length) return false;
             const msgBox = document.getElementById('ai-chat-messages');
-            if (!msgBox) return;
-            msgBox.innerHTML = '';
             messages.forEach(m => {
                 const bubble = document.createElement('div');
-                bubble.className = 'ai-bubble ai-bubble-' + m.sender;
+                bubble.className = 'ai-bubble ai-bubble-' + (m.sender === 'user' ? 'user' : 'assistant');
                 bubble.innerHTML = m.html;
                 msgBox.appendChild(bubble);
             });
             msgBox.scrollTop = msgBox.scrollHeight;
-        } catch (e) {}
+            return true;
+        } catch (e) {
+            return false;
+        }
     }
 
     // ────────────────────────────────────────────────────────
