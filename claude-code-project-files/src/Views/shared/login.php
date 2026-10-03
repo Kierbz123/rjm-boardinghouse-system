@@ -1,5 +1,6 @@
 <?php
 $pageTitle = 'Log in — RJM Boardinghouse';
+$needsQrCode = true; // layout.php loads the QR library only for this page
 $error = $error ?? null;
 $lastEmail = $_SESSION['flash_email'] ?? '';
 unset($_SESSION['flash_email']);

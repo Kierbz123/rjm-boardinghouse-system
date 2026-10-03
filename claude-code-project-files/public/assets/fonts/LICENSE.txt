@@ -1,0 +1,8 @@
+Onest (variable, weights 100-900) — downloaded once from Google Fonts (fonts.gstatic.com, v11)
+and served locally so the app makes no outbound requests.
+
+onest-latin.woff2      Basic Latin, Latin-1
+onest-latin-ext.woff2  Latin Extended (includes the peso sign U+20B1)
+
+License: SIL Open Font License, Version 1.1 — free to use, bundle and redistribute with software.
+Full text and copyright notice: https://fonts.google.com/specimen/Onest/license
