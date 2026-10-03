@@ -45,13 +45,23 @@ class LandingController
             'short_url'    => 'https://maps.app.goo.gl/r2xxZ1Kap72VGa8M9',
             'display_name' => 'RJM Boardinghouse (MJL Residence)',
             'address'      => '8WRP+59H, Zone 3, Tupi, South Cotabato, 9505 Philippines',
+            // Coordinates from OpenStreetMap (looked up Oct 2026). Distances are computed below
+            // from the boardinghouse pin; exact routes and travel times open in Google Maps.
             'landmarks'    => [
-                ['name' => 'South East Asian Institute of Technology (SEAIT)', 'distance' => '4-6 mins', 'type' => 'College'],
-                ['name' => 'Tupi Municipal Hall & Civic Plaza', 'distance' => '3-4 mins', 'type' => 'Civic Center'],
-                ['name' => 'Tupi Public Market & Commercial Center', 'distance' => '3 mins', 'type' => 'Market'],
-                ['name' => 'General Santos - Marbel National Highway', 'distance' => '2 mins', 'type' => 'Transit'],
+                ['name' => 'South East Asian Institute of Technology (SEAIT)', 'short' => 'SEAIT', 'type' => 'College', 'lat' => 6.3461957, 'lng' => 124.9358150],
+                ['name' => 'General Santos–Koronadal Highway (Crossing Rubber)', 'short' => 'National highway', 'type' => 'Jeepney & bus route', 'lat' => 6.3461957, 'lng' => 124.9358150],
+                ['name' => 'Tupi Public Market', 'short' => 'Public market', 'type' => 'Market', 'lat' => 6.3320136, 'lng' => 124.9494007],
+                ['name' => 'Tupi Municipal Hall', 'short' => 'Municipal hall', 'type' => 'Town center', 'lat' => 6.3311036, 'lng' => 124.9506640],
             ],
         ];
+
+        foreach ($mapData['landmarks'] as &$lm) {
+            $lm['km'] = self::kmBetween($mapData['latitude'], $mapData['longitude'], $lm['lat'], $lm['lng']);
+            $lm['directions'] = 'https://www.google.com/maps/dir/?api=1&travelmode=walking&origin='
+                . $mapData['latitude'] . ',' . $mapData['longitude'] . '&destination=' . $lm['lat'] . ',' . $lm['lng'];
+        }
+        unset($lm);
+        usort($mapData['landmarks'], fn ($x, $y) => $x['km'] <=> $y['km']);
 
         $roomTiers = [
             [
@@ -178,5 +188,15 @@ class LandingController
         $_SESSION[$ok ? 'flash_inquiry_success' : 'flash_inquiry_error'] = $message;
         header('Location: ' . $redirect);
         exit;
+    }
+
+    /** Straight-line (great-circle) distance in km, rounded to 0.1. */
+    private static function kmBetween(float $lat1, float $lng1, float $lat2, float $lng2): float
+    {
+        $r = 6371.0;
+        $dLat = deg2rad($lat2 - $lat1);
+        $dLng = deg2rad($lng2 - $lng1);
+        $h = sin($dLat / 2) ** 2 + cos(deg2rad($lat1)) * cos(deg2rad($lat2)) * sin($dLng / 2) ** 2;
+        return round(2 * $r * asin(min(1, sqrt($h))), 1);
     }
 }

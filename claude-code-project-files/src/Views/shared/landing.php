@@ -96,6 +96,13 @@ $amenities = [
         .eyebrow::before { content: ""; width: .375rem; height: .375rem; border-radius: 9999px; background: currentColor; opacity: .7; }
         .eyebrow-light { color: rgb(255 255 255 / .72); }
 
+        /* Floating sticky nav */
+        .nav-float { background: rgb(255 255 255 / .72); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); box-shadow: 0 0 0 1px rgb(230 229 226 / .8); transition: background-color 240ms var(--ease-out-soft), box-shadow 240ms var(--ease-out-soft); }
+        #topbar.is-scrolled .nav-float { background: rgb(255 255 255 / .94); box-shadow: 0 0 0 1px var(--color-line), 0 12px 32px -16px rgb(10 10 10 / .25); }
+        .nav-link { display: inline-flex; border-radius: 9999px; padding: .45rem .85rem; color: rgb(17 17 17 / .72); transition: background-color 160ms, color 160ms; }
+        .nav-link:hover { background: rgb(10 10 10 / .05); color: var(--color-ink); }
+        .nav-link[aria-current="true"] { background: var(--color-ink); color: #fff; }
+        html { scroll-padding-top: 6rem; }
         /* Loader: first visit per session only */
         #loader { position: fixed; inset: 0; z-index: 120; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2rem; background: var(--color-ink); color: #fff; border-radius: 0 0 2rem 2rem; transition: transform 700ms var(--ease-spring); }
         #loader.is-done { transform: translateY(-100%); }
@@ -191,30 +198,27 @@ $amenities = [
 </div>
 
 <!-- Header -->
-<header class="absolute inset-x-0 top-0 z-50">
-    <div class="shell flex items-center justify-between gap-6 py-5 sm:py-6">
-        <a href="#home" class="flex items-center gap-2 text-lg font-semibold tracking-tight"><svg class="mark text-xl text-accent"><use href="#i-mark"/></svg> RJM Boardinghouse</a>
-        <nav aria-label="Primary" class="max-lg:hidden block">
-            <ul class="flex gap-8 text-sm font-medium">
-                <li><a href="#rooms" class="opacity-80 hover:opacity-100">Rooms</a></li>
-                <li><a href="#amenities" class="opacity-80 hover:opacity-100">Amenities</a></li>
-                <li><a href="#location" class="opacity-80 hover:opacity-100">Location</a></li>
-                <li><button type="button" data-open-inquiry class="opacity-80 hover:opacity-100">Contact</button></li>
-            </ul>
-        </nav>
-        <div class="flex items-center gap-3">
-            <div class="glass max-md:hidden items-center gap-3 rounded-[0.875rem] px-3 py-2 text-xs text-neutral-700 flex" aria-label="Local time in Tupi">
-                <span class="text-neutral-500">Local time</span>
-                <span class="min-w-14 font-medium text-neutral-900 tabular" data-clock-time>—</span>
-                <span class="text-neutral-400" aria-hidden="true">•</span>
-                <span class="font-medium" data-clock-date>—</span>
-            </div>
-            <a href="<?= $e($dashboardUrl ?? '/login') ?>" class="glass max-sm:hidden rounded-[0.875rem] px-4 py-2 text-xs font-medium inline-flex"><?= $dashboardUrl ? 'My dashboard' : 'Resident log in' ?></a>
-            <button type="button" id="menu-open" class="glass inline-flex items-center gap-2 rounded-[0.875rem] px-4 py-2 text-xs font-medium" aria-controls="menu" aria-expanded="false">
-                <svg class="mark text-sm"><use href="#i-menu"/></svg><span class="max-sm:hidden inline">Menu</span>
-            </button>
-        </div>
-    </div>
+<!-- Floating sticky navigation: stays reachable while scrolling; the full-screen menu is the phone version -->
+<header id="topbar" class="fixed inset-x-0 top-3 z-50 px-3 sm:top-4 sm:px-6">
+    <nav aria-label="Primary" class="nav-float mx-auto flex max-w-6xl items-center gap-2 rounded-full py-2 pl-5 pr-2">
+        <a href="#home" class="mr-2 flex flex-none items-center gap-2 text-base font-semibold tracking-tight"><svg class="mark text-lg text-accent"><use href="#i-mark"/></svg> RJM Boardinghouse</a>
+        <ul class="flex flex-1 items-center gap-1 text-sm font-medium max-lg:hidden">
+            <li><a href="#rooms" class="nav-link" data-nav-link>Rooms</a></li>
+            <li><a href="#amenities" class="nav-link" data-nav-link>Amenities</a></li>
+            <li><a href="#location" class="nav-link" data-nav-link>Location</a></li>
+            <li><button type="button" class="nav-link" data-open-inquiry>Contact</button></li>
+        </ul>
+        <span class="ml-auto flex items-center gap-2 pr-2 text-xs text-neutral-600 max-xl:hidden" aria-label="Local time in Tupi">
+            <span class="tabular font-medium text-ink" data-clock-time>—</span>
+            <span aria-hidden="true">·</span>
+            <a class="hover:text-ink" href="<?= $e($c['primary_tel'] ?? '#') ?>"><?= $e($c['primary_phone'] ?? '') ?></a>
+        </span>
+        <a href="<?= $e($dashboardUrl ?? '/login') ?>" class="ml-auto flex-none rounded-full px-4 py-2 text-sm font-medium shadow-[inset_0_0_0_1px_var(--color-line)] transition-colors hover:bg-white xl:ml-0"><?= $dashboardUrl ? 'My dashboard' : 'Log in' ?></a>
+        <button type="button" class="flex-none rounded-full bg-ink px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-ink-soft max-sm:hidden" data-open-inquiry>Ask about a room</button>
+        <button type="button" id="menu-open" class="grid h-9 w-9 flex-none place-items-center rounded-full bg-ink text-white lg:hidden" aria-controls="menu" aria-expanded="false" aria-label="Open menu">
+            <svg class="mark text-sm" aria-hidden="true"><use href="#i-menu"/></svg>
+        </button>
+    </nav>
 </header>
 
 <main id="main">
@@ -267,15 +271,27 @@ $amenities = [
                     </div>
                 </div>
                 <?php if (!empty($map['landmarks'])): ?>
-                <div class="glass rise w-full max-w-sm rounded-[1.25rem] p-4 lg:w-[19rem]" style="transition-delay:550ms">
-                    <p class="mb-3 text-xs font-medium text-neutral-600">Nearby, on foot or by tricycle</p>
-                    <ul class="grid gap-2.5">
+                <div class="glass rise w-full max-w-sm rounded-[1.25rem] p-2 lg:w-[20rem]" style="transition-delay:550ms">
+                    <div class="flex items-baseline justify-between px-3 pb-2 pt-1.5">
+                        <p class="text-xs font-medium text-neutral-800">Nearby</p>
+                        <p class="text-[0.7rem] text-neutral-500">from the house</p>
+                    </div>
+                    <ul class="grid gap-1">
                         <?php foreach ($map['landmarks'] as $lm): ?>
-                        <li class="flex items-baseline justify-between gap-3 text-sm text-neutral-800">
-                            <span class="truncate" title="<?= $e($lm['name']) ?>"><?= $e($lm['name']) ?></span><span class="flex-none font-medium tabular text-ink"><?= $e($lm['distance']) ?></span>
+                        <li>
+                            <a href="<?= $e($lm['directions']) ?>" target="_blank" rel="noopener" title="Walking directions to <?= $e($lm['name']) ?> on Google Maps"
+                               class="group flex items-center gap-3 rounded-[0.875rem] bg-white/75 px-3 py-2.5 transition-colors hover:bg-white">
+                                <span class="min-w-0 flex-1">
+                                    <span class="block truncate text-sm font-medium text-ink"><?= $e($lm['short']) ?></span>
+                                    <span class="block truncate text-xs text-neutral-500"><?= $e($lm['type']) ?></span>
+                                </span>
+                                <span class="flex-none text-sm font-semibold text-ink tabular"><?= number_format($lm['km'], 1) ?> km</span>
+                                <svg class="mark flex-none text-xs text-neutral-400 transition-colors group-hover:text-accent" aria-hidden="true"><use href="#i-arrow-ur"/></svg>
+                            </a>
                         </li>
                         <?php endforeach; ?>
                     </ul>
+                    <p class="px-3 pb-1.5 pt-2 text-[0.7rem] leading-snug text-neutral-500">Straight-line distance. Tap a place for the walking route on Google Maps.</p>
                 </div>
                 <?php endif; ?>
             </div>
@@ -562,6 +578,16 @@ $amenities = [
     };
     tick(); setInterval(tick, 1000);
 
+    // ---- Sticky nav: solid once scrolled, highlight the section in view ----
+    const topbar = $('#topbar');
+    const onScroll = () => topbar.classList.toggle('is-scrolled', scrollY > 24);
+    addEventListener('scroll', onScroll, { passive: true }); onScroll();
+    const navLinks = $$('[data-nav-link]');
+    const sio = new IntersectionObserver(entries => entries.forEach(en => {
+        if (!en.isIntersecting) return;
+        navLinks.forEach(a => a.setAttribute('aria-current', String(a.getAttribute('href') === '#' + en.target.id)));
+    }), { rootMargin: '-45% 0px -50% 0px' });
+    ['home', 'rooms', 'amenities', 'location'].forEach(id => { const el = document.getElementById(id); if (el) sio.observe(el); });
     // ---- Intro: loader (first visit) then hero reveal ----
     const startIntro = () => { $('[data-intro]').classList.add('is-in'); $$('#home .rise').forEach(el => el.classList.add('is-in')); };
     const loader = $('#loader');
