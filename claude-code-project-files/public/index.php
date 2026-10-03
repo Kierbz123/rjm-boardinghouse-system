@@ -27,13 +27,11 @@ header_remove('X-Powered-By');
 header('X-Frame-Options: DENY');
 header('X-Content-Type-Options: nosniff');
 header('Referrer-Policy: same-origin');
-// Views still use inline <script>/<style> and the landing page embeds remote
-// fonts/video/map; those allowances go once the views are cleaned up.
+// Everything is served from this origin (fonts, images, scripts). Views still use
+// inline <script>/<style>, hence 'unsafe-inline'; nothing else is allowed.
 header("Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline'; "
-    . "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; "
-    . "img-src 'self' data: blob:; media-src 'self' https://d8j0ntlcm91z4.cloudfront.net; "
-    . "frame-src https://maps.google.com https://www.google.com; connect-src 'self'; "
-    . "frame-ancestors 'none'; base-uri 'self'; form-action 'self'");
+    . "style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data: blob:; media-src 'self'; "
+    . "frame-src 'none'; connect-src 'self'; frame-ancestors 'none'; base-uri 'self'; form-action 'self'");
 
 require_once __DIR__ . '/../src/autoload.php';
 
