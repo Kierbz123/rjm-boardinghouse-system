@@ -28,7 +28,7 @@ $stats = $stats ?? [];
                 Manage your credentials, personal profile details and system access permissions
             </p>
         </div>
-        <div class="hidden sm:flex flex-col items-end gap-2">
+        <div class="max-sm:hidden flex flex-col items-end gap-2">
             <span class="badge badge-success" style="background: rgba(255,255,255,0.12); color: #8cc2a2; border: 1px solid rgba(255,255,255,0.18); padding: 0.375rem 0.875rem; font-size: 0.75rem;">
                 <span style="width: 0.45rem; height: 0.45rem; border-radius: 50%; background: #5fae84; display: inline-block; margin-right: 0.4rem;"></span>
                 <?= htmlspecialchars(strtoupper($role)) ?> &middot; <?= htmlspecialchars(ucfirst($user['status'] ?? 'Active')) ?>

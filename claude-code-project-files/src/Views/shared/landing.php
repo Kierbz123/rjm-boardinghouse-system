@@ -110,7 +110,8 @@ $amenities = [
         #home .veil { position: absolute; inset: 0; z-index: 1; pointer-events: none; background: linear-gradient(90deg, rgb(255 255 255 / .82) 0%, rgb(255 255 255 / .55) 42%, rgb(255 255 255 / .12) 72%), linear-gradient(to bottom, transparent 65%, rgb(255 255 255 / .65)); }
         @media (max-width: 1023px) { #home .veil { background: rgb(255 255 255 / .72); } }
         .watermark { position: absolute; inset-inline: 0; text-align: center; font-weight: 700; line-height: 1; letter-spacing: -.04em; font-size: clamp(7rem, 22vw, 18rem); pointer-events: none; user-select: none; }
-        #home .watermark { bottom: 4.5rem; z-index: 1; color: rgb(255 255 255 / .45); }
+        /* Faint solid ink: light grey on the white wash, a soft shadow over the photo */
+        #home .watermark { bottom: 4.5rem; z-index: 1; color: rgb(10 10 10 / .2); }
         .hero-grid { position: relative; z-index: 2; display: flex; flex-direction: column; gap: 2rem; padding-top: 7rem; padding-bottom: 4rem; }
         @media (min-width: 1024px) { .hero-grid { display: grid; grid-template-columns: 7fr 5fr; gap: 2.5rem; min-height: 100svh; padding-top: 9rem; padding-bottom: 7rem; align-items: start; } }
         .hero-title { max-width: 16ch; font-size: clamp(2.5rem, 6vw, 4.75rem); font-weight: 600; line-height: .98; letter-spacing: -.035em; }
@@ -122,9 +123,6 @@ $amenities = [
         .glass { background: rgb(255 255 255 / .72); backdrop-filter: blur(12px); box-shadow: 0 0 0 1px rgb(230 229 226 / .7); }
 
         /* Sections */
-        .band-tile { display: grid; place-items: center; height: 6rem; border-radius: 9999px; font-size: 1.875rem; font-weight: 500; transition: transform 200ms var(--ease-spring); }
-        .band-tile:hover { transform: scale(1.03); }
-        @media (min-width: 640px) { .band-tile { height: 10rem; font-size: 2.25rem; } }
         .room-card { position: relative; min-height: 24rem; overflow: hidden; border-radius: 2rem; background: var(--color-ink); color: #fff; padding: 1.75rem; display: flex; flex-direction: column; transition: transform 260ms var(--ease-spring); }
         .room-card:hover { transform: translateY(-6px); }
         .room-card .spark { position: absolute; right: -1.5rem; top: -1.5rem; font-size: 9rem; color: rgb(255 255 255 / .06); }
@@ -196,7 +194,7 @@ $amenities = [
 <header class="absolute inset-x-0 top-0 z-50">
     <div class="shell flex items-center justify-between gap-6 py-5 sm:py-6">
         <a href="#home" class="flex items-center gap-2 text-lg font-semibold tracking-tight"><svg class="mark text-xl text-accent"><use href="#i-mark"/></svg> RJM Boardinghouse</a>
-        <nav aria-label="Primary" class="hidden lg:block">
+        <nav aria-label="Primary" class="max-lg:hidden block">
             <ul class="flex gap-8 text-sm font-medium">
                 <li><a href="#rooms" class="opacity-80 hover:opacity-100">Rooms</a></li>
                 <li><a href="#amenities" class="opacity-80 hover:opacity-100">Amenities</a></li>
@@ -205,15 +203,15 @@ $amenities = [
             </ul>
         </nav>
         <div class="flex items-center gap-3">
-            <div class="glass hidden items-center gap-3 rounded-[0.875rem] px-3 py-2 text-xs text-neutral-700 md:flex" aria-label="Local time in Tupi">
+            <div class="glass max-md:hidden items-center gap-3 rounded-[0.875rem] px-3 py-2 text-xs text-neutral-700 flex" aria-label="Local time in Tupi">
                 <span class="text-neutral-500">Local time</span>
                 <span class="min-w-14 font-medium text-neutral-900 tabular" data-clock-time>—</span>
                 <span class="text-neutral-400" aria-hidden="true">•</span>
                 <span class="font-medium" data-clock-date>—</span>
             </div>
-            <a href="<?= $e($dashboardUrl ?? '/login') ?>" class="glass hidden rounded-[0.875rem] px-4 py-2 text-xs font-medium sm:inline-flex"><?= $dashboardUrl ? 'My dashboard' : 'Resident log in' ?></a>
+            <a href="<?= $e($dashboardUrl ?? '/login') ?>" class="glass max-sm:hidden rounded-[0.875rem] px-4 py-2 text-xs font-medium inline-flex"><?= $dashboardUrl ? 'My dashboard' : 'Resident log in' ?></a>
             <button type="button" id="menu-open" class="glass inline-flex items-center gap-2 rounded-[0.875rem] px-4 py-2 text-xs font-medium" aria-controls="menu" aria-expanded="false">
-                <svg class="mark text-sm"><use href="#i-menu"/></svg><span class="hidden sm:inline">Menu</span>
+                <svg class="mark text-sm"><use href="#i-menu"/></svg><span class="max-sm:hidden inline">Menu</span>
             </button>
         </div>
     </div>
@@ -269,12 +267,12 @@ $amenities = [
                     </div>
                 </div>
                 <?php if (!empty($map['landmarks'])): ?>
-                <div class="rise w-full max-w-sm lg:w-[19rem]" style="transition-delay:550ms">
-                    <p class="mb-3 text-xs font-medium text-neutral-500 lg:text-right">Nearby, on foot or by tricycle</p>
-                    <ul class="grid gap-2">
+                <div class="glass rise w-full max-w-sm rounded-[1.25rem] p-4 lg:w-[19rem]" style="transition-delay:550ms">
+                    <p class="mb-3 text-xs font-medium text-neutral-600">Nearby, on foot or by tricycle</p>
+                    <ul class="grid gap-2.5">
                         <?php foreach ($map['landmarks'] as $lm): ?>
-                        <li class="flex items-baseline justify-between gap-3 text-sm text-neutral-700">
-                            <span class="truncate"><?= $e($lm['name']) ?></span><span class="flex-none font-medium tabular text-neutral-900"><?= $e($lm['distance']) ?></span>
+                        <li class="flex items-baseline justify-between gap-3 text-sm text-neutral-800">
+                            <span class="truncate" title="<?= $e($lm['name']) ?>"><?= $e($lm['name']) ?></span><span class="flex-none font-medium tabular text-ink"><?= $e($lm['distance']) ?></span>
                         </li>
                         <?php endforeach; ?>
                     </ul>
@@ -285,7 +283,7 @@ $amenities = [
 
         <div class="shell relative z-[2] flex items-center justify-between gap-3 border-t border-neutral-900/10 py-5 text-xs font-medium text-neutral-600">
             <span><?= $e($c['address_line2'] ?? 'Tupi, South Cotabato') ?></span>
-            <span class="hidden sm:inline"><?= $e($c['office_hours'] ?? '') ?></span>
+            <span class="max-sm:hidden inline"><?= $e($c['office_hours'] ?? '') ?></span>
             <a href="#about" class="inline-flex items-center gap-2">Scroll to explore <span aria-hidden="true">↓</span></a>
         </div>
     </section>
@@ -321,16 +319,6 @@ $amenities = [
                 </div>
             </div>
         </div>
-    </section>
-
-    <!-- Band -->
-    <section class="bg-white" aria-label="Study, rest, home">
-        <ul class="shell flex flex-col gap-3 py-10 sm:flex-row sm:gap-4">
-            <li class="rise flex-1"><span class="band-tile bg-surface">Study</span></li>
-            <li class="rise flex-1" style="transition-delay:120ms"><span class="band-tile text-white" style="background:linear-gradient(to bottom right,#cf8047,#97501f)">Rest</span></li>
-            <li class="rise flex-1" style="transition-delay:240ms" aria-hidden="true"><span class="band-tile bg-ink text-white"><svg class="mark text-4xl sm:text-5xl"><use href="#i-arrow"/></svg></span></li>
-            <li class="rise flex-1" style="transition-delay:360ms"><span class="band-tile bg-surface/60 text-neutral-900/40">Home</span></li>
-        </ul>
     </section>
 
     <!-- Rooms -->
@@ -373,7 +361,7 @@ $amenities = [
                     <details class="amenity">
                         <summary class="row-link">
                             <h3 class="flex-1 text-2xl font-medium tracking-tight sm:text-3xl md:text-4xl"><?= $e($item['title']) ?></h3>
-                            <p class="hidden max-w-sm text-sm text-neutral-600 lg:block"><?= $e($item['summary']) ?></p>
+                            <p class="max-lg:hidden max-w-sm text-sm text-neutral-600 block"><?= $e($item['summary']) ?></p>
                             <span class="badge-arrow" aria-hidden="true"><svg class="mark"><use href="#i-arrow-ur"/></svg></span>
                         </summary>
                         <div class="amenity-body px-6 pb-8 sm:pl-8">
@@ -423,7 +411,7 @@ $amenities = [
                 <a class="pill-btn pill-dark mt-8" href="<?= $e($mapsUrl) ?>" target="_blank" rel="noopener">Open in Google Maps <span class="arrow"><svg class="mark"><use href="#i-arrow-ur"/></svg></span></a>
             </div>
             <dl class="grid gap-6 self-end sm:grid-cols-2">
-                <div class="rounded-[1.25rem] bg-surface p-5"><dt class="text-sm text-neutral-500">Office hours</dt><dd class="mt-1 font-medium"><?= $e($c['office_hours'] ?? '') ?></dd></div>
+                <div class="rounded-[1.25rem] bg-surface p-5"><dt class="text-sm text-neutral-500">Office hours</dt><dd class="mt-1 font-medium"><?= implode('<br>', array_map($e, explode(' | ', $c['office_hours'] ?? ''))) ?></dd></div>
                 <div class="rounded-[1.25rem] bg-surface p-5"><dt class="text-sm text-neutral-500">Curfew</dt><dd class="mt-1 font-medium"><?= $e($c['curfew_hours'] ?? '') ?></dd></div>
                 <div class="rounded-[1.25rem] bg-surface p-5"><dt class="text-sm text-neutral-500">Call or text</dt><dd class="mt-1 font-medium"><a href="<?= $e($c['primary_tel'] ?? '#') ?>"><?= $e($c['primary_phone'] ?? '') ?></a></dd></div>
                 <div class="rounded-[1.25rem] bg-surface p-5"><dt class="text-sm text-neutral-500">Landline</dt><dd class="mt-1 font-medium"><a href="<?= $e($c['landline_tel'] ?? '#') ?>"><?= $e($c['landline'] ?? '') ?></a></dd></div>
@@ -472,21 +460,43 @@ $amenities = [
 
 <!-- Menu overlay -->
 <div id="menu" role="dialog" aria-modal="true" aria-label="Menu" hidden>
-    <div class="shell flex items-center justify-between py-5 sm:py-6">
+    <!-- w-full: in a flex column, the auto-margin .shell would otherwise shrink to its content -->
+    <div class="shell flex w-full items-center justify-between py-5 sm:py-6">
         <span class="flex items-center gap-2 text-lg font-semibold"><svg class="mark text-xl text-[#cf8047]"><use href="#i-mark"/></svg> RJM Boardinghouse</span>
-        <button type="button" id="menu-close" class="inline-flex items-center gap-2 rounded-[0.875rem] px-4 py-2 text-xs font-medium text-white/70 shadow-[inset_0_0_0_1px_rgb(255_255_255/.15)] hover:text-white"><svg class="mark text-sm"><use href="#i-x"/></svg> Close</button>
+        <button type="button" id="menu-close" class="inline-flex items-center gap-2 rounded-[0.875rem] px-4 py-2 text-xs font-medium text-white/70 shadow-[inset_0_0_0_1px_rgb(255_255_255/.15)] transition-colors hover:text-white hover:shadow-[inset_0_0_0_1px_rgb(255_255_255/.4)]"><svg class="mark text-sm"><use href="#i-x"/></svg> Close</button>
     </div>
-    <nav class="shell flex flex-1 flex-col justify-center" aria-label="Menu">
-        <ul class="flex flex-col gap-1">
-            <?php foreach ([['#home', 'Home'], ['#rooms', 'Rooms'], ['#amenities', 'Amenities'], ['#location', 'Location']] as $i => [$href, $label]): ?>
-            <li><a href="<?= $href ?>" class="menu-item block py-2 text-4xl font-semibold tracking-tight text-white/70 hover:text-white sm:text-6xl" style="transition-delay:<?= $i * 45 + 80 ?>ms"><?= $label ?></a></li>
-            <?php endforeach; ?>
-            <li><button type="button" data-open-inquiry class="menu-item py-2 text-left text-4xl font-semibold tracking-tight text-white/70 hover:text-white sm:text-6xl" style="transition-delay:260ms">Contact</button></li>
-        </ul>
-    </nav>
-    <div class="shell flex flex-col gap-3 border-t border-white/10 py-6 text-xs text-white/50 sm:flex-row sm:justify-between">
-        <span>Local time <span data-clock-time>—</span></span>
-        <a href="<?= $e($dashboardUrl ?? '/login') ?>" class="text-white/70 hover:text-white"><?= $dashboardUrl ? 'My dashboard' : 'Resident log in' ?></a>
+    <div class="shell grid w-full flex-1 items-center gap-12 py-8 lg:grid-cols-[1fr_20rem]">
+        <nav aria-label="Menu">
+            <ul class="flex flex-col">
+                <?php foreach ([['#home', 'Home'], ['#rooms', 'Rooms'], ['#amenities', 'Amenities'], ['#location', 'Location']] as $i => [$href, $label]): ?>
+                <li>
+                    <a href="<?= $href ?>" class="menu-item group flex items-center gap-4 py-1.5 text-5xl font-semibold tracking-tight text-white/60 hover:text-white sm:text-7xl" style="transition-delay:<?= $i * 45 + 80 ?>ms">
+                        <span><?= $label ?></span>
+                        <svg class="mark -translate-x-3 text-3xl text-[#cf8047] opacity-0 transition duration-300 group-hover:translate-x-0 group-hover:opacity-100 group-focus-visible:opacity-100 sm:text-5xl" aria-hidden="true"><use href="#i-arrow"/></svg>
+                    </a>
+                </li>
+                <?php endforeach; ?>
+                <li>
+                    <button type="button" data-open-inquiry class="menu-item group flex items-center gap-4 py-1.5 text-left text-5xl font-semibold tracking-tight text-white/60 hover:text-white sm:text-7xl" style="transition-delay:260ms">
+                        <span>Contact</span>
+                        <svg class="mark -translate-x-3 text-3xl text-[#cf8047] opacity-0 transition duration-300 group-hover:translate-x-0 group-hover:opacity-100 group-focus-visible:opacity-100 sm:text-5xl" aria-hidden="true"><use href="#i-arrow"/></svg>
+                    </button>
+                </li>
+            </ul>
+        </nav>
+        <dl class="menu-item max-lg:hidden gap-6 border-l border-white/10 pl-8 text-sm grid" style="transition-delay:320ms">
+            <div><dt class="text-white/50">Call or text</dt><dd class="mt-1"><a class="text-white/85 hover:text-white" href="<?= $e($c['primary_tel'] ?? '#') ?>"><?= $e($c['primary_phone'] ?? '') ?></a></dd></div>
+            <div><dt class="text-white/50">Email</dt><dd class="mt-1"><a class="text-white/85 hover:text-white" href="mailto:<?= $e($c['inquiry_email'] ?? '') ?>"><?= $e($c['inquiry_email'] ?? '') ?></a></dd></div>
+            <div><dt class="text-white/50">Address</dt><dd class="mt-1 text-white/85"><?= $e(($c['address_line1'] ?? '') . ', ' . ($c['address_line2'] ?? '')) ?></dd></div>
+            <div><dt class="text-white/50">Office hours</dt><dd class="mt-1 text-white/85"><?= implode('<br>', array_map($e, explode(' | ', $c['office_hours'] ?? ''))) ?></dd></div>
+        </dl>
+    </div>
+    <div class="shell flex w-full flex-col gap-4 border-t border-white/10 py-6 text-sm text-white/55 sm:flex-row sm:items-center sm:justify-between">
+        <span>Local time in Tupi <span class="tabular text-white/85" data-clock-time>—</span></span>
+        <div class="flex items-center gap-6">
+            <a href="<?= $e($dashboardUrl ?? '/login') ?>" class="text-white/75 hover:text-white"><?= $dashboardUrl ? 'My dashboard' : 'Resident log in' ?></a>
+            <button type="button" data-open-inquiry class="pill-btn pill-light">Ask about a room <span class="arrow"><svg class="mark"><use href="#i-arrow-ur"/></svg></span></button>
+        </div>
     </div>
 </div>
 
