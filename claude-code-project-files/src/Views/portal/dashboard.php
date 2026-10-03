@@ -262,10 +262,10 @@ $tierBadges = [
                 <div style="flex: 1; min-width: 0;">
                     <h3 class="text-heading-sm font-bold text-neutral-900 flex items-center gap-2">
                         Pay Rent
-                        <span class="badge badge-success" style="font-size: 0.625rem; padding: 0.15rem 0.5rem;">Auto Match</span>
+                        <span class="badge badge-success" style="font-size: 0.625rem; padding: 0.15rem 0.5rem;">Admin reviewed</span>
                     </h3>
                     <p class="text-body-sm text-neutral-500" style="margin-top: 0.4rem; line-height: 1.6;">
-                        Settle your monthly fee. Upload GCash, Maya, or bank transfer confirmation for automated verification.
+                        Settle your monthly fee. Upload your GCash, Maya or bank transfer receipt; an administrator confirms it and your balance updates.
                     </p>
                 </div>
             </div>

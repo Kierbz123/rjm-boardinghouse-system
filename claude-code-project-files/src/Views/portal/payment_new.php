@@ -45,11 +45,11 @@ $defaultExpected = $totalDue > 0 ? $totalDue : $rentPrice;
     <div class="page-banner" style="padding: 1.5rem 1.75rem; border-radius: 1rem;">
         <div>
             <h1 class="text-heading-lg font-bold">Pay Rent &amp; Upload Receipt</h1>
-            <p class="text-body-sm" style="margin-top: 0.35rem;">Submit your monthly settlement for automated ledger matching and verification</p>
+            <p class="text-body-sm" style="margin-top: 0.35rem;">Upload your receipt; an administrator checks it before it counts toward your balance</p>
         </div>
         <span class="badge badge-success" style="background:rgba(255,255,255,0.12); color:#8cc2a2; border:1px solid rgba(255,255,255,0.15); padding: 0.35rem 0.75rem;">
             <span style="width:0.4rem;height:0.4rem;border-radius:50%;background:#5fae84;display:inline-block;margin-right:0.4rem;"></span>
-            Verification Active
+            Reviewed by an admin
         </span>
     </div>
 
@@ -231,10 +231,10 @@ $defaultExpected = $totalDue > 0 ? $totalDue : $rentPrice;
 
             <div class="card" style="padding: 1.25rem 1.375rem; background: #eef6f1; border: 1px solid #d7ebdf; border-radius: 0.875rem;">
                 <h3 class="text-xs font-bold flex items-center gap-2" style="color: #245a3f; margin-bottom: 0.5rem;">
-                    <span>⚡</span> Instant Verification
+                    How approval works
                 </h3>
                 <p style="font-size: 0.8125rem; color: #245a3f; line-height: 1.6;">
-                    When your transferred amount matches your expected contract rent, our verification engine reconciles and auto-approves your payment instantly.
+                    An administrator compares your receipt with the amount you entered. Once approved, it pays your oldest unpaid month first, then any penalties.
                 </p>
             </div>
         </div>
