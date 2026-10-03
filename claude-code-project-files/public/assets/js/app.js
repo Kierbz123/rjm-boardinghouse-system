@@ -35,7 +35,7 @@
             banner.id = 'poll-notification-banner';
             banner.style.cssText = [
                 'position:fixed', 'top:0', 'left:0', 'right:0',
-                'background:linear-gradient(135deg,#0f172a 0%,#1e293b 100%)',
+                'background:linear-gradient(135deg,#0a0a0a 0%,#1f1f1e 100%)',
                 'color:white', 'padding:1rem', 'z-index:9999',
                 'display:none', 'box-shadow:0 4px 12px rgba(0,0,0,0.3)',
                 'animation:pollSlideDown 0.3s ease-out'

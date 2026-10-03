@@ -26,8 +26,8 @@ $tierBadges = [
             <span class="ai-status-badge ai-status-checking" id="ai-status-badge">
                 <span class="ai-status-dot"></span> Checking AI...
             </span>
-            <span class="badge badge-warning" style="background:rgba(255,255,255,0.12); color:#fde047; border:1px solid rgba(255,255,255,0.15);">
-                <span style="width:0.4rem;height:0.4rem;border-radius:50%;background:#eab308;display:inline-block;margin-right:0.4rem;"></span>
+            <span class="badge badge-warning" style="background:rgba(255,255,255,0.12); color:#dcb553; border:1px solid rgba(255,255,255,0.15);">
+                <span style="width:0.4rem;height:0.4rem;border-radius:50%;background:#b98a12;display:inline-block;margin-right:0.4rem;"></span>
                 AI Priority Sorted
             </span>
         </div>

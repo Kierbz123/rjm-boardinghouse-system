@@ -26,8 +26,8 @@ $latestExpense = !empty($expenses) ? $expenses[0] : null;
             <h1>Operating Expenses</h1>
             <p>Operational expenditures, maintenance costs &amp; facility disbursements</p>
         </div>
-        <span class="badge badge-success" style="background:rgba(255,255,255,0.12); color:#86efac; border:1px solid rgba(255,255,255,0.18); padding:0.4rem 0.85rem; font-size:0.75rem;">
-            <span style="width:0.45rem;height:0.45rem;border-radius:50%;background:#4ade80;display:inline-block;margin-right:0.4rem;"></span>
+        <span class="badge badge-success" style="background:rgba(255,255,255,0.12); color:#8cc2a2; border:1px solid rgba(255,255,255,0.18); padding:0.4rem 0.85rem; font-size:0.75rem;">
+            <span style="width:0.45rem;height:0.45rem;border-radius:50%;background:#5fae84;display:inline-block;margin-right:0.4rem;"></span>
             Financials Active
         </span>
     </div>
@@ -206,7 +206,7 @@ $latestExpense = !empty($expenses) ? $expenses[0] : null;
                         Amount (₱) <span class="text-error-600">*</span>
                     </label>
                     <div class="relative flex items-center">
-                        <span style="position:absolute;left:0.75rem;color:#64748b;font-size:0.875rem;font-weight:700;">₱</span>
+                        <span style="position:absolute;left:0.75rem;color:#6b6b6b;font-size:0.875rem;font-weight:700;">₱</span>
                         <input name="amount"
                                type="number"
                                step="0.01"

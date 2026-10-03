@@ -23,8 +23,8 @@ $totalCollected = array_sum(array_map(
             <h1>Payments &amp; Collections</h1>
             <p>Rent tracking, proof-of-payment verifications &amp; ledger records</p>
         </div>
-        <span class="badge badge-success" style="background:rgba(255,255,255,0.12); color:#86efac; border:1px solid rgba(255,255,255,0.18); padding:0.4rem 0.85rem; font-size:0.75rem;">
-            <span style="width:0.45rem;height:0.45rem;border-radius:50%;background:#4ade80;display:inline-block;margin-right:0.4rem;"></span>
+        <span class="badge badge-success" style="background:rgba(255,255,255,0.12); color:#8cc2a2; border:1px solid rgba(255,255,255,0.18); padding:0.4rem 0.85rem; font-size:0.75rem;">
+            <span style="width:0.45rem;height:0.45rem;border-radius:50%;background:#5fae84;display:inline-block;margin-right:0.4rem;"></span>
             Audit Active
         </span>
     </div>
@@ -125,7 +125,7 @@ $totalCollected = array_sum(array_map(
                        placeholder="Search boarder or period..."
                        class="input input-sm w-full"
                        style="padding-left: 2.25rem !important; padding-right: 1rem !important; height: 2.25rem;">
-                <span style="position:absolute;left:0.75rem;top:50%;transform:translateY(-50%);color:#94a3b8;font-size:0.875rem;pointer-events:none;">🔍</span>
+                <span style="position:absolute;left:0.75rem;top:50%;transform:translateY(-50%);color:#9d9b97;font-size:0.875rem;pointer-events:none;">🔍</span>
             </div>
         </div>
 
@@ -296,9 +296,9 @@ $totalCollected = array_sum(array_map(
 
 <style>
 .filter-btn.active-filter {
-    background-color: #0f172a !important;
+    background-color: #0a0a0a !important;
     color: #ffffff !important;
-    border-color: #0f172a !important;
+    border-color: #0a0a0a !important;
 }
 
 /* Payment Confirmation Modal Styling (matching logout modal) */
@@ -314,8 +314,8 @@ $totalCollected = array_sum(array_map(
 }
 #payment-modal-cancel:hover,
 #payment-modal-cancel-reject:hover {
-    background-color: #f1f5f9 !important;
-    color: #0f172a !important;
+    background-color: #f1f0ee !important;
+    color: #0a0a0a !important;
 }
 #payment-modal-confirm-approve:hover {
     filter: brightness(1.08);
@@ -332,19 +332,19 @@ $totalCollected = array_sum(array_map(
 </style>
 
 <!-- Payment Approve Confirmation Modal (matching logout modal design) -->
-<div id="payment-approve-modal" style="display:none; position:fixed; top:0; left:0; right:0; bottom:0; z-index:99999; background:rgba(15,23,42,0.55); backdrop-filter:blur(4px); -webkit-backdrop-filter:blur(4px); align-items:center; justify-content:center; padding:1rem;" role="dialog" aria-modal="true" aria-labelledby="payment-approve-heading">
+<div id="payment-approve-modal" style="display:none; position:fixed; top:0; left:0; right:0; bottom:0; z-index:99999; background:rgba(10, 10, 10,0.55); backdrop-filter:blur(4px); -webkit-backdrop-filter:blur(4px); align-items:center; justify-content:center; padding:1rem;" role="dialog" aria-modal="true" aria-labelledby="payment-approve-heading">
     <div id="payment-approve-card" style="background: rgb(255, 255, 255); border-radius: 1rem; padding: 1.5rem 1.75rem; max-width: 22rem; width: 100%; margin: 0px auto; text-align: center; box-shadow: rgba(0, 0, 0, 0.25) 0px 25px 50px -12px;">
-        <div id="payment-approve-icon-wrap" style="width: 3.5rem; height: 3.5rem; border-radius: 50%; border: 2px solid #16a34a; color: #15803d; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; font-weight: 700; margin: 0px auto 0.75rem; user-select: none;">
+        <div id="payment-approve-icon-wrap" style="width: 3.5rem; height: 3.5rem; border-radius: 50%; border: 2px solid #2f6f4e; color: #245a3f; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; font-weight: 700; margin: 0px auto 0.75rem; user-select: none;">
             ✓
         </div>
-        <h3 id="payment-approve-heading" style="font-size: 1.1rem; font-weight: 700; color: #0f172a; letter-spacing: -0.01em; margin: 0 0 0.375rem;">Approve Payment?</h3>
-        <p id="payment-approve-subtext" style="font-size: 0.8rem; color: #64748b; line-height: 1.6; margin: 0 0 1.5rem; padding: 0 0.5rem;">Are you sure you want to approve this payment? This will mark it as verified.</p>
-        <p id="payment-approve-details" style="font-size: 0.75rem; color: #94a3b8; line-height: 1.5; margin: 0 0 1.5rem; padding: 0 0.5rem; font-style: italic;"></p>
+        <h3 id="payment-approve-heading" style="font-size: 1.1rem; font-weight: 700; color: #0a0a0a; letter-spacing: -0.01em; margin: 0 0 0.375rem;">Approve Payment?</h3>
+        <p id="payment-approve-subtext" style="font-size: 0.8rem; color: #6b6b6b; line-height: 1.6; margin: 0 0 1.5rem; padding: 0 0.5rem;">Are you sure you want to approve this payment? This will mark it as verified.</p>
+        <p id="payment-approve-details" style="font-size: 0.75rem; color: #9d9b97; line-height: 1.5; margin: 0 0 1.5rem; padding: 0 0.5rem; font-style: italic;"></p>
         <div style="display: flex; align-items: center; justify-content: flex-end; gap: 0.75rem; padding-top: 0.25rem;">
-            <button type="button" id="payment-modal-cancel" style="padding: 0.5rem 1rem; border-radius: 0.75rem; font-size: 0.75rem; font-weight: 600; color: #64748b; background: transparent; border: none; cursor: pointer; transition: all 150ms;">
+            <button type="button" id="payment-modal-cancel" style="padding: 0.5rem 1rem; border-radius: 0.75rem; font-size: 0.75rem; font-weight: 600; color: #6b6b6b; background: transparent; border: none; cursor: pointer; transition: all 150ms;">
                 Cancel
             </button>
-            <button type="button" id="payment-modal-confirm-approve" style="color: rgb(255, 255, 255); font-weight: 600; border-radius: 0.75rem; padding: 0.5rem 1.25rem; font-size: 0.75rem; border: none; cursor: pointer; display: inline-flex; align-items: center; gap: 0.375rem; transition: 150ms; background: linear-gradient(135deg, #16a34a, #15803d);">
+            <button type="button" id="payment-modal-confirm-approve" style="color: rgb(255, 255, 255); font-weight: 600; border-radius: 0.75rem; padding: 0.5rem 1.25rem; font-size: 0.75rem; border: none; cursor: pointer; display: inline-flex; align-items: center; gap: 0.375rem; transition: 150ms; background: linear-gradient(135deg, #2f6f4e, #245a3f);">
                 <span>Yes</span>
                 <span style="font-size: 0.95rem;">&rarr;</span>
             </button>
@@ -353,16 +353,16 @@ $totalCollected = array_sum(array_map(
 </div>
 
 <!-- Payment Reject Confirmation Modal (matching logout modal design) -->
-<div id="payment-reject-modal" style="display:none; position:fixed; top:0; left:0; right:0; bottom:0; z-index:99999; background:rgba(15,23,42,0.55); backdrop-filter:blur(4px); -webkit-backdrop-filter:blur(4px); align-items:center; justify-content:center; padding:1rem;" role="dialog" aria-modal="true" aria-labelledby="payment-reject-heading">
+<div id="payment-reject-modal" style="display:none; position:fixed; top:0; left:0; right:0; bottom:0; z-index:99999; background:rgba(10, 10, 10,0.55); backdrop-filter:blur(4px); -webkit-backdrop-filter:blur(4px); align-items:center; justify-content:center; padding:1rem;" role="dialog" aria-modal="true" aria-labelledby="payment-reject-heading">
     <div id="payment-reject-card" style="background: rgb(255, 255, 255); border-radius: 1rem; padding: 1.5rem 1.75rem; max-width: 22rem; width: 100%; margin: 0px auto; text-align: center; box-shadow: rgba(0, 0, 0, 0.25) 0px 25px 50px -12px;">
         <div id="payment-reject-icon-wrap" style="width: 3.5rem; height: 3.5rem; border-radius: 50%; border: 2px solid rgb(239, 68, 68); color: rgb(220, 38, 38); display: flex; align-items: center; justify-content: center; font-size: 1.5rem; font-weight: 700; margin: 0px auto 0.75rem; user-select: none;">
             ✕
         </div>
-        <h3 id="payment-reject-heading" style="font-size: 1.1rem; font-weight: 700; color: #0f172a; letter-spacing: -0.01em; margin: 0 0 0.375rem;">Reject Payment?</h3>
-        <p id="payment-reject-subtext" style="font-size: 0.8rem; color: #64748b; line-height: 1.6; margin: 0 0 1.5rem; padding: 0 0.5rem;">Are you sure you want to reject this payment? This action cannot be undone.</p>
-        <p id="payment-reject-details" style="font-size: 0.75rem; color: #94a3b8; line-height: 1.5; margin: 0 0 1.5rem; padding: 0 0.5rem; font-style: italic;"></p>
+        <h3 id="payment-reject-heading" style="font-size: 1.1rem; font-weight: 700; color: #0a0a0a; letter-spacing: -0.01em; margin: 0 0 0.375rem;">Reject Payment?</h3>
+        <p id="payment-reject-subtext" style="font-size: 0.8rem; color: #6b6b6b; line-height: 1.6; margin: 0 0 1.5rem; padding: 0 0.5rem;">Are you sure you want to reject this payment? This action cannot be undone.</p>
+        <p id="payment-reject-details" style="font-size: 0.75rem; color: #9d9b97; line-height: 1.5; margin: 0 0 1.5rem; padding: 0 0.5rem; font-style: italic;"></p>
         <div style="display: flex; align-items: center; justify-content: flex-end; gap: 0.75rem; padding-top: 0.25rem;">
-            <button type="button" id="payment-modal-cancel-reject" style="padding: 0.5rem 1rem; border-radius: 0.75rem; font-size: 0.75rem; font-weight: 600; color: #64748b; background: transparent; border: none; cursor: pointer; transition: all 150ms;">
+            <button type="button" id="payment-modal-cancel-reject" style="padding: 0.5rem 1rem; border-radius: 0.75rem; font-size: 0.75rem; font-weight: 600; color: #6b6b6b; background: transparent; border: none; cursor: pointer; transition: all 150ms;">
                 Cancel
             </button>
             <button type="button" id="payment-modal-confirm-reject" style="color: rgb(255, 255, 255); font-weight: 600; border-radius: 0.75rem; padding: 0.5rem 1.25rem; font-size: 0.75rem; border: none; cursor: pointer; display: inline-flex; align-items: center; gap: 0.375rem; transition: 150ms; background: linear-gradient(135deg, rgb(239, 68, 68), rgb(220, 38, 38));">

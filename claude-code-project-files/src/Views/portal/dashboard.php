@@ -62,32 +62,32 @@ $tierBadges = [
                 <?= !empty($boarder['room_number']) ? 'Room ' . htmlspecialchars($boarder['room_number']) . ' &middot; ' . htmlspecialchars($boarder['bed_label'] ?? 'Bed') : 'Accommodations &amp; Services' ?>
             </p>
         </div>
-        <span class="badge badge-success" style="background:rgba(255,255,255,0.12); color:#86efac; border:1px solid rgba(255,255,255,0.15); padding: 0.35rem 0.75rem;">
-            <span style="width:0.4rem;height:0.4rem;border-radius:50%;background:#4ade80;display:inline-block;margin-right:0.4rem;"></span>
+        <span class="badge badge-success" style="background:rgba(255,255,255,0.12); color:#8cc2a2; border:1px solid rgba(255,255,255,0.15); padding: 0.35rem 0.75rem;">
+            <span style="width:0.4rem;height:0.4rem;border-radius:50%;background:#5fae84;display:inline-block;margin-right:0.4rem;"></span>
             <?= htmlspecialchars(ucfirst($boarder['status'] ?? 'Active')) ?> Resident
         </span>
     </div>
 
     <!-- Flash Alerts -->
     <?php if ($error): ?>
-        <div class="text-body-sm flex items-center gap-2.5" role="alert" style="background: #fef2f2; color: #b91c1c; border-radius: 0.875rem; padding: 1rem 1.25rem; border: 1px solid #fca5a5;">
+        <div class="text-body-sm flex items-center gap-2.5" role="alert" style="background: #fdf1f0; color: #912018; border-radius: 0.875rem; padding: 1rem 1.25rem; border: 1px solid #e88f86;">
             <span style="font-size:1.125rem;">⚠</span>
             <?= htmlspecialchars($error) ?>
         </div>
     <?php endif; ?>
 
     <?php if ($success): ?>
-        <div class="text-body-sm flex items-center gap-2.5" role="alert" style="background: #f0fdf4; color: #166534; border-radius: 0.875rem; padding: 1rem 1.25rem; border: 1px solid #86efac;">
+        <div class="text-body-sm flex items-center gap-2.5" role="alert" style="background: #eef6f1; color: #245a3f; border-radius: 0.875rem; padding: 1rem 1.25rem; border: 1px solid #8cc2a2;">
             <span style="font-size:1.125rem;">✓</span>
             <?= htmlspecialchars($success) ?>
         </div>
     <?php endif; ?>
 
     <!-- Emergency SOS Command Station -->
-    <div class="reveal-card" style="background: linear-gradient(135deg, #fff5f5 0%, #ffffff 50%, #fef2f2 100%); border: 2px solid #fecaca; border-radius: 1.125rem; padding: 1.75rem 2rem; box-shadow: 0 2px 8px 0 rgba(239,68,68,0.06);">
+    <div class="reveal-card" style="background: linear-gradient(135deg, #fdf1f0 0%, #ffffff 50%, #fdf1f0 100%); border: 2px solid #f9dcd9; border-radius: 1.125rem; padding: 1.75rem 2rem; box-shadow: 0 2px 8px 0 rgba(239,68,68,0.06);">
         <div class="flex flex-col md:flex-row items-center justify-between gap-5">
             <div class="flex items-start gap-4">
-                <div style="width: 3.25rem; height: 3.25rem; border-radius: 0.875rem; background: #dc2626; color: white; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; flex-shrink: 0; box-shadow: 0 2px 6px rgba(220,38,38,0.25);">
+                <div style="width: 3.25rem; height: 3.25rem; border-radius: 0.875rem; background: #b42318; color: white; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; flex-shrink: 0; box-shadow: 0 2px 6px rgba(220,38,38,0.25);">
                     🚨
                 </div>
                 <div>
@@ -104,7 +104,7 @@ $tierBadges = [
             <div class="flex-shrink-0 w-full md:w-auto text-center md:text-right">
                 <button id="sos-button" type="button"
                         class="w-full md:w-auto text-white font-bold text-sm cursor-pointer inline-flex items-center justify-center gap-2"
-                        style="background: linear-gradient(135deg, #dc2626, #b91c1c); border-radius: 0.75rem; padding: 0.9rem 1.75rem; box-shadow: 0 4px 12px rgba(220,38,38,0.3); transition: all 0.15s ease; border: none;"
+                        style="background: linear-gradient(135deg, #b42318, #912018); border-radius: 0.75rem; padding: 0.9rem 1.75rem; box-shadow: 0 4px 12px rgba(220,38,38,0.3); transition: all 0.15s ease; border: none;"
                         onmouseover="this.style.boxShadow='0 6px 16px rgba(220,38,38,0.4)'; this.style.transform='translateY(-1px)'"
                         onmouseout="this.style.boxShadow='0 4px 12px rgba(220,38,38,0.3)'; this.style.transform='translateY(0)'">
                     <span style="font-size: 1.15rem;">🚨</span>
@@ -164,10 +164,10 @@ $tierBadges = [
 
     <!-- Active Penalties Alert Card (if any unpaid penalties exist) -->
     <?php if (!empty($balanceDetails['unpaid_penalties'])): ?>
-        <div class="reveal-card" style="background: linear-gradient(135deg, #fffbeb 0%, #ffffff 60%, #fef3c7 100%); border: 2px solid #fde68a; border-radius: 1.125rem; padding: 1.5rem 1.75rem; box-shadow: 0 2px 8px 0 rgba(217,119,6,0.08);">
+        <div class="reveal-card" style="background: linear-gradient(135deg, #fbf6e8 0%, #ffffff 60%, #fef3c7 100%); border: 2px solid #f4e7c2; border-radius: 1.125rem; padding: 1.5rem 1.75rem; box-shadow: 0 2px 8px 0 rgba(217,119,6,0.08);">
             <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 pb-3 border-b border-amber-200/60">
                 <div class="flex items-center gap-3">
-                    <div style="width: 2.75rem; height: 2.75rem; border-radius: 0.75rem; background: #f59e0b; color: white; display: flex; align-items: center; justify-content: center; font-size: 1.35rem; flex-shrink: 0; box-shadow: 0 2px 6px rgba(245,158,11,0.25);">
+                    <div style="width: 2.75rem; height: 2.75rem; border-radius: 0.75rem; background: #b98a12; color: white; display: flex; align-items: center; justify-content: center; font-size: 1.35rem; flex-shrink: 0; box-shadow: 0 2px 6px rgba(245,158,11,0.25);">
                         ⚠️
                     </div>
                     <div>
@@ -226,11 +226,11 @@ $tierBadges = [
         <!-- Action 1: Report a Repair -->
         <a href="/portal/maintenance/new"
            class="reveal-card group block relative overflow-hidden"
-           style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 1rem; padding: 1.5rem 1.625rem; box-shadow: 0 1px 3px rgba(15,23,42,0.06); transition: all 0.2s ease; text-decoration: none;"
-           onmouseover="this.style.borderColor='#cbd5e1'; this.style.boxShadow='0 4px 12px rgba(15,23,42,0.1)'; this.style.transform='translateY(-1px)'"
-           onmouseout="this.style.borderColor='#e2e8f0'; this.style.boxShadow='0 1px 3px rgba(15,23,42,0.06)'; this.style.transform='translateY(0)'">
+           style="background: #ffffff; border: 1px solid #e6e5e2; border-radius: 1rem; padding: 1.5rem 1.625rem; box-shadow: 0 1px 3px rgba(10, 10, 10,0.06); transition: all 0.2s ease; text-decoration: none;"
+           onmouseover="this.style.borderColor='#d4d2ce'; this.style.boxShadow='0 4px 12px rgba(10, 10, 10,0.1)'; this.style.transform='translateY(-1px)'"
+           onmouseout="this.style.borderColor='#e6e5e2'; this.style.boxShadow='0 1px 3px rgba(10, 10, 10,0.06)'; this.style.transform='translateY(0)'">
             <div class="flex items-start gap-4">
-                <div style="width: 2.875rem; height: 2.875rem; border-radius: 0.75rem; background: #fffbeb; color: #d97706; border: 1px solid #fde68a; display: flex; align-items: center; justify-content: center; font-size: 1.25rem; flex-shrink: 0;">
+                <div style="width: 2.875rem; height: 2.875rem; border-radius: 0.75rem; background: #fbf6e8; color: #9a6700; border: 1px solid #f4e7c2; display: flex; align-items: center; justify-content: center; font-size: 1.25rem; flex-shrink: 0;">
                     🔧
                 </div>
                 <div style="flex: 1; min-width: 0;">
@@ -243,7 +243,7 @@ $tierBadges = [
                     </p>
                 </div>
             </div>
-            <div style="margin-top: 1.125rem; padding-top: 0.875rem; border-top: 1px solid #f1f5f9; display: flex; align-items: center; justify-content: space-between; font-size: 0.75rem; font-weight: 600; color: #2563eb;">
+            <div style="margin-top: 1.125rem; padding-top: 0.875rem; border-top: 1px solid #f1f0ee; display: flex; align-items: center; justify-content: space-between; font-size: 0.75rem; font-weight: 600; color: #b15f2c;">
                 <span>Submit Repair Request</span>
                 <span style="transition: transform 0.15s ease;">&rarr;</span>
             </div>
@@ -252,11 +252,11 @@ $tierBadges = [
         <!-- Action 2: Pay Rent -->
         <a href="/portal/payments/new"
            class="reveal-card group block relative overflow-hidden"
-           style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 1rem; padding: 1.5rem 1.625rem; box-shadow: 0 1px 3px rgba(15,23,42,0.06); transition: all 0.2s ease; text-decoration: none;"
-           onmouseover="this.style.borderColor='#cbd5e1'; this.style.boxShadow='0 4px 12px rgba(15,23,42,0.1)'; this.style.transform='translateY(-1px)'"
-           onmouseout="this.style.borderColor='#e2e8f0'; this.style.boxShadow='0 1px 3px rgba(15,23,42,0.06)'; this.style.transform='translateY(0)'">
+           style="background: #ffffff; border: 1px solid #e6e5e2; border-radius: 1rem; padding: 1.5rem 1.625rem; box-shadow: 0 1px 3px rgba(10, 10, 10,0.06); transition: all 0.2s ease; text-decoration: none;"
+           onmouseover="this.style.borderColor='#d4d2ce'; this.style.boxShadow='0 4px 12px rgba(10, 10, 10,0.1)'; this.style.transform='translateY(-1px)'"
+           onmouseout="this.style.borderColor='#e6e5e2'; this.style.boxShadow='0 1px 3px rgba(10, 10, 10,0.06)'; this.style.transform='translateY(0)'">
             <div class="flex items-start gap-4">
-                <div style="width: 2.875rem; height: 2.875rem; border-radius: 0.75rem; background: #f0fdf4; color: #16a34a; border: 1px solid #bbf7d0; display: flex; align-items: center; justify-content: center; font-size: 1.25rem; flex-shrink: 0;">
+                <div style="width: 2.875rem; height: 2.875rem; border-radius: 0.75rem; background: #eef6f1; color: #2f6f4e; border: 1px solid #d7ebdf; display: flex; align-items: center; justify-content: center; font-size: 1.25rem; flex-shrink: 0;">
                     💳
                 </div>
                 <div style="flex: 1; min-width: 0;">
@@ -269,7 +269,7 @@ $tierBadges = [
                     </p>
                 </div>
             </div>
-            <div style="margin-top: 1.125rem; padding-top: 0.875rem; border-top: 1px solid #f1f5f9; display: flex; align-items: center; justify-content: space-between; font-size: 0.75rem; font-weight: 600; color: #16a34a;">
+            <div style="margin-top: 1.125rem; padding-top: 0.875rem; border-top: 1px solid #f1f0ee; display: flex; align-items: center; justify-content: space-between; font-size: 0.75rem; font-weight: 600; color: #2f6f4e;">
                 <span>Submit Payment Proof</span>
                 <span style="transition: transform 0.15s ease;">&rarr;</span>
             </div>
@@ -278,11 +278,11 @@ $tierBadges = [
         <!-- Action 3: Report Incident / Lost & Found -->
         <a href="/staff/incidents"
            class="reveal-card group block relative overflow-hidden"
-           style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 1rem; padding: 1.5rem 1.625rem; box-shadow: 0 1px 3px rgba(15,23,42,0.06); transition: all 0.2s ease; text-decoration: none;"
-           onmouseover="this.style.borderColor='#cbd5e1'; this.style.boxShadow='0 4px 12px rgba(15,23,42,0.1)'; this.style.transform='translateY(-1px)'"
-           onmouseout="this.style.borderColor='#e2e8f0'; this.style.boxShadow='0 1px 3px rgba(15,23,42,0.06)'; this.style.transform='translateY(0)'">
+           style="background: #ffffff; border: 1px solid #e6e5e2; border-radius: 1rem; padding: 1.5rem 1.625rem; box-shadow: 0 1px 3px rgba(10, 10, 10,0.06); transition: all 0.2s ease; text-decoration: none;"
+           onmouseover="this.style.borderColor='#d4d2ce'; this.style.boxShadow='0 4px 12px rgba(10, 10, 10,0.1)'; this.style.transform='translateY(-1px)'"
+           onmouseout="this.style.borderColor='#e6e5e2'; this.style.boxShadow='0 1px 3px rgba(10, 10, 10,0.06)'; this.style.transform='translateY(0)'">
             <div class="flex items-start gap-4">
-                <div style="width: 2.875rem; height: 2.875rem; border-radius: 0.75rem; background: #eff6ff; color: #2563eb; border: 1px solid #bfdbfe; display: flex; align-items: center; justify-content: center; font-size: 1.25rem; flex-shrink: 0;">
+                <div style="width: 2.875rem; height: 2.875rem; border-radius: 0.75rem; background: #fbf4ef; color: #b15f2c; border: 1px solid #ebc6ac; display: flex; align-items: center; justify-content: center; font-size: 1.25rem; flex-shrink: 0;">
                     📋
                 </div>
                 <div style="flex: 1; min-width: 0;">
@@ -295,7 +295,7 @@ $tierBadges = [
                     </p>
                 </div>
             </div>
-            <div style="margin-top: 1.125rem; padding-top: 0.875rem; border-top: 1px solid #f1f5f9; display: flex; align-items: center; justify-content: space-between; font-size: 0.75rem; font-weight: 600; color: #2563eb;">
+            <div style="margin-top: 1.125rem; padding-top: 0.875rem; border-top: 1px solid #f1f0ee; display: flex; align-items: center; justify-content: space-between; font-size: 0.75rem; font-weight: 600; color: #b15f2c;">
                 <span>Report Missing Item / Incident</span>
                 <span style="transition: transform 0.15s ease;">&rarr;</span>
             </div>
@@ -321,7 +321,7 @@ $tierBadges = [
                 <div class="overflow-x-auto">
                     <table class="w-full text-body-sm">
                         <thead>
-                            <tr style="background: #f8fafc; border-bottom: 1px solid #e2e8f0; text-align: left; color: #64748b; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em;">
+                            <tr style="background: #f8f7f5; border-bottom: 1px solid #e6e5e2; text-align: left; color: #6b6b6b; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em;">
                                 <th style="padding: 0.75rem 1rem; font-weight: 600;">Priority</th>
                                 <th style="padding: 0.75rem 1rem; font-weight: 600;">Issue</th>
                                 <th style="padding: 0.75rem 1rem; font-weight: 600;">Status</th>
@@ -349,7 +349,7 @@ $tierBadges = [
                                             <?= htmlspecialchars($m['status'] ?? 'open') ?>
                                         </span>
                                     </td>
-                                    <td style="padding: 0.75rem 1rem; text-align: right; font-size: 0.75rem; font-family: ui-monospace, monospace; color: #94a3b8; white-space: nowrap;">
+                                    <td style="padding: 0.75rem 1rem; text-align: right; font-size: 0.75rem; font-family: ui-monospace, monospace; color: #9d9b97; white-space: nowrap;">
                                         <?= date('M j', strtotime($m['created_at'])) ?>
                                     </td>
                                 </tr>
@@ -357,7 +357,7 @@ $tierBadges = [
                             <?php if (empty($maintenanceRequests)): ?>
                                 <tr>
                                     <td colspan="4">
-                                        <div style="padding: 2.5rem 1.5rem; text-align: center; color: #94a3b8;">
+                                        <div style="padding: 2.5rem 1.5rem; text-align: center; color: #9d9b97;">
                                             <div style="font-size: 1.75rem; margin-bottom: 0.4rem;">🔧</div>
                                             <p class="font-semibold text-neutral-700 text-body-sm">No repair tickets yet.</p>
                                             <p class="text-caption text-neutral-400" style="margin-top: 0.25rem;">Everything in your room is in working order.</p>
@@ -378,7 +378,7 @@ $tierBadges = [
                     <h2 class="text-heading-sm font-semibold text-neutral-900">My Rent Ledger</h2>
                     <span class="badge badge-neutral"><?= count($payments ?? []) ?> payments</span>
                 </div>
-                <a href="/portal/payments/new" class="text-xs font-semibold" style="color: #16a34a; transition: color 0.15s;">
+                <a href="/portal/payments/new" class="text-xs font-semibold" style="color: #2f6f4e; transition: color 0.15s;">
                     + Pay Rent
                 </a>
             </div>
@@ -387,7 +387,7 @@ $tierBadges = [
                 <div class="overflow-x-auto">
                     <table class="w-full text-body-sm">
                         <thead>
-                            <tr style="background: #f8fafc; border-bottom: 1px solid #e2e8f0; text-align: left; color: #64748b; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em;">
+                            <tr style="background: #f8f7f5; border-bottom: 1px solid #e6e5e2; text-align: left; color: #6b6b6b; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em;">
                                 <th style="padding: 0.75rem 1rem; font-weight: 600;">Period</th>
                                 <th style="padding: 0.75rem 1rem; font-weight: 600;">Paid</th>
                                 <th style="padding: 0.75rem 1rem; font-weight: 600;">Verification</th>
@@ -406,10 +406,10 @@ $tierBadges = [
                                 };
                                 ?>
                                 <tr class="hover:bg-neutral-50 transition-colors">
-                                    <td style="padding: 0.75rem 1rem; font-family: ui-monospace, monospace; font-weight: 600; color: #0f172a;">
+                                    <td style="padding: 0.75rem 1rem; font-family: ui-monospace, monospace; font-weight: 600; color: #0a0a0a;">
                                         <span class="id-tag"><?= htmlspecialchars($p['billing_period']) ?></span>
                                     </td>
-                                    <td style="padding: 0.75rem 1rem; font-weight: 700; color: #0f172a;">
+                                    <td style="padding: 0.75rem 1rem; font-weight: 700; color: #0a0a0a;">
                                         ₱<?= number_format((float) ($p['claimed_amount'] ?? 0), 2) ?>
                                     </td>
                                     <td style="padding: 0.75rem 1rem;">
@@ -417,7 +417,7 @@ $tierBadges = [
                                             <?= htmlspecialchars($status) ?>
                                         </span>
                                     </td>
-                                    <td style="padding: 0.75rem 1rem; text-align: right; font-size: 0.75rem; font-family: ui-monospace, monospace; color: #94a3b8; white-space: nowrap;">
+                                    <td style="padding: 0.75rem 1rem; text-align: right; font-size: 0.75rem; font-family: ui-monospace, monospace; color: #9d9b97; white-space: nowrap;">
                                         <?= date('M j', strtotime($p['created_at'])) ?>
                                     </td>
                                 </tr>
@@ -425,7 +425,7 @@ $tierBadges = [
                             <?php if (empty($payments)): ?>
                                 <tr>
                                     <td colspan="4">
-                                        <div style="padding: 2.5rem 1.5rem; text-align: center; color: #94a3b8;">
+                                        <div style="padding: 2.5rem 1.5rem; text-align: center; color: #9d9b97;">
                                             <div style="font-size: 1.75rem; margin-bottom: 0.4rem;">💳</div>
                                             <p class="font-semibold text-neutral-700 text-body-sm">No payment records yet.</p>
                                             <p class="text-caption text-neutral-400" style="margin-top: 0.25rem;">Submit your first proof of payment when rent is due.</p>
@@ -457,7 +457,7 @@ $tierBadges = [
             <ul class="divide-y divide-neutral-100 text-body-sm">
                 <?php foreach ($notifications as $n): ?>
                     <li style="padding: 1rem 1.25rem; transition: background 0.12s;" class="hover:bg-neutral-50 flex items-start gap-3.5">
-                        <span style="width: 0.5rem; height: 0.5rem; border-radius: 50%; background: #3b82f6; margin-top: 0.45rem; flex-shrink: 0;"></span>
+                        <span style="width: 0.5rem; height: 0.5rem; border-radius: 50%; background: #bd6b36; margin-top: 0.45rem; flex-shrink: 0;"></span>
                         <div style="flex: 1; min-width: 0;">
                             <div class="text-neutral-800" style="line-height: 1.5;"><?= htmlspecialchars($n['message']) ?></div>
                             <span class="text-caption text-neutral-400 block font-mono" style="margin-top: 0.35rem; font-size: 0.6875rem;">
@@ -468,7 +468,7 @@ $tierBadges = [
                 <?php endforeach; ?>
                 <?php if (empty($notifications)): ?>
                     <li>
-                        <div style="padding: 2.5rem 1.5rem; text-align: center; color: #94a3b8;">
+                        <div style="padding: 2.5rem 1.5rem; text-align: center; color: #9d9b97;">
                             <div style="font-size: 1.75rem; margin-bottom: 0.4rem;">🔔</div>
                             <p class="font-semibold text-neutral-700 text-body-sm">All caught up!</p>
                             <p class="text-caption text-neutral-400" style="margin-top: 0.25rem;">No unread notices or broadcasts at this time.</p>

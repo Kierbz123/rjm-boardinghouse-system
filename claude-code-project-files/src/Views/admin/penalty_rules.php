@@ -30,8 +30,8 @@ $totalPenaltyAmount = array_sum(array_map(fn($p) => (float) ($p['amount'] ?? 0),
             <h1>Penalty Rules &amp; Automation</h1>
             <p>Late fee policies, flat fee enforcement &amp; manual notification triggers</p>
         </div>
-        <span class="badge badge-success" style="background:rgba(255,255,255,0.12); color:#86efac; border:1px solid rgba(255,255,255,0.18); padding:0.4rem 0.85rem; font-size:0.75rem;">
-            <span style="width:0.45rem;height:0.45rem;border-radius:50%;background:#4ade80;display:inline-block;margin-right:0.4rem;"></span>
+        <span class="badge badge-success" style="background:rgba(255,255,255,0.12); color:#8cc2a2; border:1px solid rgba(255,255,255,0.18); padding:0.4rem 0.85rem; font-size:0.75rem;">
+            <span style="width:0.45rem;height:0.45rem;border-radius:50%;background:#5fae84;display:inline-block;margin-right:0.4rem;"></span>
             Rules Engine Active
         </span>
     </div>
@@ -170,7 +170,7 @@ $totalPenaltyAmount = array_sum(array_map(fn($p) => (float) ($p['amount'] ?? 0),
                                     <form method="post" action="/admin/penalty-rules/<?= (int) $r['id'] ?>/amount" class="flex items-center gap-1.5">
                                         <?= \App\Support\Csrf::field() ?>
                                         <div class="relative flex items-center">
-                                            <span style="position:absolute;left:0.5rem;color:#64748b;font-size:0.75rem;font-weight:700;">₱</span>
+                                            <span style="position:absolute;left:0.5rem;color:#6b6b6b;font-size:0.75rem;font-weight:700;">₱</span>
                                             <input name="amount"
                                                    type="number"
                                                    step="0.01"
@@ -249,7 +249,7 @@ $totalPenaltyAmount = array_sum(array_map(fn($p) => (float) ($p['amount'] ?? 0),
             <div class="overflow-x-auto">
                 <table class="w-full text-body-sm">
                     <thead>
-                        <tr style="background:#f8fafc; border-bottom:2px solid #e2e8f0;">
+                        <tr style="background:#f8f7f5; border-bottom:2px solid #e6e5e2;">
                             <th class="p-3 text-left font-semibold text-neutral-500 text-caption uppercase tracking-wide" style="width:4rem;">ID</th>
                             <th class="p-3 text-left font-semibold text-neutral-500 text-caption uppercase tracking-wide">Boarder</th>
                             <th class="p-3 text-left font-semibold text-neutral-500 text-caption uppercase tracking-wide">Rule</th>
@@ -445,7 +445,7 @@ $totalPenaltyAmount = array_sum(array_map(fn($p) => (float) ($p['amount'] ?? 0),
                         Default Amount (₱) <span class="text-error-600">*</span>
                     </label>
                     <div class="relative flex items-center">
-                        <span style="position:absolute;left:0.75rem;color:#64748b;font-size:0.875rem;font-weight:700;">₱</span>
+                        <span style="position:absolute;left:0.75rem;color:#6b6b6b;font-size:0.875rem;font-weight:700;">₱</span>
                         <input name="amount"
                                type="number"
                                step="0.01"
@@ -504,7 +504,7 @@ $totalPenaltyAmount = array_sum(array_map(fn($p) => (float) ($p['amount'] ?? 0),
 
                 <form method="post" action="/admin/notifications/rent-due" id="rent-reminders-form" class="pt-3">
                     <?= \App\Support\Csrf::field() ?>
-                    <button type="button" id="rent-reminders-btn" class="btn btn-primary w-full shadow-xs cursor-pointer" style="background-color: #16a34a; border-color: #16a34a;">
+                    <button type="button" id="rent-reminders-btn" class="btn btn-primary w-full shadow-xs cursor-pointer" style="background-color: #2f6f4e; border-color: #2f6f4e;">
                         <span>🔔 Send Reminders Now</span>
                     </button>
                 </form>
@@ -557,8 +557,8 @@ document.addEventListener('DOMContentLoaded', () => {
     animation: customCardPop 220ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 .custom-modal-cancel:hover {
-    background-color: #f1f5f9 !important;
-    color: #0f172a !important;
+    background-color: #f1f0ee !important;
+    color: #0a0a0a !important;
 }
 .custom-modal-confirm:hover {
     filter: brightness(1.08);
@@ -568,7 +568,7 @@ document.addEventListener('DOMContentLoaded', () => {
     transform: scale(0.97);
 }
 .rent-modal-confirm {
-    background: linear-gradient(135deg, #16a34a, #15803d) !important;
+    background: linear-gradient(135deg, #2f6f4e, #245a3f) !important;
 }
 .rent-modal-confirm:hover {
     box-shadow: 0 4px 12px rgba(22, 163, 74, 0.25);
@@ -576,15 +576,15 @@ document.addEventListener('DOMContentLoaded', () => {
 </style>
 
 <!-- Penalty Check Confirmation Modal -->
-<div id="penalty-check-modal" style="display:none; position:fixed; top:0; left:0; right:0; bottom:0; z-index:99999; background:rgba(15,23,42,0.55); backdrop-filter:blur(4px); -webkit-backdrop-filter:blur(4px); align-items:center; justify-content:center; padding:1rem;" role="dialog" aria-modal="true" aria-labelledby="penalty-modal-heading">
+<div id="penalty-check-modal" style="display:none; position:fixed; top:0; left:0; right:0; bottom:0; z-index:99999; background:rgba(10, 10, 10,0.55); backdrop-filter:blur(4px); -webkit-backdrop-filter:blur(4px); align-items:center; justify-content:center; padding:1rem;" role="dialog" aria-modal="true" aria-labelledby="penalty-modal-heading">
     <div id="penalty-confirm-card" style="background: rgb(255, 255, 255); border-radius: 1rem; padding: 1.5rem 1.75rem; max-width: 22rem; width: 100%; margin: 0px auto; text-align: center; box-shadow: rgba(0, 0, 0, 0.25) 0px 25px 50px -12px;">
         <div id="penalty-modal-icon-wrap" style="width: 3.5rem; height: 3.5rem; border-radius: 50%; border: 2px solid rgb(239, 68, 68); color: rgb(220, 38, 38); display: flex; align-items: center; justify-content: center; font-size: 1.5rem; font-weight: 700; margin: 0px auto 0.75rem; user-select: none;">
             ⚡
         </div>
-        <h3 id="penalty-modal-heading" style="font-size: 1.1rem; font-weight: 700; color: #0f172a; letter-spacing: -0.01em; margin: 0 0 0.375rem;">Run Penalty Check?</h3>
-        <p id="penalty-modal-subtext" style="font-size: 0.8rem; color: #64748b; line-height: 1.6; margin: 0 0 1.5rem; padding: 0 0.5rem;">This will scan all active tenancies and generate penalty charges based on unpaid rent. Continue?</p>
+        <h3 id="penalty-modal-heading" style="font-size: 1.1rem; font-weight: 700; color: #0a0a0a; letter-spacing: -0.01em; margin: 0 0 0.375rem;">Run Penalty Check?</h3>
+        <p id="penalty-modal-subtext" style="font-size: 0.8rem; color: #6b6b6b; line-height: 1.6; margin: 0 0 1.5rem; padding: 0 0.5rem;">This will scan all active tenancies and generate penalty charges based on unpaid rent. Continue?</p>
         <div style="display: flex; align-items: center; justify-content: flex-end; gap: 0.75rem; padding-top: 0.25rem;">
-            <button type="button" id="penalty-modal-cancel" class="custom-modal-cancel" style="padding: 0.5rem 1rem; border-radius: 0.75rem; font-size: 0.75rem; font-weight: 600; color: #64748b; background: transparent; border: none; cursor: pointer; transition: all 150ms;">
+            <button type="button" id="penalty-modal-cancel" class="custom-modal-cancel" style="padding: 0.5rem 1rem; border-radius: 0.75rem; font-size: 0.75rem; font-weight: 600; color: #6b6b6b; background: transparent; border: none; cursor: pointer; transition: all 150ms;">
                 Cancel
             </button>
             <button type="button" id="penalty-modal-confirm" class="custom-modal-confirm" style="color: rgb(255, 255, 255); font-weight: 600; border-radius: 0.75rem; padding: 0.5rem 1.25rem; font-size: 0.75rem; border: none; cursor: pointer; display: inline-flex; align-items: center; gap: 0.375rem; transition: 150ms; background: linear-gradient(135deg, rgb(239, 68, 68), rgb(220, 38, 38));">
@@ -596,15 +596,15 @@ document.addEventListener('DOMContentLoaded', () => {
 </div>
 
 <!-- Rent Reminders Confirmation Modal -->
-<div id="rent-reminders-modal" style="display:none; position:fixed; top:0; left:0; right:0; bottom:0; z-index:99999; background:rgba(15,23,42,0.55); backdrop-filter:blur(4px); -webkit-backdrop-filter:blur(4px); align-items:center; justify-content:center; padding:1rem;" role="dialog" aria-modal="true" aria-labelledby="rent-modal-heading">
+<div id="rent-reminders-modal" style="display:none; position:fixed; top:0; left:0; right:0; bottom:0; z-index:99999; background:rgba(10, 10, 10,0.55); backdrop-filter:blur(4px); -webkit-backdrop-filter:blur(4px); align-items:center; justify-content:center; padding:1rem;" role="dialog" aria-modal="true" aria-labelledby="rent-modal-heading">
     <div id="rent-confirm-card" style="background: rgb(255, 255, 255); border-radius: 1rem; padding: 1.5rem 1.75rem; max-width: 22rem; width: 100%; margin: 0px auto; text-align: center; box-shadow: rgba(0, 0, 0, 0.25) 0px 25px 50px -12px;">
-        <div id="rent-modal-icon-wrap" style="width: 3.5rem; height: 3.5rem; border-radius: 50%; border: 2px solid #16a34a; color: #15803d; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; font-weight: 700; margin: 0px auto 0.75rem; user-select: none;">
+        <div id="rent-modal-icon-wrap" style="width: 3.5rem; height: 3.5rem; border-radius: 50%; border: 2px solid #2f6f4e; color: #245a3f; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; font-weight: 700; margin: 0px auto 0.75rem; user-select: none;">
             🔔
         </div>
-        <h3 id="rent-modal-heading" style="font-size: 1.1rem; font-weight: 700; color: #0f172a; letter-spacing: -0.01em; margin: 0 0 0.375rem;">Send Rent Reminders?</h3>
-        <p id="rent-modal-subtext" style="font-size: 0.8rem; color: #64748b; line-height: 1.6; margin: 0 0 1.5rem; padding: 0 0.5rem;">This will send rent-due notifications to all active boarders without verified payments for <?= date('F Y') ?>. Continue?</p>
+        <h3 id="rent-modal-heading" style="font-size: 1.1rem; font-weight: 700; color: #0a0a0a; letter-spacing: -0.01em; margin: 0 0 0.375rem;">Send Rent Reminders?</h3>
+        <p id="rent-modal-subtext" style="font-size: 0.8rem; color: #6b6b6b; line-height: 1.6; margin: 0 0 1.5rem; padding: 0 0.5rem;">This will send rent-due notifications to all active boarders without verified payments for <?= date('F Y') ?>. Continue?</p>
         <div style="display: flex; align-items: center; justify-content: flex-end; gap: 0.75rem; padding-top: 0.25rem;">
-            <button type="button" id="rent-modal-cancel" class="custom-modal-cancel" style="padding: 0.5rem 1rem; border-radius: 0.75rem; font-size: 0.75rem; font-weight: 600; color: #64748b; background: transparent; border: none; cursor: pointer; transition: all 150ms;">
+            <button type="button" id="rent-modal-cancel" class="custom-modal-cancel" style="padding: 0.5rem 1rem; border-radius: 0.75rem; font-size: 0.75rem; font-weight: 600; color: #6b6b6b; background: transparent; border: none; cursor: pointer; transition: all 150ms;">
                 Cancel
             </button>
             <button type="button" id="rent-modal-confirm" class="custom-modal-confirm rent-modal-confirm" style="color: rgb(255, 255, 255); font-weight: 600; border-radius: 0.75rem; padding: 0.5rem 1.25rem; font-size: 0.75rem; border: none; cursor: pointer; display: inline-flex; align-items: center; gap: 0.375rem; transition: 150ms;">

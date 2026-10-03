@@ -19,8 +19,8 @@ $resolvedCount = count(array_filter($incidents ?? [], fn($i) => !empty($i['resol
             <h1 class="text-heading-lg font-bold"><?= $isStaff ? 'Incident Log' : 'Incident &amp; Lost &amp; Found Report' ?></h1>
             <p class="text-body-sm"><?= $isStaff ? 'Facility security, rule compliance & disturbance tracking (logged independently of SOS alerts)' : 'Report missing belongings (pets, uniform, keys), facility disturbances, or security concerns directly to staff.' ?></p>
         </div>
-        <span class="badge badge-info" style="background:rgba(255,255,255,0.12); color:#93c5fd; border:1px solid rgba(255,255,255,0.15);">
-            <span style="width:0.4rem;height:0.4rem;border-radius:50%;background:#3b82f6;display:inline-block;margin-right:0.4rem;"></span>
+        <span class="badge badge-info" style="background:rgba(255,255,255,0.12); color:#dea27c; border:1px solid rgba(255,255,255,0.15);">
+            <span style="width:0.4rem;height:0.4rem;border-radius:50%;background:#bd6b36;display:inline-block;margin-right:0.4rem;"></span>
             <?= $isStaff ? 'Incident Registry' : 'Resident Portal' ?>
         </span>
     </div>
@@ -146,7 +146,7 @@ $resolvedCount = count(array_filter($incidents ?? [], fn($i) => !empty($i['resol
                                 </tr>
                                 <?php if (!empty($i['resolution_notes'])): ?>
                                     <!-- Slide-Down Resolution Note Drawer Row -->
-                                    <tr id="note-row-<?= (int) $i['id'] ?>" class="hidden note-drawer-row border-b border-neutral-200" style="background-color: #f8fafc;">
+                                    <tr id="note-row-<?= (int) $i['id'] ?>" class="hidden note-drawer-row border-b border-neutral-200" style="background-color: #f8f7f5;">
                                         <td colspan="5" class="p-4" style="padding: 0.875rem 1.25rem;">
                                             <div class="note-drawer-box bg-white rounded-xl border border-neutral-200 p-4 shadow-xs">
                                                 <div class="flex items-center justify-between pb-2 mb-2.5 border-b border-neutral-100">
@@ -271,7 +271,7 @@ function openNoteDrawer(id) {
     if (window.gsap && box) {
         gsap.fromTo(box, { opacity: 0, y: -8 }, { opacity: 1, y: 0, duration: 0.22, ease: 'power2.out' });
     }
-    if (mainRow) mainRow.style.backgroundColor = '#f1f5f9';
+    if (mainRow) mainRow.style.backgroundColor = '#f1f0ee';
     activeNoteId = id;
 }
 

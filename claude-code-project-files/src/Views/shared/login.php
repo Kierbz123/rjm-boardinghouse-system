@@ -90,7 +90,7 @@ ob_start();
 .landing-bg-overlay {
     position: absolute;
     inset: 0;
-    background: radial-gradient(circle at center, rgba(15, 23, 42, 0.55) 0%, rgba(15, 23, 42, 0.85) 100%);
+    background: radial-gradient(circle at center, rgba(10, 10, 10, 0.55) 0%, rgba(10, 10, 10, 0.85) 100%);
     backdrop-filter: blur(3px);
     -webkit-backdrop-filter: blur(3px);
 }
@@ -114,17 +114,17 @@ ob_start();
     background: #ffffff;
     border-radius: 1.625rem;
     overflow: hidden;
-    box-shadow: 0 4px 25px rgba(15, 23, 42, 0.08);
+    box-shadow: 0 4px 25px rgba(10, 10, 10, 0.08);
 }
 
 /* Outline Social/Role Login Buttons matching reference */
 .social-outline-btn {
     width: 100%;
     height: 2.625rem;
-    border: 1px solid #e2e8f0;
+    border: 1px solid #e6e5e2;
     border-radius: 0.5rem;
     background: #ffffff;
-    color: #334155;
+    color: #3b3a38;
     font-size: 0.8125rem;
     font-weight: 500;
     display: flex;
@@ -137,11 +137,11 @@ ob_start();
 }
 
 .social-outline-btn:hover {
-    background: #f8fafc;
-    border-color: #cbd5e1;
-    color: #0f172a;
+    background: #f8f7f5;
+    border-color: #d4d2ce;
+    color: #0a0a0a;
     transform: translateY(-1px);
-    box-shadow: 0 2px 4px rgba(15, 23, 42, 0.04);
+    box-shadow: 0 2px 4px rgba(10, 10, 10, 0.04);
 }
 
 .social-outline-btn:active {
@@ -152,7 +152,7 @@ ob_start();
 .btn-ref-primary {
     width: 100%;
     height: 2.75rem;
-    background: #1d4ed8;
+    background: #97501f;
     color: #ffffff;
     font-size: 0.875rem;
     font-weight: 600;
@@ -164,7 +164,7 @@ ob_start();
 }
 
 .btn-ref-primary:hover {
-    background: #1e40af;
+    background: #7a4119;
     box-shadow: 0 4px 12px rgba(29, 78, 216, 0.35);
     transform: translateY(-1px);
 }
@@ -178,7 +178,7 @@ ob_start();
 .ref-input {
     width: 100%;
     height: 2.625rem;
-    border: 1px solid #d1d5db;
+    border: 1px solid #d4d2ce;
     border-radius: 0.5rem;
     padding: 0 0.875rem;
     font-size: 0.875rem;
@@ -189,12 +189,12 @@ ob_start();
 
 .ref-input:focus {
     outline: none;
-    border-color: #2563eb;
-    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+    border-color: #b15f2c;
+    box-shadow: 0 0 0 3px rgba(177, 95, 44, 0.15);
 }
 
 .ref-input.border-error {
-    border-color: #ef4444;
+    border-color: #d4402f;
 }
 
 .ref-input.border-error:focus {
@@ -224,13 +224,13 @@ ob_start();
     margin: 0;
     border: none;
     background: transparent;
-    color: #94a3b8;
+    color: #9d9b97;
     cursor: pointer;
     z-index: 2;
 }
 
 .password-toggle:hover {
-    color: #475569;
+    color: #555452;
 }
 
 .login-or-divider {
@@ -494,7 +494,7 @@ document.addEventListener("DOMContentLoaded", function () {
             text: targetUrl,
             width: 196,
             height: 196,
-            colorDark: "#0f172a",
+            colorDark: "#0a0a0a",
             colorLight: "#ffffff",
             correctLevel: QRCode.CorrectLevel.M
         });

@@ -10,8 +10,8 @@ $totalOpenRequests = array_sum(array_column($openByTier, 'c'));
             <h1>Command Center</h1>
             <p>Live operational metrics, facility occupancy &amp; emergency alerts</p>
         </div>
-        <span class="badge badge-success" style="background:rgba(255,255,255,0.12); color:#86efac; border:1px solid rgba(255,255,255,0.18); padding:0.4rem 0.85rem; font-size:0.75rem;">
-            <span style="width:0.45rem;height:0.45rem;border-radius:50%;background:#4ade80;display:inline-block;margin-right:0.4rem;"></span>
+        <span class="badge badge-success" style="background:rgba(255,255,255,0.12); color:#8cc2a2; border:1px solid rgba(255,255,255,0.18); padding:0.4rem 0.85rem; font-size:0.75rem;">
+            <span style="width:0.45rem;height:0.45rem;border-radius:50%;background:#5fae84;display:inline-block;margin-right:0.4rem;"></span>
             System Operational
         </span>
     </div>
@@ -93,7 +93,7 @@ $totalOpenRequests = array_sum(array_column($openByTier, 'c'));
                                     <td>
                                         <span class="badge <?= $badge ?> capitalize"><?= htmlspecialchars($tier) ?></span>
                                     </td>
-                                    <td style="text-align: right; font-weight: 700; color: #0f172a; font-variant-numeric: tabular-nums;">
+                                    <td style="text-align: right; font-weight: 700; color: #0a0a0a; font-variant-numeric: tabular-nums;">
                                         <?= (int) $row['c'] ?>
                                     </td>
                                 </tr>

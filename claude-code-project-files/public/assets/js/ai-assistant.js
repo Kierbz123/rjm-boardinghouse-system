@@ -249,13 +249,13 @@
         if (!modal) {
             modal = document.createElement('div');
             modal.id = 'ai-improve-modal';
-            modal.style.cssText = 'position:fixed;inset:0;background:rgba(15,23,42,0.6);z-index:9999;display:flex;align-items:center;justify-content:center;padding:1rem;backdrop-filter:blur(3px);';
+            modal.style.cssText = 'position:fixed;inset:0;background:rgba(10, 10, 10,0.6);z-index:9999;display:flex;align-items:center;justify-content:center;padding:1rem;backdrop-filter:blur(3px);';
             document.body.appendChild(modal);
         }
 
         modal.innerHTML = `
-            <div style="background:#ffffff;border-radius:1rem;max-width:560px;width:100%;box-shadow:0 20px 40px rgba(0,0,0,0.25);overflow:hidden;border:1px solid #e2e8f0;animation:popIn 0.2s ease-out;">
-                <div style="background:linear-gradient(135deg,#1e1b4b,#312e81);color:white;padding:1rem 1.25rem;display:flex;align-items:center;justify-content:space-between;">
+            <div style="background:#ffffff;border-radius:1rem;max-width:560px;width:100%;box-shadow:0 20px 40px rgba(0,0,0,0.25);overflow:hidden;border:1px solid #e6e5e2;animation:popIn 0.2s ease-out;">
+                <div style="background:linear-gradient(135deg,#0a0a0a,#312e81);color:white;padding:1rem 1.25rem;display:flex;align-items:center;justify-content:space-between;">
                     <div style="display:flex;align-items:center;gap:0.5rem;font-weight:700;font-size:0.95rem;">
                         <span>✨</span> AI-Improved Description
                     </div>
@@ -263,16 +263,16 @@
                 </div>
                 <div style="padding:1.25rem;display:flex;flex-direction:column;gap:1rem;">
                     <div>
-                        <div style="font-size:0.75rem;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:0.35rem;">Original Draft:</div>
-                        <div style="font-size:0.8125rem;color:#475569;background:#f8fafc;padding:0.75rem;border-radius:0.5rem;border:1px solid #e2e8f0;line-height:1.5;">${escapeHtml(original)}</div>
+                        <div style="font-size:0.75rem;font-weight:700;color:#6b6b6b;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:0.35rem;">Original Draft:</div>
+                        <div style="font-size:0.8125rem;color:#555452;background:#f8f7f5;padding:0.75rem;border-radius:0.5rem;border:1px solid #e6e5e2;line-height:1.5;">${escapeHtml(original)}</div>
                     </div>
                     <div>
-                        <div style="font-size:0.75rem;font-weight:700;color:#6d28d9;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:0.35rem;">AI Recommendation:</div>
-                        <div id="ai-improved-text-val" style="font-size:0.875rem;color:#0f172a;background:#f5f3ff;padding:0.875rem;border-radius:0.5rem;border:1.5px solid #c4b5fd;line-height:1.55;font-weight:500;">${escapeHtml(improved)}</div>
+                        <div style="font-size:0.75rem;font-weight:700;color:#b15f2c;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:0.35rem;">AI Recommendation:</div>
+                        <div id="ai-improved-text-val" style="font-size:0.875rem;color:#0a0a0a;background:#f5f3ff;padding:0.875rem;border-radius:0.5rem;border:1.5px solid #c4b5fd;line-height:1.55;font-weight:500;">${escapeHtml(improved)}</div>
                     </div>
                     <div style="display:flex;gap:0.5rem;justify-content:flex-end;margin-top:0.5rem;">
-                        <button id="modal-discard-btn" style="padding:0.5rem 1rem;font-size:0.8125rem;font-weight:600;border:1px solid #cbd5e1;background:#ffffff;color:#475569;border-radius:0.5rem;cursor:pointer;">Keep Original</button>
-                        <button id="modal-apply-btn" style="padding:0.5rem 1.25rem;font-size:0.8125rem;font-weight:600;border:none;background:#6d28d9;color:#ffffff;border-radius:0.5rem;cursor:pointer;box-shadow:0 2px 6px rgba(109,40,217,0.3);">Apply Improved Text</button>
+                        <button id="modal-discard-btn" style="padding:0.5rem 1rem;font-size:0.8125rem;font-weight:600;border:1px solid #d4d2ce;background:#ffffff;color:#555452;border-radius:0.5rem;cursor:pointer;">Keep Original</button>
+                        <button id="modal-apply-btn" style="padding:0.5rem 1.25rem;font-size:0.8125rem;font-weight:600;border:none;background:#b15f2c;color:#ffffff;border-radius:0.5rem;cursor:pointer;box-shadow:0 2px 6px rgba(109,40,217,0.3);">Apply Improved Text</button>
                     </div>
                 </div>
             </div>
@@ -578,11 +578,11 @@
                         <span style="font-size:1.15rem;">🤖</span>
                         <div>
                             <div style="font-weight:700;font-size:0.875rem;line-height:1.2;">RJM AI Assistant</div>
-                            <div style="font-size:0.65rem;color:#cbd5e1;">Powered by local llama3.2:3b</div>
+                            <div style="font-size:0.65rem;color:#d4d2ce;">Powered by local llama3.2:3b</div>
                         </div>
                     </div>
                     <div style="display:flex;align-items:center;gap:0.5rem;">
-                        <button id="ai-chat-clear" title="Clear chat history" style="background:transparent;border:none;color:#94a3b8;cursor:pointer;font-size:0.75rem;">Clear</button>
+                        <button id="ai-chat-clear" title="Clear chat history" style="background:transparent;border:none;color:#9d9b97;cursor:pointer;font-size:0.75rem;">Clear</button>
                         <button id="ai-chat-close" style="background:transparent;border:none;color:white;cursor:pointer;font-size:1.25rem;line-height:1;">&times;</button>
                     </div>
                 </div>
@@ -747,7 +747,7 @@
             bottom: 2rem;
             left: 50%;
             transform: translateX(-50%);
-            background: ${type === 'success' ? '#166534' : '#1e1b4b'};
+            background: ${type === 'success' ? '#245a3f' : '#0a0a0a'};
             color: #ffffff;
             font-size: 0.8125rem;
             font-weight: 600;

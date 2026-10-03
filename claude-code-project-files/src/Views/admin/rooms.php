@@ -19,8 +19,8 @@ $occupancyRate = $totalBeds > 0 ? round(($occupiedBeds / $totalBeds) * 100) : 0;
             <h1>Rooms &amp; Beds</h1>
             <p>Physical property configuration, capacity management &amp; bed inventory</p>
         </div>
-        <span class="badge badge-success" style="background:rgba(255,255,255,0.12); color:#86efac; border:1px solid rgba(255,255,255,0.18); padding:0.4rem 0.85rem; font-size:0.75rem;">
-            <span style="width:0.45rem;height:0.45rem;border-radius:50%;background:#4ade80;display:inline-block;margin-right:0.4rem;"></span>
+        <span class="badge badge-success" style="background:rgba(255,255,255,0.12); color:#8cc2a2; border:1px solid rgba(255,255,255,0.18); padding:0.4rem 0.85rem; font-size:0.75rem;">
+            <span style="width:0.45rem;height:0.45rem;border-radius:50%;background:#5fae84;display:inline-block;margin-right:0.4rem;"></span>
             Inventory Active
         </span>
     </div>
@@ -231,7 +231,7 @@ $occupancyRate = $totalBeds > 0 ? round(($occupiedBeds / $totalBeds) * 100) : 0;
                         </tr>
 
                         <!-- Slide-Down Beds Drawer Row -->
-                        <tr id="beds-row-<?= (int) $r['id'] ?>" class="hidden beds-drawer-row" style="background-color: #f8fafc;">
+                        <tr id="beds-row-<?= (int) $r['id'] ?>" class="hidden beds-drawer-row" style="background-color: #f8f7f5;">
                             <td colspan="5" style="padding: 0.75rem 1.25rem 1.25rem;">
                                 <div class="bg-white rounded-xl border border-neutral-200 p-4 shadow-xs">
                                     <div class="flex items-center justify-between pb-3 mb-3 border-b border-neutral-100">
@@ -247,7 +247,7 @@ $occupancyRate = $totalBeds > 0 ? round(($occupiedBeds / $totalBeds) * 100) : 0;
                                     <div class="overflow-x-auto">
                                         <table class="w-full text-body-sm">
                                             <thead>
-                                                <tr style="background:#f1f5f9; border-bottom:1px solid #e2e8f0;">
+                                                <tr style="background:#f1f0ee; border-bottom:1px solid #e6e5e2;">
                                                     <th style="padding:0.5rem 0.75rem; font-size:0.65rem;">Bed Label</th>
                                                     <th style="padding:0.5rem 0.75rem; font-size:0.65rem;">Status</th>
                                                     <th style="padding:0.5rem 0.75rem; font-size:0.65rem;">Assigned Boarder</th>

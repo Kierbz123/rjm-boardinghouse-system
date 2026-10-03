@@ -22,8 +22,8 @@ $tierBadges = [
             <h1 class="text-heading-lg font-bold">Staff Dispatch &amp; Operations</h1>
             <p class="text-body-sm">Real-time emergency monitoring, priority triage &amp; resident issue response</p>
         </div>
-        <span class="badge badge-success" style="background:rgba(255,255,255,0.12); color:#86efac; border:1px solid rgba(255,255,255,0.15);">
-            <span style="width:0.4rem;height:0.4rem;border-radius:50%;background:#4ade80;display:inline-block;margin-right:0.4rem;"></span>
+        <span class="badge badge-success" style="background:rgba(255,255,255,0.12); color:#8cc2a2; border:1px solid rgba(255,255,255,0.15);">
+            <span style="width:0.4rem;height:0.4rem;border-radius:50%;background:#5fae84;display:inline-block;margin-right:0.4rem;"></span>
             Operations Live
         </span>
     </div>
@@ -204,7 +204,7 @@ $tierBadges = [
     </div>
 
     <!-- Section 3: Issue Rule Violation Penalty (Staff Authority) -->
-    <div class="reveal-card card accent-warning" style="padding: 1.5rem 1.75rem; border-radius: 1rem; border: 1px solid #fde68a; background: linear-gradient(135deg, #fffdfa 0%, #ffffff 100%);">
+    <div class="reveal-card card accent-warning" style="padding: 1.5rem 1.75rem; border-radius: 1rem; border: 1px solid #f4e7c2; background: linear-gradient(135deg, #fffdfa 0%, #ffffff 100%);">
         <div class="flex items-center gap-2.5 pb-2.5 border-b border-amber-100">
             <span style="font-size: 1.25rem;">⚖️</span>
             <div>

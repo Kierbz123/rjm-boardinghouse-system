@@ -24,8 +24,8 @@ $totalPages = $totalPages ?? 1;
             <h1 class="text-heading-lg font-bold">Maintenance History</h1>
             <p class="text-body-sm">Complete record of all maintenance requests with full details and resolution tracking</p>
         </div>
-        <span class="badge badge-info" style="background:rgba(255,255,255,0.12); color:#93c5fd; border:1px solid rgba(255,255,255,0.15);">
-            <span style="width:0.4rem;height:0.4rem;border-radius:50%;background:#3b82f6;display:inline-block;margin-right:0.4rem;"></span>
+        <span class="badge badge-info" style="background:rgba(255,255,255,0.12); color:#dea27c; border:1px solid rgba(255,255,255,0.15);">
+            <span style="width:0.4rem;height:0.4rem;border-radius:50%;background:#bd6b36;display:inline-block;margin-right:0.4rem;"></span>
             Full Archive
         </span>
     </div>

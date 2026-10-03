@@ -47,29 +47,29 @@ $defaultExpected = $totalDue > 0 ? $totalDue : $rentPrice;
             <h1 class="text-heading-lg font-bold">Pay Rent &amp; Upload Receipt</h1>
             <p class="text-body-sm" style="margin-top: 0.35rem;">Submit your monthly settlement for automated ledger matching and verification</p>
         </div>
-        <span class="badge badge-success" style="background:rgba(255,255,255,0.12); color:#86efac; border:1px solid rgba(255,255,255,0.15); padding: 0.35rem 0.75rem;">
-            <span style="width:0.4rem;height:0.4rem;border-radius:50%;background:#4ade80;display:inline-block;margin-right:0.4rem;"></span>
+        <span class="badge badge-success" style="background:rgba(255,255,255,0.12); color:#8cc2a2; border:1px solid rgba(255,255,255,0.15); padding: 0.35rem 0.75rem;">
+            <span style="width:0.4rem;height:0.4rem;border-radius:50%;background:#5fae84;display:inline-block;margin-right:0.4rem;"></span>
             Verification Active
         </span>
     </div>
 
     <!-- Flash Alerts -->
     <?php if ($error): ?>
-        <div class="text-body-sm flex items-center gap-2.5" role="alert" style="background: #fef2f2; color: #b91c1c; border-radius: 0.875rem; padding: 1rem 1.25rem; border: 1px solid #fca5a5;">
+        <div class="text-body-sm flex items-center gap-2.5" role="alert" style="background: #fdf1f0; color: #912018; border-radius: 0.875rem; padding: 1rem 1.25rem; border: 1px solid #e88f86;">
             <span style="font-size:1.125rem;">⚠</span>
             <?= htmlspecialchars($error) ?>
         </div>
     <?php endif; ?>
 
     <?php if ($success): ?>
-        <div class="text-body-sm flex items-center gap-2.5" role="alert" style="background: #f0fdf4; color: #166534; border-radius: 0.875rem; padding: 1rem 1.25rem; border: 1px solid #86efac;">
+        <div class="text-body-sm flex items-center gap-2.5" role="alert" style="background: #eef6f1; color: #245a3f; border-radius: 0.875rem; padding: 1rem 1.25rem; border: 1px solid #8cc2a2;">
             <span style="font-size:1.125rem;">✓</span>
             <?= htmlspecialchars($success) ?>
         </div>
     <?php endif; ?>
 
     <!-- Accommodation Billing Rate & Balance Info Bar -->
-    <div class="card flex flex-wrap items-center justify-between gap-4 text-xs" style="padding: 1.25rem 1.5rem; background: linear-gradient(135deg, #f8fafc 0%, #ffffff 100%); border: 1px solid #e2e8f0; border-radius: 0.875rem;">
+    <div class="card flex flex-wrap items-center justify-between gap-4 text-xs" style="padding: 1.25rem 1.5rem; background: linear-gradient(135deg, #f8f7f5 0%, #ffffff 100%); border: 1px solid #e6e5e2; border-radius: 0.875rem;">
         <div class="flex flex-wrap items-center gap-4">
             <span class="font-bold text-neutral-900 font-mono text-sm">
                 Room <?= htmlspecialchars($boarder['room_number'] ?? '101') ?>
@@ -100,7 +100,7 @@ $defaultExpected = $totalDue > 0 ? $totalDue : $rentPrice;
         <!-- Left: Form Card (2/3 width on lg) -->
         <div class="lg:col-span-2">
             <form method="post" action="/portal/payments" enctype="multipart/form-data" class="form-card accent-success" style="padding: 1.5rem 1.625rem 1.75rem; border-radius: 1rem; gap: 1.125rem;">
-                <div class="flex items-center gap-2.5" style="border-bottom: 1px solid #f1f5f9; padding-bottom: 0.875rem;">
+                <div class="flex items-center gap-2.5" style="border-bottom: 1px solid #f1f0ee; padding-bottom: 0.875rem;">
                     <span style="font-size: 1.25rem;">💳</span>
                     <div>
                         <h2 class="text-heading-sm font-bold text-neutral-900">Proof of Payment Submission</h2>
@@ -150,7 +150,7 @@ $defaultExpected = $totalDue > 0 ? $totalDue : $rentPrice;
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
                         <span class="block text-caption font-semibold text-neutral-700" style="margin-bottom: 0.375rem;">Amount Due (₱)</span>
-                        <p class="input w-full font-mono font-bold text-neutral-900" style="padding: 0.5rem 0.75rem; border-radius: 0.5rem; background: #f8fafc;">
+                        <p class="input w-full font-mono font-bold text-neutral-900" style="padding: 0.5rem 0.75rem; border-radius: 0.5rem; background: #f8f7f5;">
                             <?= number_format($totalDue, 2) ?>
                         </p>
                         <p class="text-caption text-neutral-400" style="margin-top: 0.375rem;">Unpaid rent and penalties, calculated by the system.</p>
@@ -184,7 +184,7 @@ $defaultExpected = $totalDue > 0 ? $totalDue : $rentPrice;
                     <label for="proof" class="block text-caption font-semibold text-neutral-700" style="margin-bottom: 0.375rem;">
                         Proof of Payment Slip / Screenshot <span class="text-error-600">*</span>
                     </label>
-                    <div style="padding: 0.875rem 1rem; background: #f8fafc; border-radius: 0.625rem; border: 1px solid #e2e8f0;">
+                    <div style="padding: 0.875rem 1rem; background: #f8f7f5; border-radius: 0.625rem; border: 1px solid #e6e5e2;">
                         <input id="proof"
                                type="file"
                                name="proof"
@@ -211,29 +211,29 @@ $defaultExpected = $totalDue > 0 ? $totalDue : $rentPrice;
 
         <!-- Right: Official Payment Channels Sidebar (1/3 width on lg) -->
         <div style="display: flex; flex-direction: column; gap: 1.125rem;">
-            <div class="card" style="padding: 1.25rem 1.375rem; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 0.875rem;">
+            <div class="card" style="padding: 1.25rem 1.375rem; background: #f8f7f5; border: 1px solid #e6e5e2; border-radius: 0.875rem;">
                 <h3 class="text-xs font-bold uppercase tracking-wider text-neutral-600 flex items-center gap-2" style="margin-bottom: 0.875rem;">
                     <span>🏦</span> Official Payment Channels
                 </h3>
-                <div style="display: flex; flex-direction: column; gap: 0.625rem; font-size: 0.8125rem; color: #475569; line-height: 1.5;">
-                    <div style="padding: 0.75rem 0.875rem; border-radius: 0.5rem; background: #ffffff; border: 1px solid #e2e8f0;">
+                <div style="display: flex; flex-direction: column; gap: 0.625rem; font-size: 0.8125rem; color: #555452; line-height: 1.5;">
+                    <div style="padding: 0.75rem 0.875rem; border-radius: 0.5rem; background: #ffffff; border: 1px solid #e6e5e2;">
                         <span class="font-bold text-neutral-800 block">GCash / Maya:</span>
                         <span class="font-mono text-neutral-900 block font-bold" style="margin-top: 0.25rem;">0917-823-9912</span>
-                        <span style="font-size: 0.6875rem; color: #94a3b8;">RJM Boardinghouse Admin</span>
+                        <span style="font-size: 0.6875rem; color: #9d9b97;">RJM Boardinghouse Admin</span>
                     </div>
-                    <div style="padding: 0.75rem 0.875rem; border-radius: 0.5rem; background: #ffffff; border: 1px solid #e2e8f0;">
+                    <div style="padding: 0.75rem 0.875rem; border-radius: 0.5rem; background: #ffffff; border: 1px solid #e6e5e2;">
                         <span class="font-bold text-neutral-800 block">BDO Bank Deposit:</span>
                         <span class="font-mono text-neutral-900 block font-bold" style="margin-top: 0.25rem;">0012-3456-7890</span>
-                        <span style="font-size: 0.6875rem; color: #94a3b8;">RJM Boardinghouse Management</span>
+                        <span style="font-size: 0.6875rem; color: #9d9b97;">RJM Boardinghouse Management</span>
                     </div>
                 </div>
             </div>
 
-            <div class="card" style="padding: 1.25rem 1.375rem; background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 0.875rem;">
-                <h3 class="text-xs font-bold flex items-center gap-2" style="color: #166534; margin-bottom: 0.5rem;">
+            <div class="card" style="padding: 1.25rem 1.375rem; background: #eef6f1; border: 1px solid #d7ebdf; border-radius: 0.875rem;">
+                <h3 class="text-xs font-bold flex items-center gap-2" style="color: #245a3f; margin-bottom: 0.5rem;">
                     <span>⚡</span> Instant Verification
                 </h3>
-                <p style="font-size: 0.8125rem; color: #15803d; line-height: 1.6;">
+                <p style="font-size: 0.8125rem; color: #245a3f; line-height: 1.6;">
                     When your transferred amount matches your expected contract rent, our verification engine reconciles and auto-approves your payment instantly.
                 </p>
             </div>
@@ -253,7 +253,7 @@ $defaultExpected = $totalDue > 0 ? $totalDue : $rentPrice;
                 <div class="overflow-x-auto">
                     <table class="w-full text-body-sm">
                         <thead>
-                            <tr style="background: #f8fafc; border-bottom: 1px solid #e2e8f0; text-align: left; color: #64748b; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em;">
+                            <tr style="background: #f8f7f5; border-bottom: 1px solid #e6e5e2; text-align: left; color: #6b6b6b; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em;">
                                 <th style="padding: 0.75rem 1rem; font-weight: 600;">Billing Period</th>
                                 <th style="padding: 0.75rem 1rem; font-weight: 600;">Expected</th>
                                 <th style="padding: 0.75rem 1rem; font-weight: 600;">Amount Paid</th>
@@ -274,13 +274,13 @@ $defaultExpected = $totalDue > 0 ? $totalDue : $rentPrice;
                                 };
                                 ?>
                                 <tr class="hover:bg-neutral-50 transition-colors">
-                                    <td style="padding: 0.75rem 1rem; font-family: ui-monospace, monospace; font-weight: 600; color: #0f172a;">
+                                    <td style="padding: 0.75rem 1rem; font-family: ui-monospace, monospace; font-weight: 600; color: #0a0a0a;">
                                         <span class="id-tag"><?= htmlspecialchars($p['billing_period']) ?></span>
                                     </td>
-                                    <td style="padding: 0.75rem 1rem; color: #475569; font-family: ui-monospace, monospace;">
+                                    <td style="padding: 0.75rem 1rem; color: #555452; font-family: ui-monospace, monospace;">
                                         ₱<?= number_format((float) ($p['expected_amount'] ?? 0), 2) ?>
                                     </td>
-                                    <td style="padding: 0.75rem 1rem; font-weight: 700; color: #0f172a; font-family: ui-monospace, monospace;">
+                                    <td style="padding: 0.75rem 1rem; font-weight: 700; color: #0a0a0a; font-family: ui-monospace, monospace;">
                                         ₱<?= number_format((float) ($p['claimed_amount'] ?? 0), 2) ?>
                                     </td>
                                     <td style="padding: 0.75rem 1rem;">
@@ -292,14 +292,14 @@ $defaultExpected = $totalDue > 0 ? $totalDue : $rentPrice;
                                         <?php if (!empty($p['proof_path'])): ?>
                                             <a href="/<?= htmlspecialchars(ltrim($p['proof_path'], '/')) ?>"
                                                target="_blank"
-                                               style="font-size: 0.75rem; font-weight: 600; color: #2563eb; text-decoration: underline; display: inline-flex; align-items: center; gap: 0.25rem; transition: color 0.15s;">
+                                               style="font-size: 0.75rem; font-weight: 600; color: #b15f2c; text-decoration: underline; display: inline-flex; align-items: center; gap: 0.25rem; transition: color 0.15s;">
                                                 <span>📎</span> View Receipt
                                             </a>
                                         <?php else: ?>
                                             <span class="text-caption text-neutral-400">None attached</span>
                                         <?php endif; ?>
                                     </td>
-                                    <td style="padding: 0.75rem 1rem; text-align: right; font-size: 0.75rem; font-family: ui-monospace, monospace; color: #94a3b8;">
+                                    <td style="padding: 0.75rem 1rem; text-align: right; font-size: 0.75rem; font-family: ui-monospace, monospace; color: #9d9b97;">
                                         <?= date('M j, Y', strtotime($p['created_at'])) ?>
                                     </td>
                                 </tr>

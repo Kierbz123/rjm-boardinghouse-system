@@ -66,14 +66,14 @@ $totalBalancesOwed  = array_sum(array_column($boarders, 'outstanding_balance'));
 
 /* Page Banner */
 .boarders-banner {
-    background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+    background: linear-gradient(135deg, #0a0a0a 0%, #1f1f1e 100%);
     border-radius: 0.875rem;
     padding: 1.35rem 1.75rem;
     color: #ffffff;
     display: flex;
     flex-direction: column;
     gap: 1rem;
-    box-shadow: 0 4px 16px -2px rgba(15, 23, 42, 0.15);
+    box-shadow: 0 4px 16px -2px rgba(10, 10, 10, 0.15);
     border: 1px solid rgba(255, 255, 255, 0.08);
     margin-bottom: 1.5rem;
 }
@@ -94,7 +94,7 @@ $totalBalancesOwed  = array_sum(array_column($boarders, 'outstanding_balance'));
 }
 .boarders-banner p {
     font-size: 0.8125rem;
-    color: #94a3b8;
+    color: #9d9b97;
     margin-top: 0.25rem;
 }
 .boarders-status-pill {
@@ -105,7 +105,7 @@ $totalBalancesOwed  = array_sum(array_column($boarders, 'outstanding_balance'));
     backdrop-filter: blur(8px);
     -webkit-backdrop-filter: blur(8px);
     border: 1px solid rgba(255, 255, 255, 0.15);
-    color: #86efac;
+    color: #8cc2a2;
     padding: 0.35rem 0.85rem;
     border-radius: 9999px;
     font-size: 0.75rem;
@@ -139,10 +139,10 @@ $totalBalancesOwed  = array_sum(array_column($boarders, 'outstanding_balance'));
 }
 .kpi-card {
     background: #ffffff;
-    border: 1px solid #e2e8f0;
+    border: 1px solid #e6e5e2;
     border-radius: 0.75rem;
     padding: 1.125rem 1.125rem 1rem;
-    box-shadow: 0 1px 3px rgba(15, 23, 42, 0.04);
+    box-shadow: 0 1px 3px rgba(10, 10, 10, 0.04);
     display: flex;
     flex-direction: column;
     justify-content: space-between;
@@ -151,7 +151,7 @@ $totalBalancesOwed  = array_sum(array_column($boarders, 'outstanding_balance'));
 }
 .kpi-card:hover {
     transform: translateY(-2px);
-    box-shadow: 0 4px 12px -2px rgba(15, 23, 42, 0.08);
+    box-shadow: 0 4px 12px -2px rgba(10, 10, 10, 0.08);
 }
 .kpi-card-header {
     display: flex;
@@ -165,7 +165,7 @@ $totalBalancesOwed  = array_sum(array_column($boarders, 'outstanding_balance'));
     font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 0.06em;
-    color: #64748b;
+    color: #6b6b6b;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -179,7 +179,7 @@ $totalBalancesOwed  = array_sum(array_column($boarders, 'outstanding_balance'));
     font-size: 1.625rem;
     font-weight: 800;
     line-height: 1.2;
-    color: #0f172a;
+    color: #0a0a0a;
     font-variant-numeric: tabular-nums;
     margin-top: 0.2rem;
     white-space: nowrap;
@@ -188,7 +188,7 @@ $totalBalancesOwed  = array_sum(array_column($boarders, 'outstanding_balance'));
 }
 .kpi-subtext {
     font-size: 0.75rem;
-    color: #94a3b8;
+    color: #9d9b97;
     margin-top: 0.35rem;
     display: flex;
     align-items: center;
@@ -208,7 +208,7 @@ $totalBalancesOwed  = array_sum(array_column($boarders, 'outstanding_balance'));
 /* Filter & Controls Container */
 .filter-card {
     background: #ffffff;
-    border: 1px solid #e2e8f0;
+    border: 1px solid #e6e5e2;
     border-radius: 0.75rem;
     padding: 0.875rem 1rem;
     margin-bottom: 1rem;
@@ -246,20 +246,20 @@ $totalBalancesOwed  = array_sum(array_column($boarders, 'outstanding_balance'));
     white-space: nowrap;
 }
 .filter-tab-btn.is-active {
-    background-color: #1e3a8a;
+    background-color: #5c3113;
     color: #ffffff;
-    border-color: #1e3a8a;
+    border-color: #5c3113;
     box-shadow: 0 1px 2px rgba(30, 58, 138, 0.15);
 }
 .filter-tab-btn:not(.is-active) {
-    background-color: #f8fafc;
-    color: #475569;
-    border-color: #e2e8f0;
+    background-color: #f8f7f5;
+    color: #555452;
+    border-color: #e6e5e2;
 }
 .filter-tab-btn:not(.is-active):hover {
-    background-color: #f1f5f9;
-    color: #0f172a;
-    border-color: #cbd5e1;
+    background-color: #f1f0ee;
+    color: #0a0a0a;
+    border-color: #d4d2ce;
 }
 
 /* Search input with verified icon padding */
@@ -280,15 +280,15 @@ $totalBalancesOwed  = array_sum(array_column($boarders, 'outstanding_balance'));
     padding-right: 2.25rem !important;
     font-size: 0.8125rem !important;
     border-radius: 0.5rem !important;
-    border: 1px solid #cbd5e1 !important;
+    border: 1px solid #d4d2ce !important;
     background-color: #ffffff !important;
-    color: #0f172a !important;
+    color: #0a0a0a !important;
     outline: none !important;
     box-sizing: border-box !important;
     transition: border-color 150ms ease, box-shadow 150ms ease;
 }
 .search-input:focus {
-    border-color: #3b82f6 !important;
+    border-color: #bd6b36 !important;
     box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15) !important;
 }
 .search-icon-fixed {
@@ -298,7 +298,7 @@ $totalBalancesOwed  = array_sum(array_column($boarders, 'outstanding_balance'));
     transform: translateY(-50%);
     pointer-events: none;
     font-size: 0.85rem;
-    color: #94a3b8;
+    color: #9d9b97;
     line-height: 1;
 }
 .search-clear-fixed {
@@ -310,20 +310,20 @@ $totalBalancesOwed  = array_sum(array_column($boarders, 'outstanding_balance'));
     border: none;
     padding: 0.25rem;
     font-size: 0.75rem;
-    color: #94a3b8;
+    color: #9d9b97;
     cursor: pointer;
     line-height: 1;
     border-radius: 0.25rem;
     transition: color 150ms;
 }
 .search-clear-fixed:hover {
-    color: #334155;
+    color: #3b3a38;
 }
 
 /* Table Card & Scroll */
 .boarders-table-card {
     background: #ffffff;
-    border: 1px solid #e2e8f0;
+    border: 1px solid #e6e5e2;
     border-radius: 0.875rem;
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
     overflow: hidden;
@@ -342,8 +342,8 @@ $totalBalancesOwed  = array_sum(array_column($boarders, 'outstanding_balance'));
     text-align: left;
 }
 .boarders-table thead tr {
-    background: #f8fafc;
-    border-bottom: 2px solid #e2e8f0;
+    background: #f8f7f5;
+    border-bottom: 2px solid #e6e5e2;
 }
 .boarders-table th {
     padding: 0.75rem 1rem !important;
@@ -351,21 +351,21 @@ $totalBalancesOwed  = array_sum(array_column($boarders, 'outstanding_balance'));
     font-weight: 700 !important;
     text-transform: uppercase !important;
     letter-spacing: 0.05em !important;
-    color: #64748b !important;
-    background: #f8fafc;
+    color: #6b6b6b !important;
+    background: #f8f7f5;
     vertical-align: middle;
 }
 .boarders-table td {
     padding: 0.75rem 1rem !important;
     vertical-align: middle;
-    border-bottom: 1px solid #f1f5f9;
+    border-bottom: 1px solid #f1f0ee;
 }
 .boarders-table tbody tr.boarder-main-row {
     transition: background-color 130ms ease;
     cursor: pointer;
 }
 .boarders-table tbody tr.boarder-main-row:hover {
-    background-color: #f8fafc;
+    background-color: #f8f7f5;
 }
 
 /* Specific Column Sizing & Behaviors */
@@ -424,51 +424,51 @@ $totalBalancesOwed  = array_sum(array_column($boarders, 'outstanding_balance'));
     box-sizing: border-box;
 }
 .tbl-btn-profile {
-    background: #eff6ff;
-    color: #1d4ed8;
-    border-color: #bfdbfe;
+    background: #fbf4ef;
+    color: #97501f;
+    border-color: #ebc6ac;
 }
 .tbl-btn-profile:hover {
-    background: #dbeafe;
-    color: #1e40af;
-    border-color: #93c5fd;
+    background: #f5e3d6;
+    color: #7a4119;
+    border-color: #dea27c;
 }
 .tbl-btn-edit {
     background: #ffffff;
-    color: #334155;
-    border-color: #cbd5e1;
+    color: #3b3a38;
+    border-color: #d4d2ce;
 }
 .tbl-btn-edit:hover {
-    background: #f1f5f9;
-    color: #0f172a;
-    border-color: #94a3b8;
+    background: #f1f0ee;
+    color: #0a0a0a;
+    border-color: #9d9b97;
 }
 .tbl-btn-delete {
-    background: #fef2f2;
-    color: #b91c1c;
-    border-color: #fecaca;
+    background: #fdf1f0;
+    color: #912018;
+    border-color: #f9dcd9;
 }
 .tbl-btn-delete:hover {
     background: #fee2e2;
-    color: #991b1b;
+    color: #7a1b14;
     border-color: #f87171;
 }
 
 /* Edit Drawer Styling */
 .edit-drawer-cell {
     padding: 0 !important;
-    background-color: #f8fafc;
+    background-color: #f8f7f5;
     white-space: normal !important;
     overflow: visible !important;
 }
 .edit-drawer-box {
     background: #ffffff;
-    border: 1px solid #cbd5e1;
-    border-left: 4px solid #2563eb;
+    border: 1px solid #d4d2ce;
+    border-left: 4px solid #b15f2c;
     border-radius: 0.75rem;
     padding: 1.25rem 1.5rem;
     margin: 0.75rem 1rem 1rem;
-    box-shadow: 0 4px 12px -2px rgba(15, 23, 42, 0.06);
+    box-shadow: 0 4px 12px -2px rgba(10, 10, 10, 0.06);
 }
 .edit-drawer-header {
     display: flex;
@@ -476,7 +476,7 @@ $totalBalancesOwed  = array_sum(array_column($boarders, 'outstanding_balance'));
     justify-content: space-between;
     padding-bottom: 0.75rem;
     margin-bottom: 1rem;
-    border-bottom: 1px solid #f1f5f9;
+    border-bottom: 1px solid #f1f0ee;
 }
 .edit-grid-4 {
     display: grid;
@@ -528,20 +528,20 @@ $totalBalancesOwed  = array_sum(array_column($boarders, 'outstanding_balance'));
 }
 .mgmt-card {
     background: #ffffff;
-    border: 1px solid #e2e8f0;
-    border-top: 3px solid #2563eb;
+    border: 1px solid #e6e5e2;
+    border-top: 3px solid #b15f2c;
     border-radius: 0.75rem;
-    box-shadow: 0 1px 3px rgba(15, 23, 42, 0.05);
+    box-shadow: 0 1px 3px rgba(10, 10, 10, 0.05);
     padding: 1.35rem 1.25rem 1.25rem;
     display: flex;
     flex-direction: column;
     min-width: 0;
 }
 .mgmt-card.accent-success {
-    border-top-color: #16a34a;
+    border-top-color: #2f6f4e;
 }
 .mgmt-card.accent-neutral {
-    border-top-color: #64748b;
+    border-top-color: #6b6b6b;
 }
 .mgmt-card-header {
     display: flex;
@@ -549,12 +549,12 @@ $totalBalancesOwed  = array_sum(array_column($boarders, 'outstanding_balance'));
     gap: 0.5rem;
     margin-bottom: 1.125rem;
     padding-bottom: 0.65rem;
-    border-bottom: 1px solid #f1f5f9;
+    border-bottom: 1px solid #f1f0ee;
 }
 .mgmt-card-title {
     font-size: 0.95rem;
     font-weight: 700;
-    color: #0f172a;
+    color: #0a0a0a;
     letter-spacing: -0.01em;
 }
 .mgmt-card-body {
@@ -573,41 +573,41 @@ $totalBalancesOwed  = array_sum(array_column($boarders, 'outstanding_balance'));
     display: block;
     font-size: 0.75rem;
     font-weight: 600;
-    color: #475569;
+    color: #555452;
     margin-bottom: 0.35rem;
 }
 .field-input {
     display: block;
     width: 100%;
-    border: 1px solid #cbd5e1;
+    border: 1px solid #d4d2ce;
     border-radius: 0.5rem;
     padding: 0.5rem 0.75rem;
     font-size: 0.8125rem;
-    color: #0f172a;
+    color: #0a0a0a;
     background-color: #ffffff;
     box-sizing: border-box;
     transition: border-color 140ms ease, box-shadow 140ms ease;
 }
 .field-input:focus {
     outline: none;
-    border-color: #3b82f6;
+    border-color: #bd6b36;
     box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
 }
 .field-select {
     display: block;
     width: 100%;
-    border: 1px solid #cbd5e1;
+    border: 1px solid #d4d2ce;
     border-radius: 0.5rem;
     padding: 0.5rem 0.75rem;
     font-size: 0.8125rem;
-    color: #0f172a;
+    color: #0a0a0a;
     background-color: #ffffff;
     box-sizing: border-box;
     transition: border-color 140ms ease, box-shadow 140ms ease;
 }
 .field-select:focus {
     outline: none;
-    border-color: #3b82f6;
+    border-color: #bd6b36;
     box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
 }
 
@@ -629,7 +629,7 @@ $totalBalancesOwed  = array_sum(array_column($boarders, 'outstanding_balance'));
     background: transparent;
     border: none;
     padding: 0.35rem;
-    color: #94a3b8;
+    color: #9d9b97;
     cursor: pointer;
     display: inline-flex;
     align-items: center;
@@ -638,14 +638,14 @@ $totalBalancesOwed  = array_sum(array_column($boarders, 'outstanding_balance'));
     transition: color 150ms ease;
 }
 .password-eye-toggle:hover {
-    color: #334155;
+    color: #3b3a38;
 }
 
 /* Assign notice box */
 .assign-notice-box {
-    background: #f0fdf4;
-    border: 1px solid #bbf7d0;
-    color: #166534;
+    background: #eef6f1;
+    border: 1px solid #d7ebdf;
+    color: #245a3f;
     padding: 0.75rem 0.85rem;
     border-radius: 0.5rem;
     font-size: 0.75rem;
@@ -664,18 +664,18 @@ $totalBalancesOwed  = array_sum(array_column($boarders, 'outstanding_balance'));
 .guide-item-box {
     padding: 0.75rem 0.85rem;
     border-radius: 0.5rem;
-    border: 1px solid #e2e8f0;
-    background: #f8fafc;
+    border: 1px solid #e6e5e2;
+    background: #f8f7f5;
     font-size: 0.775rem;
     line-height: 1.5;
-    color: #475569;
+    color: #555452;
 }
 .guide-item-title {
     display: flex;
     align-items: center;
     gap: 0.35rem;
     font-weight: 700;
-    color: #0f172a;
+    color: #0a0a0a;
     margin-bottom: 0.2rem;
     font-size: 0.8rem;
 }
@@ -687,7 +687,7 @@ $totalBalancesOwed  = array_sum(array_column($boarders, 'outstanding_balance'));
     gap: 0.75rem;
     margin-bottom: 0.875rem;
     padding-bottom: 0.65rem;
-    border-bottom: 1.5px solid #e2e8f0;
+    border-bottom: 1.5px solid #e6e5e2;
 }
 @media (min-width: 640px) {
     .section-headline-wrap {
@@ -699,13 +699,13 @@ $totalBalancesOwed  = array_sum(array_column($boarders, 'outstanding_balance'));
 .section-headline-title {
     font-size: 1.125rem;
     font-weight: 700;
-    color: #0f172a;
+    color: #0a0a0a;
     letter-spacing: -0.01em;
     margin: 0;
 }
 .section-headline-subtitle {
     font-size: 0.8125rem;
-    color: #64748b;
+    color: #6b6b6b;
     margin-top: 0.15rem;
 }
 .count-badge-pill {
@@ -714,8 +714,8 @@ $totalBalancesOwed  = array_sum(array_column($boarders, 'outstanding_balance'));
     gap: 0.35rem;
     font-size: 0.75rem;
     font-weight: 600;
-    color: #475569;
-    background-color: #f1f5f9;
+    color: #555452;
+    background-color: #f1f0ee;
     padding: 0.3rem 0.75rem;
     border-radius: 9999px;
     align-self: flex-start;
@@ -736,7 +736,7 @@ $totalBalancesOwed  = array_sum(array_column($boarders, 'outstanding_balance'));
             <p>Resident directory, bed allocations &amp; account lifecycle management</p>
         </div>
         <span class="boarders-status-pill">
-            <span style="width:0.45rem; height:0.45rem; border-radius:50%; background:#4ade80; display:inline-block;"></span>
+            <span style="width:0.45rem; height:0.45rem; border-radius:50%; background:#5fae84; display:inline-block;"></span>
             Active Directory
         </span>
     </div>
@@ -1245,28 +1245,28 @@ $totalBalancesOwed  = array_sum(array_column($boarders, 'outstanding_balance'));
 </div>
 
 <!-- Double Confirmation Popout Modal -->
-<div id="confirm-modal" style="display:none; position:fixed; top:0; left:0; right:0; bottom:0; z-index:99999; background:rgba(15,23,42,0.55); backdrop-filter:blur(4px); -webkit-backdrop-filter:blur(4px); align-items:center; justify-content:center; padding:1rem;" role="dialog" aria-modal="true" aria-labelledby="modal-heading">
+<div id="confirm-modal" style="display:none; position:fixed; top:0; left:0; right:0; bottom:0; z-index:99999; background:rgba(10, 10, 10,0.55); backdrop-filter:blur(4px); -webkit-backdrop-filter:blur(4px); align-items:center; justify-content:center; padding:1rem;" role="dialog" aria-modal="true" aria-labelledby="modal-heading">
     <div id="confirm-card" style="background:#fff; border-radius:1rem; padding:1.75rem 1.75rem; max-width:23rem; width:100%; margin:0 auto; text-align:center; box-shadow:0 25px 50px -12px rgba(0,0,0,0.25);">
         
         <!-- Big Round Icon (!) -->
-        <div id="modal-icon-wrap" style="width:3.5rem; height:3.5rem; border-radius:50%; border:2px solid #10b981; color:#059669; display:flex; align-items:center; justify-content:center; font-size:1.5rem; font-weight:700; margin:0 auto 0.85rem; user-select:none;">
+        <div id="modal-icon-wrap" style="width:3.5rem; height:3.5rem; border-radius:50%; border:2px solid #3f8a63; color:#2f6f4e; display:flex; align-items:center; justify-content:center; font-size:1.5rem; font-weight:700; margin:0 auto 0.85rem; user-select:none;">
             !
         </div>
 
         <!-- Title -->
-        <h3 id="modal-heading" style="font-size:1.15rem; font-weight:700; color:#0f172a; letter-spacing:-0.01em; margin:0 0 0.45rem;">Save Changes?</h3>
+        <h3 id="modal-heading" style="font-size:1.15rem; font-weight:700; color:#0a0a0a; letter-spacing:-0.01em; margin:0 0 0.45rem;">Save Changes?</h3>
 
         <!-- Description -->
-        <p id="modal-subtext" style="font-size:0.8125rem; color:#64748b; line-height:1.55; margin:0 0 1.5rem; padding:0 0.5rem;">
+        <p id="modal-subtext" style="font-size:0.8125rem; color:#6b6b6b; line-height:1.55; margin:0 0 1.5rem; padding:0 0.5rem;">
             Are you sure you want to proceed?
         </p>
 
         <!-- Actions -->
         <div style="display:flex; align-items:center; justify-content:flex-end; gap:0.75rem; padding-top:0.25rem;">
-            <button type="button" id="modal-cancel" style="padding:0.55rem 1.15rem; border-radius:0.5rem; font-size:0.8125rem; font-weight:600; color:#64748b; background:#f1f5f9; border:1px solid #cbd5e1; cursor:pointer; transition:all 150ms;">
+            <button type="button" id="modal-cancel" style="padding:0.55rem 1.15rem; border-radius:0.5rem; font-size:0.8125rem; font-weight:600; color:#6b6b6b; background:#f1f0ee; border:1px solid #d4d2ce; cursor:pointer; transition:all 150ms;">
                 Cancel
             </button>
-            <button type="button" id="modal-confirm" style="color:#fff; font-weight:600; border-radius:0.5rem; padding:0.55rem 1.35rem; font-size:0.8125rem; border:none; cursor:pointer; display:inline-flex; align-items:center; gap:0.375rem; transition:all 150ms; background:linear-gradient(135deg,#10b981,#059669); box-shadow: 0 2px 6px rgba(16,185,129,0.3);">
+            <button type="button" id="modal-confirm" style="color:#fff; font-weight:600; border-radius:0.5rem; padding:0.55rem 1.35rem; font-size:0.8125rem; border:none; cursor:pointer; display:inline-flex; align-items:center; gap:0.375rem; transition:all 150ms; background:linear-gradient(135deg,#3f8a63,#2f6f4e); box-shadow: 0 2px 6px rgba(63, 138, 99,0.3);">
                 <span id="modal-confirm-label">Yes</span>
                 <span style="font-size:0.95rem;">&rarr;</span>
             </button>
@@ -1332,7 +1332,7 @@ $totalBalancesOwed  = array_sum(array_column($boarders, 'outstanding_balance'));
             if (window.gsap && box) {
                 gsap.fromTo(box, { opacity: 0, y: -10 }, { opacity: 1, y: 0, duration: 0.22, ease: 'power2.out' });
             }
-            if (mainRow) mainRow.style.backgroundColor = '#f1f5f9';
+            if (mainRow) mainRow.style.backgroundColor = '#f1f0ee';
             activeOpenId = id;
         }
 
@@ -1369,12 +1369,12 @@ $totalBalancesOwed  = array_sum(array_column($boarders, 'outstanding_balance'));
 
             const isDelete = cfg.type === 'delete';
             if (icon) {
-                icon.style.borderColor = isDelete ? '#ef4444' : '#10b981';
-                icon.style.color       = isDelete ? '#dc2626' : '#059669';
+                icon.style.borderColor = isDelete ? '#d4402f' : '#3f8a63';
+                icon.style.color       = isDelete ? '#b42318' : '#2f6f4e';
             }
             if (btn)  btn.style.background = isDelete
-                ? 'linear-gradient(135deg,#ef4444,#dc2626)'
-                : 'linear-gradient(135deg,#10b981,#059669)';
+                ? 'linear-gradient(135deg,#d4402f,#b42318)'
+                : 'linear-gradient(135deg,#3f8a63,#2f6f4e)';
 
             pendingAction = cfg.onConfirm;
             modal.style.display = 'flex';

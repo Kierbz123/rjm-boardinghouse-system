@@ -113,8 +113,8 @@ function renderNavSvg(string $icon): string {
         z-index: 50;
         display: flex !important;
         flex-direction: column !important;
-        background-color: #0f172a; /* neutral-900 */
-        border-right: 1px solid #1e293b; /* neutral-800 */
+        background-color: #0a0a0a; /* neutral-900 */
+        border-right: 1px solid #1f1f1e; /* neutral-800 */
         color: #ffffff;
         box-sizing: border-box;
         overflow: hidden;
@@ -218,8 +218,8 @@ function renderNavSvg(string $icon): string {
             position: sticky;
             top: 0;
             z-index: 30;
-            background-color: #0f172a;
-            border-bottom: 1px solid #1e293b;
+            background-color: #0a0a0a;
+            border-bottom: 1px solid #1f1f1e;
             padding: 0.625rem 1rem;
             align-items: center;
             justify-content: space-between;
@@ -239,7 +239,7 @@ function renderNavSvg(string $icon): string {
             right: 0;
             bottom: 0;
             left: 0;
-            background-color: rgba(15, 23, 42, 0.6);
+            background-color: rgba(10, 10, 10, 0.6);
             backdrop-filter: blur(4px);
             -webkit-backdrop-filter: blur(4px);
             z-index: 45;
@@ -286,7 +286,7 @@ function renderNavSvg(string $icon): string {
         border-radius: 0.375rem;
         font-size: 0.75rem;
         font-weight: 500;
-        color: #94a3b8; /* neutral-400 */
+        color: #9d9b97; /* neutral-400 */
         text-decoration: none;
         transition: all 140ms cubic-bezier(0.16, 1, 0.3, 1);
         border-left: 3px solid transparent;
@@ -302,11 +302,11 @@ function renderNavSvg(string $icon): string {
         color: #ffffff !important;
         font-weight: 600;
         background-color: rgba(255, 255, 255, 0.10) !important;
-        border-left-color: #34d399 !important; /* emerald-400 */
+        border-left-color: #5fae84 !important; /* emerald-400 */
         box-shadow: 0 1px 2px rgba(0, 0, 0, 0.25);
     }
     .sidebar-nav-item.active .nav-icon {
-        color: #34d399 !important;
+        color: #5fae84 !important;
     }
 
     /* Rotating chevron for collapsible groups */
@@ -331,13 +331,13 @@ function renderNavSvg(string $icon): string {
         left: 100%;
         margin-left: 0.75rem;
         padding: 0.25rem 0.5rem;
-        background-color: #1e293b;
+        background-color: #1f1f1e;
         color: #ffffff;
         font-size: 0.75rem;
         font-weight: 500;
         border-radius: 0.375rem;
         box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3);
-        border: 1px solid #334155;
+        border: 1px solid #3b3a38;
         white-space: nowrap;
         z-index: 60;
     }
@@ -351,7 +351,7 @@ function renderNavSvg(string $icon): string {
         height: 18px !important;
         padding: 0 4px !important;
         border-radius: 9999px !important;
-        background: #ef4444 !important;
+        background: #d4402f !important;
         color: #ffffff !important;
         font-size: 10px !important;
         font-weight: 700 !important;
@@ -359,7 +359,7 @@ function renderNavSvg(string $icon): string {
         display: inline-flex !important;
         align-items: center !important;
         justify-content: center !important;
-        border: 2px solid #0f172a !important;
+        border: 2px solid #0a0a0a !important;
         box-shadow: 0 1px 2px rgba(0, 0, 0, 0.3) !important;
         pointer-events: none;
         z-index: 10;
@@ -373,7 +373,7 @@ function renderNavSvg(string $icon): string {
     @keyframes logoutCardPop { 0% { opacity: 0; transform: scale(0.9) translateY(12px); } 100% { opacity: 1; transform: scale(1) translateY(0); } }
     .animate-logout-backdrop { animation: logoutModalFadeIn 180ms ease-out forwards; }
     .animate-logout-card { animation: logoutCardPop 220ms cubic-bezier(0.16, 1, 0.3, 1) forwards; }
-    #logout-modal-cancel:hover { background-color: #f1f5f9 !important; color: #0f172a !important; }
+    #logout-modal-cancel:hover { background-color: #f1f0ee !important; color: #0a0a0a !important; }
     #logout-modal-confirm:hover { filter: brightness(1.08); box-shadow: 0 4px 12px rgba(220, 38, 38, 0.25); }
     #logout-modal-confirm:active { transform: scale(0.97); }
 </style>
@@ -398,7 +398,7 @@ function renderNavSvg(string $icon): string {
 
         <!-- Brand Link -->
         <a href="<?= htmlspecialchars($dashboardHome) ?>" class="font-semibold tracking-tight inline-flex items-center gap-2 text-sm hover:opacity-90 transition-opacity">
-            <span style="color: #34d399; font-size: 0.75rem;">▲</span>
+            <span style="color: #5fae84; font-size: 0.75rem;">▲</span>
             <span class="font-bold text-white tracking-tight">RJM <span class="text-neutral-400 font-normal">Boardinghouse</span></span>
         </a>
     </div>
@@ -428,7 +428,7 @@ function renderNavSvg(string $icon): string {
         <a href="<?= htmlspecialchars($dashboardHome) ?>"
            class="font-semibold tracking-tight inline-flex items-center gap-2 text-sm hover:opacity-90 transition-opacity flex-shrink-0 overflow-hidden"
            style="white-space: nowrap; text-decoration: none;">
-            <span style="color: #34d399; font-size: 0.75rem;" class="flex-shrink-0">▲</span>
+            <span style="color: #5fae84; font-size: 0.75rem;" class="flex-shrink-0">▲</span>
             <span class="font-bold text-white tracking-tight rail-hide">
                 RJM <span class="text-neutral-400 font-normal">Boardinghouse</span>
             </span>
@@ -538,7 +538,7 @@ function renderNavSvg(string $icon): string {
                class="desktop-profile-pill min-w-0 inline-flex items-center justify-center gap-2 px-2 py-1.5 rounded-md bg-white/5 border border-neutral-700/70 text-xs text-neutral-300 font-medium hover:text-white hover:bg-white/10 hover:border-neutral-500 transition-all duration-150 cursor-pointer overflow-hidden"
                style="flex: 1 1 0%; text-decoration: none;"
                title="View Profile &amp; Account Settings">
-                <span style="display:inline-block; width:0.4rem; height:0.4rem; border-radius:50%; background:#34d399;" class="flex-shrink-0"></span>
+                <span style="display:inline-block; width:0.4rem; height:0.4rem; border-radius:50%; background:#5fae84;" class="flex-shrink-0"></span>
                 <div class="flex flex-col min-w-0 rail-hide">
                     <span class="truncate font-semibold text-white leading-tight"><?= htmlspecialchars($_SESSION['name'] ?? 'Admin User') ?></span>
                     <span class="text-[10px] text-neutral-400 capitalize font-normal leading-tight">· <?= htmlspecialchars($role) ?></span>
@@ -570,7 +570,7 @@ function renderNavSvg(string $icon): string {
 <!-- Compatibility wrappers and aliases for tests and scripts -->
 <div id="mobile-menu" class="hidden" aria-hidden="true"></div>
 <div class="mobile-user-info hidden" aria-hidden="true">
-    <span style="display:inline-block; width:0.35rem; height:0.35rem; border-radius:50%; background:#34d399;"></span>
+    <span style="display:inline-block; width:0.35rem; height:0.35rem; border-radius:50%; background:#5fae84;"></span>
     <span><?= htmlspecialchars(substr($_SESSION['name'] ?? 'Admin User', 0, 12)) ?></span>
 </div>
 <form method="post" action="/logout" id="mobile-logout-form" class="hidden">
@@ -582,7 +582,7 @@ function renderNavSvg(string $icon): string {
      DOUBLE CONFIRMATION LOGOUT MODAL (Exact IDs & Behavior preserved)
      ══════════════════════════════════════════════════════════════ -->
 <div id="logout-modal"
-     style="display:none; position:fixed; top:0; left:0; right:0; bottom:0; z-index:999999; background:rgba(15,23,42,0.55); backdrop-filter:blur(4px); -webkit-backdrop-filter:blur(4px); align-items:center; justify-content:center; padding:1rem;"
+     style="display:none; position:fixed; top:0; left:0; right:0; bottom:0; z-index:999999; background:rgba(10, 10, 10,0.55); backdrop-filter:blur(4px); -webkit-backdrop-filter:blur(4px); align-items:center; justify-content:center; padding:1rem;"
      role="dialog"
      aria-modal="true"
      aria-labelledby="logout-modal-heading">
@@ -595,16 +595,16 @@ function renderNavSvg(string $icon): string {
         </div>
 
         <!-- Title -->
-        <h3 id="logout-modal-heading" style="font-size: 1.1rem; font-weight: 700; color: #0f172a; letter-spacing: -0.01em; margin: 0 0 0.375rem;">Are you sure?</h3>
+        <h3 id="logout-modal-heading" style="font-size: 1.1rem; font-weight: 700; color: #0a0a0a; letter-spacing: -0.01em; margin: 0 0 0.375rem;">Are you sure?</h3>
 
         <!-- Description -->
-        <p id="logout-modal-subtext" style="font-size: 0.8rem; color: #64748b; line-height: 1.6; margin: 0 0 1.5rem; padding: 0 0.5rem;">Are you sure you want to log out of your account?</p>
+        <p id="logout-modal-subtext" style="font-size: 0.8rem; color: #6b6b6b; line-height: 1.6; margin: 0 0 1.5rem; padding: 0 0.5rem;">Are you sure you want to log out of your account?</p>
 
         <!-- Actions -->
         <div style="display: flex; align-items: center; justify-content: flex-end; gap: 0.75rem; padding-top: 0.25rem;">
             <button type="button"
                     id="logout-modal-cancel"
-                    style="padding: 0.5rem 1rem; border-radius: 0.75rem; font-size: 0.75rem; font-weight: 600; color: #64748b; background: transparent; border: none; cursor: pointer; transition: all 150ms;">
+                    style="padding: 0.5rem 1rem; border-radius: 0.75rem; font-size: 0.75rem; font-weight: 600; color: #6b6b6b; background: transparent; border: none; cursor: pointer; transition: all 150ms;">
                 Cancel
             </button>
             <button type="button"
@@ -660,14 +660,14 @@ function renderNavSvg(string $icon): string {
         const isAcknowledged = messageLower.includes('acknowledged');
 
         if (type.includes('sos')) {
-            if (isResolved) return { icon: '🛡️', badgeBg: '#ecfdf5', badgeColor: '#059669', label: 'SOS Resolved', actionText: 'View History' };
-            if (isAcknowledged) return { icon: '👁️', badgeBg: '#fffbeb', badgeColor: '#d97706', label: 'SOS Acknowledged', actionText: 'View Status' };
-            return { icon: '🚨', badgeBg: '#fef2f2', badgeColor: '#dc2626', label: 'Emergency SOS', actionText: 'View & Take Action' };
+            if (isResolved) return { icon: '🛡️', badgeBg: '#eef6f1', badgeColor: '#2f6f4e', label: 'SOS Resolved', actionText: 'View History' };
+            if (isAcknowledged) return { icon: '👁️', badgeBg: '#fbf6e8', badgeColor: '#9a6700', label: 'SOS Acknowledged', actionText: 'View Status' };
+            return { icon: '🚨', badgeBg: '#fdf1f0', badgeColor: '#b42318', label: 'Emergency SOS', actionText: 'View & Take Action' };
         }
-        if (type.includes('maintenance') || type.includes('repair')) return { icon: '🔧', badgeBg: '#f0fdf4', badgeColor: '#16a34a', label: 'Maintenance', actionText: 'View Details' };
-        if (type.includes('rent') || type.includes('payment') || type.includes('penalty')) return { icon: '💳', badgeBg: '#fffbeb', badgeColor: '#d97706', label: 'Billing Notice', actionText: 'View Details' };
-        if (type.includes('inquiry')) return { icon: '📋', badgeBg: '#eff6ff', badgeColor: '#2563eb', label: 'Inquiry', actionText: 'View Details' };
-        return { icon: '🔔', badgeBg: '#f1f5f9', badgeColor: '#475569', label: 'Notification', actionText: 'View Details' };
+        if (type.includes('maintenance') || type.includes('repair')) return { icon: '🔧', badgeBg: '#eef6f1', badgeColor: '#2f6f4e', label: 'Maintenance', actionText: 'View Details' };
+        if (type.includes('rent') || type.includes('payment') || type.includes('penalty')) return { icon: '💳', badgeBg: '#fbf6e8', badgeColor: '#9a6700', label: 'Billing Notice', actionText: 'View Details' };
+        if (type.includes('inquiry')) return { icon: '📋', badgeBg: '#fbf4ef', badgeColor: '#b15f2c', label: 'Inquiry', actionText: 'View Details' };
+        return { icon: '🔔', badgeBg: '#f1f0ee', badgeColor: '#555452', label: 'Notification', actionText: 'View Details' };
     }
 
     function updateCountBadges() {

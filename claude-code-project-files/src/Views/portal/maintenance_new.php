@@ -50,8 +50,8 @@ $tierBadges = [
             <span class="ai-status-badge ai-status-checking" id="ai-status-badge">
                 <span class="ai-status-dot"></span> Checking AI...
             </span>
-            <span class="badge badge-warning" style="background:rgba(255,255,255,0.12); color:#fde047; border:1px solid rgba(255,255,255,0.15); padding: 0.35rem 0.75rem;">
-                <span style="width:0.4rem;height:0.4rem;border-radius:50%;background:#eab308;display:inline-block;margin-right:0.4rem;"></span>
+            <span class="badge badge-warning" style="background:rgba(255,255,255,0.12); color:#dcb553; border:1px solid rgba(255,255,255,0.15); padding: 0.35rem 0.75rem;">
+                <span style="width:0.4rem;height:0.4rem;border-radius:50%;background:#b98a12;display:inline-block;margin-right:0.4rem;"></span>
                 AI Triaged
             </span>
         </div>
@@ -59,14 +59,14 @@ $tierBadges = [
 
     <!-- Flash Alerts -->
     <?php if ($error): ?>
-        <div class="text-body-sm flex items-center gap-2.5" role="alert" style="background: #fef2f2; color: #b91c1c; border-radius: 0.875rem; padding: 1rem 1.25rem; border: 1px solid #fca5a5;">
+        <div class="text-body-sm flex items-center gap-2.5" role="alert" style="background: #fdf1f0; color: #912018; border-radius: 0.875rem; padding: 1rem 1.25rem; border: 1px solid #e88f86;">
             <span style="font-size:1.125rem;">⚠</span>
             <?= htmlspecialchars($error) ?>
         </div>
     <?php endif; ?>
 
     <?php if ($success): ?>
-        <div class="text-body-sm flex items-center gap-2.5" role="alert" style="background: #f0fdf4; color: #166534; border-radius: 0.875rem; padding: 1rem 1.25rem; border: 1px solid #86efac;">
+        <div class="text-body-sm flex items-center gap-2.5" role="alert" style="background: #eef6f1; color: #245a3f; border-radius: 0.875rem; padding: 1rem 1.25rem; border: 1px solid #8cc2a2;">
             <span style="font-size:1.125rem;">✓</span>
             <?= htmlspecialchars($success) ?>
         </div>
@@ -74,7 +74,7 @@ $tierBadges = [
 
     <!-- Accommodation Header Bar -->
     <?php if (!empty($boarder['room_number'])): ?>
-        <div class="card flex items-center justify-between text-xs" style="padding: 1rem 1.25rem; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 0.875rem;">
+        <div class="card flex items-center justify-between text-xs" style="padding: 1rem 1.25rem; background: #f8f7f5; border: 1px solid #e6e5e2; border-radius: 0.875rem;">
             <div class="flex items-center gap-2.5 text-neutral-700 font-medium">
                 <span>📍</span>
                 <span>Ticket Origin:</span>
@@ -93,7 +93,7 @@ $tierBadges = [
         <!-- Left: Form Card (2/3 width on lg) -->
         <div class="lg:col-span-2">
             <form method="post" action="/portal/maintenance" enctype="multipart/form-data" class="form-card accent-neutral" style="padding: 1.5rem 1.625rem 1.75rem; border-radius: 1rem; gap: 1.125rem;">
-                <div class="flex items-center gap-2.5" style="border-bottom: 1px solid #f1f5f9; padding-bottom: 0.875rem;">
+                <div class="flex items-center gap-2.5" style="border-bottom: 1px solid #f1f0ee; padding-bottom: 0.875rem;">
                     <span style="font-size: 1.25rem;">🔧</span>
                     <div>
                         <h2 class="text-heading-sm font-bold text-neutral-900">Repair Ticket Details</h2>
@@ -171,7 +171,7 @@ $tierBadges = [
                     <label for="media" class="block text-caption font-semibold text-neutral-700" style="margin-bottom: 0.375rem;">
                         Photo or Video Evidence (Optional)
                     </label>
-                    <div style="padding: 0.875rem 1rem; background: #f8fafc; border-radius: 0.625rem; border: 1px solid #e2e8f0;">
+                    <div style="padding: 0.875rem 1rem; background: #f8f7f5; border-radius: 0.625rem; border: 1px solid #e6e5e2;">
                         <input id="media"
                                type="file"
                                name="media"
@@ -197,7 +197,7 @@ $tierBadges = [
 
         <!-- Right: Guidance Sidebar (1/3 width on lg) -->
         <div style="display: flex; flex-direction: column; gap: 1.125rem;">
-            <div class="card" style="padding: 1.25rem 1.375rem; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 0.875rem;">
+            <div class="card" style="padding: 1.25rem 1.375rem; background: #f8f7f5; border: 1px solid #e6e5e2; border-radius: 0.875rem;">
                 <h3 class="text-xs font-bold uppercase tracking-wider text-neutral-600 flex items-center gap-2" style="margin-bottom: 0.875rem;">
                     <span>💡</span> Rapid Resolution Tips
                 </h3>
@@ -217,14 +217,14 @@ $tierBadges = [
                 </ul>
             </div>
 
-            <div class="card" style="padding: 1.25rem 1.375rem; border: 1px solid #fecaca; background: #fef2f2; border-radius: 0.875rem;">
-                <h3 class="text-xs font-bold flex items-center gap-2" style="color: #991b1b; margin-bottom: 0.5rem;">
+            <div class="card" style="padding: 1.25rem 1.375rem; border: 1px solid #f9dcd9; background: #fdf1f0; border-radius: 0.875rem;">
+                <h3 class="text-xs font-bold flex items-center gap-2" style="color: #7a1b14; margin-bottom: 0.5rem;">
                     <span>🚨</span> Life-Safety Hazard?
                 </h3>
-                <p style="font-size: 0.8125rem; color: #b91c1c; line-height: 1.6;">
+                <p style="font-size: 0.8125rem; color: #912018; line-height: 1.6;">
                     If this is an immediate emergency (gas leak, active fire, live exposed electrical sparking, major water flooding), do not wait for a maintenance ticket.
                 </p>
-                <a href="/portal/dashboard" style="display: inline-block; font-size: 0.8125rem; font-weight: 700; color: #b91c1c; text-decoration: underline; margin-top: 0.5rem; transition: color 0.15s;">
+                <a href="/portal/dashboard" style="display: inline-block; font-size: 0.8125rem; font-weight: 700; color: #912018; text-decoration: underline; margin-top: 0.5rem; transition: color 0.15s;">
                     Use Emergency SOS on Dashboard &rarr;
                 </a>
             </div>
@@ -244,7 +244,7 @@ $tierBadges = [
                 <div class="overflow-x-auto">
                     <table class="w-full text-body-sm">
                         <thead>
-                            <tr style="background: #f8fafc; border-bottom: 1px solid #e2e8f0; text-align: left; color: #64748b; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em;">
+                            <tr style="background: #f8f7f5; border-bottom: 1px solid #e6e5e2; text-align: left; color: #6b6b6b; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em;">
                                 <th style="padding: 0.75rem 1rem; font-weight: 600;">Priority</th>
                                 <th style="padding: 0.75rem 1rem; font-weight: 600;">Category</th>
                                 <th style="padding: 0.75rem 1rem; font-weight: 600;">Problem Description</th>
@@ -260,10 +260,10 @@ $tierBadges = [
                                             <?= htmlspecialchars($r['priority_tier'] ?? 'pending') ?>
                                         </span>
                                     </td>
-                                    <td style="padding: 0.75rem 1rem; font-weight: 500; color: #334155; text-transform: capitalize; font-size: 0.75rem;">
+                                    <td style="padding: 0.75rem 1rem; font-weight: 500; color: #3b3a38; text-transform: capitalize; font-size: 0.75rem;">
                                         <?= htmlspecialchars($r['category'] ?? 'other') ?>
                                     </td>
-                                    <td style="padding: 0.75rem 1rem; color: #0f172a; max-width: 24rem;">
+                                    <td style="padding: 0.75rem 1rem; color: #0a0a0a; max-width: 24rem;">
                                         <?= htmlspecialchars($r['description']) ?>
                                     </td>
                                     <td style="padding: 0.75rem 1rem;">
@@ -271,7 +271,7 @@ $tierBadges = [
                                             <?= htmlspecialchars($r['status'] ?? 'open') ?>
                                         </span>
                                     </td>
-                                    <td style="padding: 0.75rem 1rem; text-align: right; font-size: 0.75rem; font-family: ui-monospace, monospace; color: #94a3b8;">
+                                    <td style="padding: 0.75rem 1rem; text-align: right; font-size: 0.75rem; font-family: ui-monospace, monospace; color: #9d9b97;">
                                         <?= date('M j, Y', strtotime($r['created_at'])) ?>
                                     </td>
                                 </tr>

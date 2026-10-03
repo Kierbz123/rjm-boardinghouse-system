@@ -55,14 +55,14 @@ $pendingPayments = (int) ($paymentSummary['pending_count'] ?? 0);
 
 /* Header Banner */
 .profile-banner {
-    background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+    background: linear-gradient(135deg, #0a0a0a 0%, #1f1f1e 100%);
     border-radius: 1rem;
     padding: 1.5rem 1.75rem;
     color: #ffffff;
     display: flex;
     flex-direction: column;
     gap: 1.25rem;
-    box-shadow: 0 4px 20px -2px rgba(15, 23, 42, 0.25);
+    box-shadow: 0 4px 20px -2px rgba(10, 10, 10, 0.25);
     border: 1px solid rgba(255, 255, 255, 0.08);
 }
 @media (min-width: 768px) {
@@ -107,9 +107,9 @@ $pendingPayments = (int) ($paymentSummary['pending_count'] ?? 0);
 /* Base Card */
 .profile-card {
     background: #ffffff;
-    border: 1px solid #e2e8f0;
+    border: 1px solid #e6e5e2;
     border-radius: 1rem;
-    box-shadow: 0 1px 3px 0 rgba(15, 23, 42, 0.06), 0 1px 2px -1px rgba(15, 23, 42, 0.04);
+    box-shadow: 0 1px 3px 0 rgba(10, 10, 10, 0.06), 0 1px 2px -1px rgba(10, 10, 10, 0.04);
     padding: 1.5rem;
     display: flex;
     flex-direction: column;
@@ -121,7 +121,7 @@ $pendingPayments = (int) ($paymentSummary['pending_count'] ?? 0);
     align-items: center;
     justify-content: space-between;
     padding-bottom: 0.875rem;
-    border-bottom: 1px solid #f1f5f9;
+    border-bottom: 1px solid #f1f0ee;
     gap: 0.75rem;
     flex-wrap: wrap;
 }
@@ -137,7 +137,7 @@ $pendingPayments = (int) ($paymentSummary['pending_count'] ?? 0);
     align-items: center;
     justify-content: center;
     border-radius: 0.625rem;
-    background: #f1f5f9;
+    background: #f1f0ee;
     font-size: 1.125rem;
     flex-shrink: 0;
 }
@@ -145,7 +145,7 @@ $pendingPayments = (int) ($paymentSummary['pending_count'] ?? 0);
 /* Form Sections and Fieldsets */
 .profile-sub-section {
     padding-top: 1.125rem;
-    border-top: 1px solid #f1f5f9;
+    border-top: 1px solid #f1f0ee;
     display: flex;
     flex-direction: column;
     gap: 0.875rem;
@@ -161,7 +161,7 @@ $pendingPayments = (int) ($paymentSummary['pending_count'] ?? 0);
     font-weight: 700;
     letter-spacing: 0.06em;
     text-transform: uppercase;
-    color: #64748b;
+    color: #6b6b6b;
 }
 
 /* Responsive 2-Col Form Row */
@@ -185,7 +185,7 @@ $pendingPayments = (int) ($paymentSummary['pending_count'] ?? 0);
 .profile-label {
     font-size: 0.8125rem;
     font-weight: 600;
-    color: #334155;
+    color: #3b3a38;
     line-height: 1.25;
     display: flex;
     align-items: center;
@@ -197,20 +197,20 @@ $pendingPayments = (int) ($paymentSummary['pending_count'] ?? 0);
     padding: 0.5rem 0.75rem;
     font-size: 0.875rem;
     line-height: 1.35;
-    color: #0f172a;
+    color: #0a0a0a;
     background-color: #ffffff;
-    border: 1px solid #cbd5e1;
+    border: 1px solid #d4d2ce;
     border-radius: 0.5rem;
     box-sizing: border-box;
     transition: border-color 0.15s ease, box-shadow 0.15s ease;
 }
 .profile-input:focus {
     outline: none;
-    border-color: #3b82f6;
+    border-color: #bd6b36;
     box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
 }
 .profile-input::placeholder {
-    color: #94a3b8;
+    color: #9d9b97;
 }
 select.profile-input {
     cursor: pointer;
@@ -239,14 +239,14 @@ input[type="date"].profile-input {
     gap: 0.625rem;
 }
 .profile-notice-amber {
-    background-color: #fffbeb;
-    border: 1px solid #fde68a;
+    background-color: #fbf6e8;
+    border: 1px solid #f4e7c2;
     color: #92400e;
 }
 .profile-notice-blue {
-    background-color: #eff6ff;
-    border: 1px solid #bfdbfe;
-    color: #1e40af;
+    background-color: #fbf4ef;
+    border: 1px solid #ebc6ac;
+    color: #7a4119;
 }
 
 /* Action Footer / Buttons */
@@ -256,7 +256,7 @@ input[type="date"].profile-input {
     justify-content: flex-end;
     gap: 0.75rem;
     padding-top: 1rem;
-    border-top: 1px solid #f1f5f9;
+    border-top: 1px solid #f1f0ee;
     margin-top: auto;
     overflow: visible !important;
 }
@@ -276,26 +276,26 @@ input[type="date"].profile-input {
     text-decoration: none;
 }
 .profile-btn-primary {
-    background-color: #2563eb;
+    background-color: #b15f2c;
     color: #ffffff;
-    border: 1px solid #1d4ed8;
-    box-shadow: 0 1px 2px rgba(37, 99, 235, 0.15);
+    border: 1px solid #97501f;
+    box-shadow: 0 1px 2px rgba(177, 95, 44, 0.15);
 }
 .profile-btn-primary:hover {
-    background-color: #1d4ed8;
-    box-shadow: 0 2px 4px rgba(37, 99, 235, 0.25);
+    background-color: #97501f;
+    box-shadow: 0 2px 4px rgba(177, 95, 44, 0.25);
     transform: translateY(-1px);
 }
 .profile-btn-secondary {
     background-color: #ffffff;
-    color: #334155;
-    border: 1px solid #cbd5e1;
-    box-shadow: 0 1px 2px rgba(15, 23, 42, 0.05);
+    color: #3b3a38;
+    border: 1px solid #d4d2ce;
+    box-shadow: 0 1px 2px rgba(10, 10, 10, 0.05);
 }
 .profile-btn-secondary:hover {
-    background-color: #f8fafc;
-    border-color: #94a3b8;
-    color: #0f172a;
+    background-color: #f8f7f5;
+    border-color: #9d9b97;
+    color: #0a0a0a;
     transform: translateY(-1px);
 }
 
@@ -311,8 +311,8 @@ input[type="date"].profile-input {
     }
 }
 .profile-stat-tile {
-    background-color: #f8fafc;
-    border: 1px solid #e2e8f0;
+    background-color: #f8f7f5;
+    border: 1px solid #e6e5e2;
     border-radius: 0.75rem;
     padding: 0.875rem 1rem;
     display: flex;
@@ -324,12 +324,12 @@ input[type="date"].profile-input {
     font-weight: 700;
     letter-spacing: 0.05em;
     text-transform: uppercase;
-    color: #64748b;
+    color: #6b6b6b;
 }
 .profile-stat-tile-value {
     font-size: 1rem;
     font-weight: 700;
-    color: #0f172a;
+    color: #0a0a0a;
     line-height: 1.25;
 }
 
@@ -357,7 +357,7 @@ input[type="date"].profile-input {
 .profile-table-container {
     width: 100%;
     overflow-x: auto;
-    border: 1px solid #e2e8f0;
+    border: 1px solid #e6e5e2;
     border-radius: 0.75rem;
     background: #ffffff;
 }
@@ -368,29 +368,29 @@ input[type="date"].profile-input {
     table-layout: auto !important;
 }
 .profile-table th {
-    background-color: #f8fafc;
-    color: #475569;
+    background-color: #f8f7f5;
+    color: #555452;
     font-size: 0.6875rem;
     font-weight: 700;
     letter-spacing: 0.05em;
     text-transform: uppercase;
     padding: 0.75rem 1rem !important;
     text-align: left;
-    border-bottom: 1px solid #e2e8f0;
+    border-bottom: 1px solid #e6e5e2;
     white-space: nowrap !important;
 }
 .profile-table td {
     padding: 0.75rem 1rem !important;
     font-size: 0.8125rem;
-    color: #334155;
-    border-bottom: 1px solid #f1f5f9;
+    color: #3b3a38;
+    border-bottom: 1px solid #f1f0ee;
     vertical-align: middle;
     white-space: normal !important;
     overflow: visible !important;
     text-overflow: clip !important;
 }
 .profile-table tr:hover td {
-    background-color: #f8fafc;
+    background-color: #f8f7f5;
 }
 
 /* Timeline */
@@ -408,7 +408,7 @@ input[type="date"].profile-input {
     top: 0.5rem;
     bottom: 0.5rem;
     width: 2px;
-    background-color: #e2e8f0;
+    background-color: #e6e5e2;
 }
 .profile-timeline-node {
     position: relative;
@@ -420,17 +420,17 @@ input[type="date"].profile-input {
     width: 0.875rem;
     height: 0.875rem;
     border-radius: 9999px;
-    background-color: #2563eb;
+    background-color: #b15f2c;
     border: 2px solid #ffffff;
-    box-shadow: 0 0 0 2px #dbeafe;
+    box-shadow: 0 0 0 2px #f5e3d6;
 }
 .profile-timeline-dot.created {
-    background-color: #64748b;
-    box-shadow: 0 0 0 2px #e2e8f0;
+    background-color: #6b6b6b;
+    box-shadow: 0 0 0 2px #e6e5e2;
 }
 .profile-timeline-card {
-    background-color: #f8fafc;
-    border: 1px solid #e2e8f0;
+    background-color: #f8f7f5;
+    border: 1px solid #e6e5e2;
     border-radius: 0.75rem;
     padding: 0.875rem 1.125rem;
     display: flex;
@@ -445,9 +445,9 @@ input[type="date"].profile-input {
     font-size: 0.8125rem;
     line-height: 1.6;
     padding: 0.875rem 1rem;
-    color: #0f172a;
+    color: #0a0a0a;
     background-color: #ffffff;
-    border: 1px solid #cbd5e1;
+    border: 1px solid #d4d2ce;
     border-radius: 0.625rem;
     box-sizing: border-box;
     resize: vertical;
@@ -456,14 +456,14 @@ input[type="date"].profile-input {
 }
 .profile-textarea:focus {
     outline: none;
-    border-color: #3b82f6;
+    border-color: #bd6b36;
     box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
 }
 
 /* Danger Zone */
 .profile-danger-card {
-    background-color: #fef2f2;
-    border: 1px solid #fecaca;
+    background-color: #fdf1f0;
+    border: 1px solid #f9dcd9;
     border-radius: 1rem;
     padding: 1.5rem;
     display: flex;
