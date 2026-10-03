@@ -12,9 +12,7 @@ class RoleMiddleware
     public static function require(array $allowedRoles): void
     {
         if (empty($_SESSION['role']) || !in_array($_SESSION['role'], $allowedRoles, true)) {
-            http_response_code(403);
-            echo '403 Forbidden';
-            exit;
+            \App\Support\ErrorPage::render(403);
         }
     }
 }

@@ -45,8 +45,7 @@ use App\Support\Logger;
 // Log the real error server-side; show the visitor nothing but a generic message.
 set_exception_handler(function (\Throwable $e) {
     Logger::error($e->getMessage() . ' in ' . $e->getFile() . ':' . $e->getLine());
-    http_response_code(500);
-    echo 'Something went wrong. Please try again.';
+    \App\Support\ErrorPage::render(500);
 });
 
 use App\Support\Router;
