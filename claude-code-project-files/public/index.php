@@ -28,10 +28,12 @@ header('X-Frame-Options: DENY');
 header('X-Content-Type-Options: nosniff');
 header('Referrer-Policy: same-origin');
 // Everything is served from this origin (fonts, images, scripts). Views still use
-// inline <script>/<style>, hence 'unsafe-inline'; nothing else is allowed.
+// inline <script>/<style>, hence 'unsafe-inline'. The one third-party exception is the
+// Google Map frame on the landing page, added at the owner's request.
 header("Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline'; "
     . "style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data: blob:; media-src 'self'; "
-    . "frame-src 'none'; connect-src 'self'; frame-ancestors 'none'; base-uri 'self'; form-action 'self'");
+    . "frame-src https://maps.google.com https://www.google.com; connect-src 'self'; "
+    . "frame-ancestors 'none'; base-uri 'self'; form-action 'self'");
 
 require_once __DIR__ . '/../src/autoload.php';
 

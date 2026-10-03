@@ -12,7 +12,9 @@ $map = $mapData ?? ['landmarks' => []];
 $rooms = $roomTiers ?? [];
 $stats = $stats ?? ['total_rooms' => 0, 'total_beds' => 0, 'vacant_beds' => 0, 'residents' => 0, 'occupancy_pct' => 0, 'avg_repair_hours' => null];
 $lowestPrice = $rooms ? min(array_map(fn ($r) => (int) preg_replace('/\D/', '', $r['price']), $rooms)) : null;
-$mapsUrl = 'https://www.google.com/maps/search/?api=1&query=' . rawurlencode(($map['latitude'] ?? '') . ',' . ($map['longitude'] ?? ''));
+$latLng = ($map['latitude'] ?? '') . ',' . ($map['longitude'] ?? '');
+$mapsUrl = 'https://www.google.com/maps/search/?api=1&query=' . rawurlencode($latLng);
+$mapEmbedUrl = 'https://maps.google.com/maps?q=' . rawurlencode($latLng) . '&z=17&hl=en&output=embed';
 $inquirySuccess = $inquirySuccess ?? null;
 $inquiryError = $inquiryError ?? null;
 
@@ -25,11 +27,46 @@ if ($stats['avg_repair_hours'] !== null) {
     $statItems[] = ['value' => (int) round($stats['avg_repair_hours']), 'suffix' => 'h', 'label' => 'average time to fix a reported repair'];
 }
 
+// Each row opens to show the details. Everything here describes how the system really works.
 $amenities = [
-    ['Security', 'Curfew at 10:00 PM with gate-pass entry, and an SOS button in every resident\'s portal that alerts staff at once.'],
-    ['Repairs', 'Report a problem from your phone with a photo; urgent issues go to the top of the caretaker\'s list.'],
-    ['Utilities', 'Fiber Wi-Fi, submetered electricity and purified drinking water.'],
-    ['Payments', 'Upload your receipt online; your balance updates as soon as it is approved.'],
+    [
+        'title' => 'Security',
+        'summary' => 'Curfew at 10:00 PM with gate-pass entry, and an SOS button in every resident\'s portal that alerts staff at once.',
+        'points' => [
+            'Curfew: ' . ($c['curfew_hours'] ?? '10:00 PM daily') . '.',
+            'One tap on SOS in the resident portal alerts every staff member with your room and bed; you get a notice when they acknowledge and when it is resolved.',
+            'Lost items, noise or other concerns can be reported as incidents and followed until staff close them.',
+            'On-site caretakers: ' . ($c['caretakers'] ?? 'available on site') . '.',
+        ],
+    ],
+    [
+        'title' => 'Repairs',
+        'summary' => 'Report a problem from your phone with a photo; urgent issues go to the top of the caretaker\'s list.',
+        'points' => [
+            'Describe the problem and attach a photo or short video from the resident portal.',
+            'Each request is rated critical, high, medium or low — gas leaks, sparks or flooding go straight to the top.',
+            'You are notified when work starts and when the repair is done.',
+        ],
+    ],
+    [
+        'title' => 'Utilities',
+        'summary' => 'Fiber Wi-Fi, submetered electricity and purified drinking water.',
+        'points' => [
+            'Fiber Wi-Fi throughout the house.',
+            'Electricity is submetered, so you pay for what your room uses.',
+            'Purified drinking water station and a shared study hall and pantry.',
+        ],
+    ],
+    [
+        'title' => 'Payments',
+        'summary' => 'Upload your receipt online; your balance updates as soon as it is approved.',
+        'points' => [
+            'Rent is due on the 5th of each month; your first month is charged only for the days you stay.',
+            'Pay by GCash, Maya or bank transfer, then upload the receipt in the resident portal.',
+            'An administrator checks every receipt. Approved payments clear your oldest unpaid month first; anything extra becomes credit.',
+            'A small daily late fee applies after the 5th while that month\'s rent is unpaid.',
+        ],
+    ],
 ];
 ?>
 <!doctype html>
@@ -95,6 +132,14 @@ $amenities = [
         .row-link:hover { background: var(--color-surface); padding-left: 2rem; padding-right: 1.25rem; }
         .row-link .badge-arrow { width: 2.75rem; height: 2.75rem; display: grid; place-items: center; border-radius: 9999px; background: var(--color-ink); color: #fff; flex: none; transition: transform 240ms var(--ease-spring); }
         .row-link:hover .badge-arrow { transform: translateX(5px); }
+        /* Amenity rows: native <details>, the whole row is the toggle */
+        .amenity summary { list-style: none; cursor: pointer; }
+        .amenity summary::-webkit-details-marker { display: none; }
+        .amenity .badge-arrow svg { transition: transform 240ms var(--ease-spring); }
+        .amenity[open] summary { background: var(--color-surface); padding-left: 2rem; padding-right: 1.25rem; border-radius: 1.25rem 1.25rem 0 0; }
+        .amenity[open] .badge-arrow { background: var(--color-accent); }
+        .amenity[open] .badge-arrow svg { transform: rotate(90deg); }
+        .amenity[open] .amenity-body { background: var(--color-surface); border-radius: 0 0 1.25rem 1.25rem; animation: toast-in 260ms var(--ease-spring) both; }
         .chip { display: inline-flex; border-radius: 9999px; padding: .4rem .9rem; font-size: .8125rem; }
         .chip-light { box-shadow: inset 0 0 0 1px rgb(255 255 255 / .25); color: #fff; }
 
@@ -103,7 +148,8 @@ $amenities = [
         #menu.is-open { opacity: 1; pointer-events: auto; }
         #menu .menu-item { transform: translateY(1rem); opacity: 0; transition: transform 500ms var(--ease-spring), opacity 500ms var(--ease-spring), color 200ms; }
         #menu.is-open .menu-item { transform: none; opacity: 1; }
-        dialog#inquiry { width: min(32rem, calc(100vw - 2rem)); border: 0; padding: 0; border-radius: 2rem; box-shadow: var(--shadow-raised); }
+        /* Tailwind's reset zeroes every margin, which cancels <dialog>'s built-in centring — restore it. */
+        dialog#inquiry { margin: auto; width: min(36rem, calc(100vw - 2rem)); max-height: calc(100dvh - 2rem); overflow-y: auto; border: 0; padding: 0; border-radius: 2rem; box-shadow: var(--shadow-raised); }
         dialog#inquiry::backdrop { background: rgb(17 17 17 / .3); backdrop-filter: blur(14px); }
         dialog#inquiry[open] { animation: toast-in 280ms var(--ease-spring) both; }
         .field label { display: block; font-size: .8125rem; font-weight: 500; color: rgb(17 17 17 / .62); margin-bottom: .35rem; }
@@ -247,12 +293,19 @@ $amenities = [
     <!-- About -->
     <section id="about" class="bg-white">
         <div class="shell grid items-center gap-12 py-20 lg:grid-cols-2 lg:py-28">
-            <div class="relative min-h-56 lg:min-h-80">
-                <svg class="mark absolute -left-4 top-1/2 -translate-y-1/2 text-[12rem] text-neutral-900/[.06] sm:text-[16rem] lg:text-[20rem]" aria-hidden="true"><use href="#i-pin"/></svg>
-                <p class="eyebrow relative">The house</p>
-                <p class="rise absolute bottom-0 left-0 flex max-w-xs items-center gap-3 text-sm text-neutral-700">
-                    <svg class="mark text-2xl text-ink"><use href="#i-pin"/></svg>
-                    <?= $e(($c['address_line1'] ?? '') . ', ' . ($c['address_line2'] ?? '')) ?>
+            <div class="flex flex-col gap-4">
+                <p class="eyebrow">The house</p>
+                <!-- Owner request: a live Google Map. The only third-party content on the site;
+                     it loads lazily and needs an internet connection (the address below doesn't). -->
+                <div class="rise relative aspect-[4/3] overflow-hidden rounded-[1.25rem] bg-surface shadow-[0_0_0_1px_var(--color-line)]">
+                    <p class="absolute inset-0 grid place-items-center p-6 text-center text-sm text-neutral-500">Map needs an internet connection</p>
+                    <iframe class="relative h-full w-full border-0" title="Map showing RJM Boardinghouse in Tupi, South Cotabato"
+                            src="<?= $e($mapEmbedUrl) ?>" loading="lazy" referrerpolicy="no-referrer-when-downgrade" allowfullscreen></iframe>
+                </div>
+                <p class="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-neutral-700">
+                    <svg class="mark text-xl text-ink" aria-hidden="true"><use href="#i-pin"/></svg>
+                    <span><?= $e(($c['address_line1'] ?? '') . ', ' . ($c['address_line2'] ?? '')) ?></span>
+                    <a href="<?= $e($mapsUrl) ?>" target="_blank" rel="noopener" class="font-medium text-accent underline-offset-4 hover:underline">Open in Google Maps</a>
                 </p>
             </div>
             <div class="flex flex-col gap-10">
@@ -315,14 +368,25 @@ $amenities = [
             <p class="eyebrow">Living here</p>
             <h2 class="mb-12 mt-5 max-w-[16ch] text-4xl font-semibold tracking-tight sm:text-5xl">What every resident gets</h2>
             <ul>
-                <?php foreach ($amenities as $i => [$title, $text]): ?>
+                <?php foreach ($amenities as $i => $item): ?>
                 <li class="rise <?= $i > 0 ? 'border-t border-line' : '' ?>" style="transition-delay:<?= $i * 80 ?>ms">
-                    <div class="row-link">
-                        <h3 class="flex-1 text-2xl font-medium tracking-tight sm:text-3xl md:text-4xl"><?= $e($title) ?></h3>
-                        <p class="hidden max-w-sm text-sm text-neutral-600 lg:block"><?= $e($text) ?></p>
-                        <span class="badge-arrow" aria-hidden="true"><svg class="mark"><use href="#i-arrow-ur"/></svg></span>
-                    </div>
-                    <p class="px-6 pb-5 text-sm text-neutral-600 lg:hidden"><?= $e($text) ?></p>
+                    <details class="amenity">
+                        <summary class="row-link">
+                            <h3 class="flex-1 text-2xl font-medium tracking-tight sm:text-3xl md:text-4xl"><?= $e($item['title']) ?></h3>
+                            <p class="hidden max-w-sm text-sm text-neutral-600 lg:block"><?= $e($item['summary']) ?></p>
+                            <span class="badge-arrow" aria-hidden="true"><svg class="mark"><use href="#i-arrow-ur"/></svg></span>
+                        </summary>
+                        <div class="amenity-body px-6 pb-8 sm:pl-8">
+                            <p class="text-sm text-neutral-600 lg:hidden"><?= $e($item['summary']) ?></p>
+                            <ul class="mt-4 grid max-w-3xl gap-3 lg:mt-0">
+                                <?php foreach ($item['points'] as $point): ?>
+                                <li class="flex gap-3 text-[0.9375rem] leading-relaxed text-neutral-700">
+                                    <span class="mt-2.5 h-1.5 w-1.5 flex-none rounded-full bg-accent" aria-hidden="true"></span><?= $e($point) ?>
+                                </li>
+                                <?php endforeach; ?>
+                            </ul>
+                        </div>
+                    </details>
                 </li>
                 <?php endforeach; ?>
             </ul>
