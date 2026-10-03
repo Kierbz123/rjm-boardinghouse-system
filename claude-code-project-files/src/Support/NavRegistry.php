@@ -137,24 +137,43 @@ final class NavRegistry
     /** Pages this role may open that match the text, best first. Empty when nothing matches. */
     public static function find(string $role, string $text): array
     {
-        $text = ' ' . trim(preg_replace('/[^\p{L}\p{N}]+/u', ' ', mb_strtolower($text))) . ' ';
         $scored = [];
         foreach (self::forRole($role) as $i => $page) {
-            $score = 0;
-            foreach ([mb_strtolower($page['label']), ...$page['words']] as $word) {
-                $word = trim(preg_replace('/[^\p{L}\p{N}]+/u', ' ', $word));
-                // ponytail: a word matches the start of a typed word ("pay" hits "paying", "payments");
-                // words of 5+ letters also match inside one ("bayad" in "magbabayad"). No stemming or
-                // typo tolerance: the AI layer (plan phase A4) takes what this misses.
-                if (str_contains($text, ' ' . $word) || (mb_strlen($word) >= 5 && str_contains($text, $word))) {
-                    $score += substr_count($word, ' ') + 1; // a longer phrase is a more specific match
-                }
-            }
+            $score = self::score($text, [$page['label'], ...$page['words']]);
             if ($score > 0) {
                 $scored[] = [$score, -$i, $page];
             }
         }
         rsort($scored);
         return array_column($scored, 2);
+    }
+
+    /** How strongly the text matches these words or phrases; 0 means not at all. */
+    public static function score(string $text, array $words): int
+    {
+        $plain = fn (string $s) => trim(preg_replace('/[^\p{L}\p{N}]+/u', ' ', mb_strtolower($s)));
+        $text = ' ' . $plain($text) . ' ';
+        $score = 0;
+        foreach ($words as $word) {
+            $word = $plain($word);
+            // ponytail: a word matches the start of a typed word ("pay" hits "paying", "payments");
+            // words of 5+ letters also match inside one ("bayad" in "magbabayad"). No stemming or
+            // typo tolerance: the AI layer (plan phase A4) takes what this misses.
+            if (str_contains($text, ' ' . $word) || (mb_strlen($word) >= 5 && str_contains($text, $word))) {
+                $score += substr_count($word, ' ') + 1; // a longer phrase is a more specific match
+            }
+        }
+        return $score;
+    }
+
+    /** Whether a word is one the pages already use ("boarder", "staff"), so it cannot identify a person. */
+    public static function isPageWord(string $word): bool
+    {
+        foreach (self::PAGES as $page) {
+            if (self::score($word, [$page['label'], ...$page['words']]) > 0) {
+                return true;
+            }
+        }
+        return false;
     }
 }

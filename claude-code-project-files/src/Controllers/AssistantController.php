@@ -55,7 +55,7 @@ class AssistantController
         $lang = ($input['lang'] ?? 'en') === 'tl' ? 'tl' : 'en';
         $role = (string) ($_SESSION['role'] ?? '');
 
-        $card = AssistantService::answer($message, $role, $lang);
+        $card = AssistantService::answer($message, $role, $lang, (int) ($_SESSION['user_id'] ?? 0));
         if ($card) {
             echo json_encode(['ok' => true] + $card);
             return;

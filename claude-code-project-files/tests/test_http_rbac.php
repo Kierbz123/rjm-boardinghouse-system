@@ -331,6 +331,13 @@ $r = $ask('boarder', ['message' => 'payments expenses boarders staff accounts ro
 $hrefs = array_column($r['json']['actions'] ?? [], 'href');
 check($r['code'] === 200 && $hrefs && !array_filter($hrefs, fn ($h) => http('GET', $h, $jars['boarder'])['code'] !== 200),
     'every page offered to a boarder opens for a boarder (' . implode(', ', $hrefs) . ')');
+foreach ([['boarder', 'how much do I owe?'], ['staff', 'how many repairs are open?'], ['admin', 'who owes the most?'], ['admin', 'which beds are vacant?']] as [$role, $question]) {
+    $r = $ask($role, ['message' => $question]);
+    $hrefs = array_column($r['json']['actions'] ?? [], 'href');
+    check(($r['json']['source'] ?? '') === 'data' && $hrefs && !array_filter($hrefs, fn ($h) => http('GET', $h, $jars[$role])['code'] !== 200),
+        "{$role} \"{$question}\" -> figures, and every button opens: " . ($r['json']['reply'] ?? ''));
+}
+check(($ask('staff', ['message' => 'who owes the most? maintenance history'])['json']['source'] ?? '') === 'pages', 'staff asking for admin figures only gets a staff page');
 check($ask('boarder', ['message' => 'pay rent'], false)['code'] === 403, 'ask requires the CSRF token');
 check($ask('boarder', ['message' => '  '])['code'] === 400, 'ask rejects an empty message');
 check(http('POST', '/api/assistant/ask', null, [])['code'] === 302, 'ask requires a login');

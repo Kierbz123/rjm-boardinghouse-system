@@ -98,7 +98,8 @@ A0–A3 alone already give a fast, reliable assistant that navigates and answers
 |---|---|---|
 | A0 Foundations | Done (3 Oct 2026) | `src/Support/NavRegistry.php` feeds the sidebar and the assistant; `POST /api/assistant/ask` returns answer cards; the old `/api/assistant/chat` route was folded into it. |
 | A1 Navigate + palette | Done (3 Oct 2026) | `Ctrl+K` opens the drawer; live page matches while typing; one "Open …" button per answer; English/Tagalog switch. Works with Ollama stopped. |
-| A2–A7 | Not started | |
+| A2 Role lookups | Done (3 Oct 2026) | Boarder: balance, payment status, repair status, room. Staff: open repairs, SOS, incidents, inquiries. Admin: payments waiting, vacant beds, occupancy, who owes, expenses this month, a boarder by name. Figures come from the same models the pages use. |
+| A3–A7 | Not started | Help library, AI tool-picking, pre-filled forms, accessibility pass, evaluation set. |
 
 Differences from the plan as written: the rules live in one file, `src/Services/AssistantService.php`, until there are enough tools to split; the palette is the same drawer rather than a second search box; the drawer does not trap focus because it is a side panel, not a blocking dialog (`Esc` closes it and returns focus).
 
