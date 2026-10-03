@@ -6,32 +6,63 @@ use App\Database;
 
 class Payment
 {
-    public static function create(int $boarderId, string $billingPeriod, float $expected, float $claimed, ?string $proofPath): int
+    /** New submissions always wait for an admin: 'pending' when the amount matches what's owed, 'flagged' when it doesn't. */
+    public static function create(int $boarderId, string $billingPeriod, float $expected, float $claimed, ?string $proofPath, string $status = 'pending'): int
     {
         $stmt = Database::getConnection()->prepare(
             'INSERT INTO payments (boarder_id, billing_period, expected_amount, claimed_amount, proof_path, verification_status)
-             VALUES (?, ?, ?, ?, ?, "pending")'
+             VALUES (?, ?, ?, ?, ?, ?)'
         );
-        $stmt->execute([$boarderId, $billingPeriod, $expected, $claimed, $proofPath]);
+        $stmt->execute([$boarderId, $billingPeriod, $expected, $claimed, $proofPath, $status === 'flagged' ? 'flagged' : 'pending']);
         return (int) Database::getConnection()->lastInsertId();
     }
 
-    public static function setVerification(int $id, string $status, ?int $verifiedBy = null): void
+    /** Which statuses a payment may move to, from which. Rejecting an approved payment reverses it. */
+    private const ALLOWED_FROM = [
+        'flagged'        => ['pending'],
+        'admin-approved' => ['pending', 'flagged', 'rejected'],
+        'rejected'       => ['pending', 'flagged', 'admin-approved', 'auto-matched'],
+    ];
+
+    /**
+     * Moves a payment to a new verification status and rebuilds the boarder's
+     * balance in the same transaction. Returns false (and changes nothing) when
+     * the move isn't allowed, e.g. approving twice.
+     */
+    public static function setVerification(int $id, string $status, ?int $verifiedBy = null): bool
     {
         $pdo = Database::getConnection();
-        $stmt = $pdo->prepare(
-            'UPDATE payments SET verification_status = ?, verified_by = ? WHERE id = ?'
-        );
-        $stmt->execute([$status, $verifiedBy, $id]);
-
-        if (in_array($status, ['auto-matched', 'admin-approved'], true)) {
-            \App\Services\PaymentAllocationService::allocateApprovedPayment($id, $pdo);
-        } else {
-            $payment = self::find($id);
-            if ($payment) {
-                \App\Services\BillingService::syncBalance((int) $payment['boarder_id'], $pdo);
+        $pdo->beginTransaction();
+        try {
+            $stmt = $pdo->prepare('SELECT boarder_id, verification_status FROM payments WHERE id = ? FOR UPDATE');
+            $stmt->execute([$id]);
+            $payment = $stmt->fetch();
+            if (!$payment || !in_array($payment['verification_status'], self::ALLOWED_FROM[$status] ?? [], true)) {
+                $pdo->rollBack();
+                return false;
             }
+
+            $pdo->prepare('UPDATE payments SET verification_status = ?, verified_by = ? WHERE id = ?')
+                ->execute([$status, $verifiedBy, $id]);
+            \App\Services\BillingService::calculateBalance((int) $payment['boarder_id'], $pdo);
+
+            $pdo->commit();
+            return true;
+        } catch (\Throwable $e) {
+            $pdo->rollBack();
+            throw $e;
         }
+    }
+
+    /** A boarder may have only one submission awaiting review per billing period. */
+    public static function hasOpenSubmission(int $boarderId, string $billingPeriod): bool
+    {
+        $stmt = Database::getConnection()->prepare(
+            "SELECT COUNT(*) FROM payments WHERE boarder_id = ? AND billing_period = ?
+             AND verification_status IN ('pending', 'flagged')"
+        );
+        $stmt->execute([$boarderId, $billingPeriod]);
+        return (int) $stmt->fetchColumn() > 0;
     }
 
     public static function all(): array
@@ -54,33 +85,6 @@ class Payment
         return (int) Database::getConnection()
             ->query("SELECT COUNT(*) FROM payments WHERE verification_status IN ('pending','flagged')")
             ->fetchColumn();
-    }
-
-    public static function hasVerifiedPaymentForPeriod(int $boarderId, string $billingPeriod): bool
-    {
-        $stmt = Database::getConnection()->prepare(
-            "SELECT COUNT(*) FROM payments WHERE boarder_id = ? AND billing_period = ?
-             AND verification_status IN ('auto-matched','admin-approved')"
-        );
-        $stmt->execute([$boarderId, $billingPeriod]);
-        return (int) $stmt->fetchColumn() > 0;
-    }
-
-    /**
-     * Bulk version of hasVerifiedPaymentForPeriod() — fixes an N+1 pattern found
-     * auditing PenaltyEngine::runCheck() and sendRentDueReminders(), both of which
-     * called the single-boarder version once per boarder in a loop. One query
-     * for all boarders, not benign at this system's expected scale but cheap
-     * and safe to fix properly rather than leave.
-     */
-    public static function verifiedBoarderIdsForPeriod(string $billingPeriod): array
-    {
-        $stmt = Database::getConnection()->prepare(
-            "SELECT DISTINCT boarder_id FROM payments WHERE billing_period = ?
-             AND verification_status IN ('auto-matched','admin-approved')"
-        );
-        $stmt->execute([$billingPeriod]);
-        return array_map('intval', array_column($stmt->fetchAll(), 'boarder_id'));
     }
 
     public static function allForBoarder(int $boarderId, int $limit = 12): array

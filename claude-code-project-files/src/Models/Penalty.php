@@ -40,6 +40,27 @@ class Penalty
     }
 
     /**
+     * The automatic late fee for one boarder/rule/month: created once, then its
+     * amount follows the days late while still unpaid. Running the check again
+     * never adds a second fee. Returns true only when the fee was newly created.
+     */
+    public static function upsertLateFee(int $boarderId, int $ruleId, string $billingPeriod, float $amount, string $reason, string $dueDate): bool
+    {
+        $pdo = Database::getConnection();
+        $stmt = $pdo->prepare('
+            INSERT INTO penalties (boarder_id, rule_id, amount, reason, billing_period, due_date, status)
+            VALUES (?, ?, ?, ?, ?, ?, "unpaid")
+            ON DUPLICATE KEY UPDATE
+                amount = IF(status = "unpaid", VALUES(amount), amount),
+                reason = IF(status = "unpaid", VALUES(reason), reason)
+        ');
+        $stmt->execute([$boarderId, $ruleId, $amount, $reason, $billingPeriod, $dueDate]);
+        $created = $stmt->rowCount() === 1; // 1 = inserted, 2 = updated, 0 = unchanged
+        BillingService::syncBalance($boarderId, $pdo);
+        return $created;
+    }
+
+    /**
      * Manual penalty creation by Admin or Staff.
      * Enforces transactional atomicity and canonical balance synchronization.
      */

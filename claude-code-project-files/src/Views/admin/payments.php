@@ -253,6 +253,17 @@ $totalCollected = array_sum(array_map(
                                                 </button>
                                             </form>
                                         </div>
+                                    <?php elseif (in_array($status, ['auto-matched', 'admin-approved'], true)): ?>
+                                        <form method="post" action="/admin/payments/<?= (int) $p['id'] ?>/reject" class="inline payment-reject-form" data-payment-id="<?= (int) $p['id'] ?>" data-boarder-name="<?= htmlspecialchars($p['boarder_name']) ?>">
+                                            <?= \App\Support\Csrf::field() ?>
+                                            <button type="button"
+                                                    class="btn-danger !py-1 !px-2.5 !text-xs cursor-pointer payment-reject-btn"
+                                                    title="Undo this approval and recalculate the boarder's balance"
+                                                    data-payment-id="<?= (int) $p['id'] ?>"
+                                                    data-boarder-name="<?= htmlspecialchars($p['boarder_name']) ?>">
+                                                Reverse
+                                            </button>
+                                        </form>
                                     <?php else: ?>
                                         <span class="text-caption text-neutral-400 font-medium">—</span>
                                     <?php endif; ?>

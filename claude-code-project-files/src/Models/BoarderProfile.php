@@ -40,43 +40,52 @@ class BoarderProfile
      * Feature 10 (Status Life System): every change is logged with who/when/why.
      * Moving a boarder to "moved_out" frees their bed automatically.
      */
+    /** Must match the ENUM in 0003_create_boarder_profiles_and_status_log.sql. */
+    public const STATUSES = ['pending', 'active', 'on_notice', 'moved_out'];
+
     public static function updateStatus(int $boarderId, string $newStatus, ?int $changedBy, string $reason): void
     {
+        if (!in_array($newStatus, self::STATUSES, true)) {
+            throw new \RuntimeException('Invalid boarder status.');
+        }
+
         $pdo = Database::getConnection();
         $pdo->beginTransaction();
+        try {
+            $current = $pdo->prepare('SELECT status, bed_id, move_in_date FROM boarder_profiles WHERE user_id = ? FOR UPDATE');
+            $current->execute([$boarderId]);
+            $row = $current->fetch();
 
-        $current = $pdo->prepare('SELECT status, bed_id FROM boarder_profiles WHERE user_id = ? FOR UPDATE');
-        $current->execute([$boarderId]);
-        $row = $current->fetch();
+            // Bug found during Phase 8 QA pass: updating a non-existent boarder ID
+            // silently no-op'd the UPDATE, then threw an uncaught FK-constraint
+            // exception on the boarder_status_log INSERT (boarder_id has no matching
+            // row in users). Fail explicitly and gracefully instead.
+            if ($row === false) {
+                throw new \RuntimeException("Boarder #{$boarderId} not found.");
+            }
 
-        // Bug found during Phase 8 QA pass: updating a non-existent boarder ID
-        // silently no-op'd the UPDATE, then threw an uncaught FK-constraint
-        // exception on the boarder_status_log INSERT (boarder_id has no matching
-        // row in users). Fail explicitly and gracefully instead.
-        if ($row === false) {
+            $pdo->prepare('UPDATE boarder_profiles SET status = ?, status_updated_at = NOW() WHERE user_id = ?')
+                ->execute([$newStatus, $boarderId]);
+
+            // Rent starts accruing the day a boarder becomes active, unless an admin set a move-in date.
+            if (in_array($newStatus, ['active', 'on_notice'], true) && empty($row['move_in_date'])) {
+                $pdo->prepare('UPDATE boarder_profiles SET move_in_date = CURDATE() WHERE user_id = ?')->execute([$boarderId]);
+            }
+
+            $pdo->prepare('INSERT INTO boarder_status_log (boarder_id, old_status, new_status, changed_by, reason) VALUES (?, ?, ?, ?, ?)')
+                ->execute([$boarderId, $row['status'], $newStatus, $changedBy, mb_substr($reason, 0, 255)]);
+
+            if ($newStatus === 'moved_out' && !empty($row['bed_id'])) {
+                Bed::vacate((int) $row['bed_id']);
+                $pdo->prepare('UPDATE boarder_profiles SET bed_id = NULL WHERE user_id = ?')->execute([$boarderId]);
+            }
+
+            \App\Services\BillingService::calculateBalance($boarderId, $pdo);
+            $pdo->commit();
+        } catch (\Throwable $e) {
             $pdo->rollBack();
-            throw new \RuntimeException("Boarder #{$boarderId} not found.");
+            throw $e;
         }
-
-        $oldStatus = $row['status'];
-
-        $update = $pdo->prepare(
-            'UPDATE boarder_profiles SET status = ?, status_updated_at = NOW() WHERE user_id = ?'
-        );
-        $update->execute([$newStatus, $boarderId]);
-
-        $log = $pdo->prepare(
-            'INSERT INTO boarder_status_log (boarder_id, old_status, new_status, changed_by, reason) VALUES (?, ?, ?, ?, ?)'
-        );
-        $log->execute([$boarderId, $oldStatus, $newStatus, $changedBy, $reason]);
-
-        if ($newStatus === 'moved_out' && !empty($row['bed_id'])) {
-            Bed::vacate((int) $row['bed_id']);
-            $clearBed = $pdo->prepare('UPDATE boarder_profiles SET bed_id = NULL WHERE user_id = ?');
-            $clearBed->execute([$boarderId]);
-        }
-
-        $pdo->commit();
     }
 
     public static function statusLog(int $boarderId): array
@@ -148,6 +157,8 @@ class BoarderProfile
                 }
             }
 
+            // Move dates decide which months are charged.
+            \App\Services\BillingService::calculateBalance($boarderId, $pdo);
             $pdo->commit();
         } catch (\Throwable $e) {
             if ($pdo->inTransaction()) {
@@ -213,6 +224,7 @@ class BoarderProfile
                 'maintenance_requests' => 'boarder_id',
                 'penalties' => 'boarder_id',
                 'payments' => 'boarder_id',
+                'rent_charges' => 'boarder_id',
                 'incidents' => 'reported_by',
                 'boarder_profiles' => 'user_id',
             ];

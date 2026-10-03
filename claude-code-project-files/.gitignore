@@ -8,3 +8,5 @@
 /node_modules/
 *.log
 test_cookie*.txt
+
+/database/backups/

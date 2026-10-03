@@ -89,8 +89,13 @@ class PenaltyController
         if ($dueDate === '') {
             // Default due date to 30 days from now
             $dueDate = (new \DateTimeImmutable('+30 days'))->format('Y-m-d');
-        } elseif (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $dueDate)) {
-            $_SESSION['flash_error'] = 'Invalid due date format. Please use YYYY-MM-DD.';
+        } elseif (!($dt = \DateTimeImmutable::createFromFormat('!Y-m-d', $dueDate)) || $dt->format('Y-m-d') !== $dueDate) {
+            $_SESSION['flash_error'] = 'Invalid due date. Please pick a real calendar date.';
+            header("Location: {$redirectUrl}");
+            exit;
+        }
+        if (mb_strlen($reason) > 255) {
+            $_SESSION['flash_error'] = 'Reason must be 255 characters or fewer.';
             header("Location: {$redirectUrl}");
             exit;
         }
@@ -121,6 +126,11 @@ class PenaltyController
             $_SESSION['flash_error'] = 'Selected penalty rule not found.';
             header("Location: {$redirectUrl}");
             exit;
+        }
+
+        // Staff may issue a rule's penalty but not set its amount; only admins can.
+        if ($currentRole !== 'admin') {
+            $amount = (float) $rule['amount'];
         }
 
         $issuedBy = (int) ($_SESSION['user_id'] ?? 0);
@@ -221,7 +231,10 @@ class PenaltyController
             return;
         }
         $applied = PenaltyEngine::runCheck();
-        $_SESSION['flash_info'] = count($applied) . ' penalty(ies) applied.';
+        $new = count(array_filter($applied, fn ($a) => $a['new']));
+        $_SESSION['flash_info'] = $applied
+            ? "{$new} new late fee(s); " . (count($applied) - $new) . ' existing fee(s) updated to today\'s days late.'
+            : 'No late fees due (before the ' . PenaltyEngine::DUE_DAY . 'th, or everyone has paid this month\'s rent).';
         header('Location: /admin/penalty-rules');
         exit;
     }
@@ -235,12 +248,11 @@ class PenaltyController
         }
         $billingPeriod = date('Y-m');
         $pdo = Database::getConnection();
-        $active = $pdo->query("SELECT user_id FROM boarder_profiles WHERE status = 'active'")->fetchAll();
-        $verifiedIds = Payment::verifiedBoarderIdsForPeriod($billingPeriod);
+        $active = $pdo->query("SELECT user_id FROM boarder_profiles WHERE status IN ('active', 'on_notice')")->fetchAll();
         $sent = 0;
         foreach ($active as $b) {
             $boarderId = (int) $b['user_id'];
-            if (!in_array($boarderId, $verifiedIds, true)) {
+            if ((BillingService::calculateBalance($boarderId, $pdo)['unpaid_rent'][$billingPeriod] ?? 0) > 0) {
                 NotificationDispatcher::rentDue($boarderId, $billingPeriod);
                 $sent++;
             }

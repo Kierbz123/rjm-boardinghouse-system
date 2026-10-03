@@ -104,7 +104,7 @@ $defaultExpected = $totalDue > 0 ? $totalDue : $rentPrice;
                     <span style="font-size: 1.25rem;">💳</span>
                     <div>
                         <h2 class="text-heading-sm font-bold text-neutral-900">Proof of Payment Submission</h2>
-                        <p class="text-caption text-neutral-500" style="margin-top: 0.2rem;">Transfers matching your exact balance amount are automatically allocated and approved</p>
+                        <p class="text-caption text-neutral-500" style="margin-top: 0.2rem;">An administrator checks every receipt before it is applied to your balance</p>
                     </div>
                 </div>
 
@@ -135,8 +135,8 @@ $defaultExpected = $totalDue > 0 ? $totalDue : $rentPrice;
                     </label>
                     <input id="billing_period"
                            name="billing_period"
-                           type="text"
-                           placeholder="Billing period (e.g. 2026-08)"
+                           type="month"
+                           max="<?= date('Y-m', strtotime('first day of next month')) ?>"
                            required
                            class="input w-full font-mono"
                            style="padding: 0.5rem 0.75rem; border-radius: 0.5rem;"
@@ -149,19 +149,11 @@ $defaultExpected = $totalDue > 0 ? $totalDue : $rentPrice;
                 <!-- Expected & Claimed Amounts -->
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
-                        <label for="expected_amount" class="block text-caption font-semibold text-neutral-700" style="margin-bottom: 0.375rem;">
-                            Expected Total Amount (₱) <span class="text-error-600">*</span>
-                        </label>
-                        <input id="expected_amount"
-                               name="expected_amount"
-                               type="number"
-                               step="0.01"
-                               placeholder="Expected amount"
-                               required
-                               class="input w-full font-mono font-bold text-neutral-900"
-                               style="padding: 0.5rem 0.75rem; border-radius: 0.5rem;"
-                               value="<?= htmlspecialchars(number_format($defaultExpected, 2, '.', '')) ?>">
-                        <p class="text-caption text-neutral-400" style="margin-top: 0.375rem;">Total liability for rent and penalties.</p>
+                        <span class="block text-caption font-semibold text-neutral-700" style="margin-bottom: 0.375rem;">Amount Due (₱)</span>
+                        <p class="input w-full font-mono font-bold text-neutral-900" style="padding: 0.5rem 0.75rem; border-radius: 0.5rem; background: #f8fafc;">
+                            <?= number_format($totalDue, 2) ?>
+                        </p>
+                        <p class="text-caption text-neutral-400" style="margin-top: 0.375rem;">Unpaid rent and penalties, calculated by the system.</p>
                     </div>
 
                     <div>
@@ -183,22 +175,21 @@ $defaultExpected = $totalDue > 0 ? $totalDue : $rentPrice;
 
                 <script>
                 function setAmounts(val) {
-                    val = parseFloat(val).toFixed(2);
-                    document.getElementById('expected_amount').value = val;
-                    document.getElementById('claimed_amount').value = val;
+                    document.getElementById('claimed_amount').value = parseFloat(val).toFixed(2);
                 }
                 </script>
 
                 <!-- Proof File Upload -->
                 <div>
                     <label for="proof" class="block text-caption font-semibold text-neutral-700" style="margin-bottom: 0.375rem;">
-                        Proof of Payment Slip / Screenshot
+                        Proof of Payment Slip / Screenshot <span class="text-error-600">*</span>
                     </label>
                     <div style="padding: 0.875rem 1rem; background: #f8fafc; border-radius: 0.625rem; border: 1px solid #e2e8f0;">
                         <input id="proof"
                                type="file"
                                name="proof"
-                               accept="image/*"
+                               accept="image/jpeg,image/png,image/webp"
+                               required
                                class="w-full text-body-sm text-neutral-600 file:mr-3 file:py-1.5 file:px-3 file:rounded-md file:border-0 file:text-xs file:font-semibold file:bg-neutral-200 file:text-neutral-800 hover:file:bg-neutral-300 cursor-pointer">
                         <p class="text-caption text-neutral-400" style="margin-top: 0.5rem;">
                             Upload a clear screenshot or photo of your GCash, Maya, or bank transfer reference receipt.

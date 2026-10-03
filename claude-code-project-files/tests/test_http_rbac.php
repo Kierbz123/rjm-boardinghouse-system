@@ -32,7 +32,8 @@ function http(string $method, string $path, ?string $jar, array $form = []): arr
         curl_setopt_array($ch, [CURLOPT_COOKIEJAR => $jar, CURLOPT_COOKIEFILE => $jar]);
     }
     if ($form) {
-        curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query($form));
+        $hasFile = (bool) array_filter($form, fn ($v) => $v instanceof CURLFile);
+        curl_setopt($ch, CURLOPT_POSTFIELDS, $hasFile ? $form : http_build_query($form));
     }
     $raw = (string) curl_exec($ch);
     $headerSize = curl_getinfo($ch, CURLINFO_HEADER_SIZE);
@@ -147,6 +148,35 @@ $second = json_decode(http('POST', '/api/sos', $jars['boarder'], ['csrf_token' =
 check(!empty($first['alert_id']) && $first['alert_id'] === $second['alert_id'], 'repeat press reuses the open alert');
 $msg = $pdo->query("SELECT message FROM notifications WHERE entity_type = 'sos_alert' AND entity_id = {$first['alert_id']} LIMIT 1")->fetchColumn();
 check($msg !== false && str_contains($msg, 'Room 101'), 'staff notice is linked to the alert and shows the room number');
+
+echo "== Boarder payments always wait for an admin (C3) ==\n";
+$receipt = new CURLFile(__DIR__ . '/../public/assets/images/landing-bg.jpg', 'image/jpeg', 'receipt.jpg');
+$period = date('Y-m');
+$token = csrfFrom(http('GET', '/portal/payments/new', $jars['boarder'])['body']);
+$owed = (float) App\Services\BillingService::calculateBalance(3)['total_outstanding'];
+$r = http('POST', '/portal/payments', $jars['boarder'], ['csrf_token' => $token, 'billing_period' => $period,
+    'claimed_amount' => '1.00', 'expected_amount' => '1.00']);
+check($r['location'] === '/portal/payments/new', 'submission without a receipt is refused');
+$r = http('POST', '/portal/payments', $jars['boarder'], ['csrf_token' => $token, 'billing_period' => $period,
+    'claimed_amount' => '1.00', 'expected_amount' => '1.00', 'proof' => $receipt]);
+$pay = $pdo->query('SELECT * FROM payments WHERE boarder_id = 3 ORDER BY id DESC LIMIT 1')->fetch();
+check($pay && $pay['verification_status'] === 'flagged', '₱1 "matching" payment is flagged, not approved');
+check($pay && abs((float) $pay['expected_amount'] - $owed) < 0.01, 'expected amount is the server\'s figure, not the form\'s');
+check(abs((float) App\Services\BillingService::calculateBalance(3)['total_outstanding'] - $owed) < 0.01, 'balance unchanged until an admin approves');
+$r = http('POST', '/portal/payments', $jars['boarder'], ['csrf_token' => $token, 'billing_period' => $period,
+    'claimed_amount' => '5.00', 'proof' => $receipt]);
+check($r['location'] === '/portal/payments/new', 'second submission for the same month is refused while one is open');
+$token = csrfFrom(http('GET', '/admin/payments', $jars['admin'])['body']);
+http('POST', "/admin/payments/{$pay['id']}/approve", $jars['admin'], ['csrf_token' => $token]);
+check($pdo->query("SELECT verification_status FROM payments WHERE id = {$pay['id']}")->fetchColumn() === 'admin-approved', 'admin approval works');
+
+echo "== Staff penalties use the rule's amount (decision 7a) ==\n";
+$rule = $pdo->query("SELECT * FROM penalty_rules WHERE active = 1 LIMIT 1")->fetch();
+$token = csrfFrom(http('GET', '/staff/dashboard', $jars['staff'])['body']);
+http('POST', '/staff/penalties/issue', $jars['staff'], ['csrf_token' => $token, 'boarder_id' => 3,
+    'rule_id' => $rule['id'], 'amount' => '99999', 'reason' => 'staff-amount-test']);
+$issued = $pdo->query("SELECT amount FROM penalties WHERE reason = 'staff-amount-test'")->fetchColumn();
+check($issued !== false && abs((float) $issued - (float) $rule['amount']) < 0.01, 'staff cannot set a custom amount');
 
 echo "== App and database clocks agree (H3) ==\n";
 check($pdo->query("SELECT DATE_FORMAT(NOW(), '%Y-%m-%d %H:%i')")->fetchColumn() === date('Y-m-d H:i'), 'NOW() matches PHP date()');

@@ -117,6 +117,7 @@ class BoarderController
 
             Bed::assign($bedId, $boarderId);
             BoarderProfile::assignRoomAndBed($boarderId, (int) $bed['room_id'], $bedId);
+            BillingService::calculateBalance($boarderId); // the new room's price applies from this month
 
             $room = Room::find((int) $bed['room_id']);
             $roomNumber = $room['room_number'] ?? (string) $bed['room_id'];

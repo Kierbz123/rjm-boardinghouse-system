@@ -51,6 +51,9 @@ if (!in_array('--with-ai', $argv, true)) {
     $tests = array_filter($tests, fn ($t) => basename($t) !== 'test_ai_assistant.php');
 }
 
+// Uploads from test requests land in the real public/uploads; remove them afterwards.
+$uploadsBefore = glob("{$root}/public/uploads/*/*");
+
 $failed = [];
 foreach ($tests as $test) {
     echo "\n### " . basename($test) . "\n";
@@ -61,6 +64,7 @@ foreach ($tests as $test) {
 }
 
 proc_terminate($server);
+array_map('unlink', array_diff(glob("{$root}/public/uploads/*/*"), $uploadsBefore));
 
 echo "\n" . str_repeat('=', 50) . "\n";
 echo count($tests) - count($failed) . '/' . count($tests) . " test files passed.\n";

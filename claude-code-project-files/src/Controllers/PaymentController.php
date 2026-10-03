@@ -4,7 +4,6 @@ namespace App\Controllers;
 
 use App\Models\Payment;
 use App\Models\Room;
-use App\Services\VerificationClient;
 use App\Services\BillingService;
 use App\Services\PaymentAllocationService;
 use App\Services\NotificationDispatcher;
@@ -48,55 +47,48 @@ class PaymentController
         }
 
         $boarderId = (int) $_SESSION['user_id'];
-        $billingPeriod = (string) $_POST['billing_period'];
-        $expected = (float) $_POST['expected_amount'];
-        $claimed = (float) $_POST['claimed_amount'];
+        $billingPeriod = (string) ($_POST['billing_period'] ?? '');
+        $claimed = round((float) ($_POST['claimed_amount'] ?? 0), 2);
 
-        if ($expected <= 0 || $claimed <= 0) {
-            $_SESSION['flash_error'] = 'Amounts must be greater than zero.';
-            header('Location: /portal/payments/new');
-            exit;
+        // A real month, no further than one month ahead (paying next month's rent early is fine).
+        $nextMonth = date('Y-m', strtotime('first day of next month'));
+        if (!preg_match('/^\d{4}-(0[1-9]|1[0-2])$/', $billingPeriod) || $billingPeriod > $nextMonth || $billingPeriod < '2000-01') {
+            self::backToForm('Please choose a valid billing month.');
+        }
+        if ($claimed <= 0 || $claimed > 1000000) {
+            self::backToForm('Enter the amount shown on your receipt.');
+        }
+        if (empty($_FILES['proof']['tmp_name'])) {
+            self::backToForm('Please attach a photo or screenshot of your receipt.');
+        }
+        if (Payment::hasOpenSubmission($boarderId, $billingPeriod)) {
+            self::backToForm("You already have a payment for {$billingPeriod} waiting for review.");
         }
 
-        $proofPath = null;
-        if (!empty($_FILES['proof']['tmp_name'])) {
-            try {
-                $proofPath = Uploads::store($_FILES['proof'], 'receipts');
-            } catch (\RuntimeException $e) {
-                $_SESSION['flash_error'] = $e->getMessage();
-                header('Location: /portal/payments/new');
-                exit;
-            }
+        try {
+            $proofPath = Uploads::store($_FILES['proof'], 'receipts');
+        } catch (\RuntimeException $e) {
+            self::backToForm($e->getMessage());
         }
 
-        $paymentId = Payment::create($boarderId, $billingPeriod, $expected, $claimed, $proofPath);
-
-        $result = VerificationClient::verify($expected, $claimed, $proofPath ?? '');
-        Payment::setVerification($paymentId, $result['status']);
+        // The amount due is the server's figure, never the form's. Every submission waits
+        // for an admin; a mismatch is only flagged so the admin looks closer.
+        $expected = BillingService::calculateBalance($boarderId)['total_outstanding'];
+        $status = abs($expected - $claimed) < 0.01 ? 'pending' : 'flagged';
+        $paymentId = Payment::create($boarderId, $billingPeriod, $expected, $claimed, $proofPath, $status);
 
         // Notify admins about new payment submission (Staff is NOT notified - financial isolation)
         NotificationDispatcher::paymentSubmitted($paymentId, $boarderId, $billingPeriod, $claimed);
 
-        // If auto-matched, dispatch immediate combined payment notification to boarder
-        if ($result['status'] === 'auto-matched') {
-            $allocations = PaymentAllocationService::getAllocationsForPayment($paymentId);
-            $rentAllocated = 0.0;
-            $settledPenalties = [];
-            foreach ($allocations as $al) {
-                if ($al['allocation_type'] === 'rent') {
-                    $rentAllocated += (float) $al['amount'];
-                } elseif ($al['allocation_type'] === 'penalty') {
-                    $settledPenalties[] = $al;
-                }
-            }
-            $balance = BillingService::calculateBalance($boarderId);
-            NotificationDispatcher::combinedPaymentApproved($boarderId, $claimed, $rentAllocated, $settledPenalties, (float) $balance['total_outstanding']);
-            $_SESSION['flash_success'] = 'Payment auto-matched and verified successfully!';
-        } else {
-            $_SESSION['flash_info'] = 'Payment proof submitted and awaiting admin verification.';
-        }
-
+        $_SESSION['flash_success'] = 'Payment submitted. An administrator will review your receipt.';
         header('Location: /portal/dashboard');
+        exit;
+    }
+
+    private static function backToForm(string $error): never
+    {
+        $_SESSION['flash_error'] = $error;
+        header('Location: /portal/payments/new');
         exit;
     }
 
@@ -129,7 +121,11 @@ class PaymentController
             exit;
         }
 
-        Payment::setVerification($paymentId, 'admin-approved', (int) $_SESSION['user_id']);
+        if (!Payment::setVerification($paymentId, 'admin-approved', (int) $_SESSION['user_id'])) {
+            $_SESSION['flash_error'] = "Payment #{$paymentId} is already approved.";
+            header('Location: /admin/payments');
+            exit;
+        }
 
         $boarderId = (int) $payment['boarder_id'];
         $allocations = PaymentAllocationService::getAllocationsForPayment($paymentId);
@@ -166,13 +162,18 @@ class PaymentController
             return;
         }
         $payment = Payment::find((int) $id);
-        Payment::setVerification((int) $id, 'rejected', (int) $_SESSION['user_id']);
-
-        if ($payment) {
-            NotificationDispatcher::paymentRejected((int) $payment['boarder_id'], $payment['billing_period']);
+        if (!$payment || !Payment::setVerification((int) $id, 'rejected', (int) $_SESSION['user_id'])) {
+            $_SESSION['flash_error'] = 'Payment not found or already rejected.';
+            header('Location: /admin/payments');
+            exit;
         }
 
-        $_SESSION['flash_info'] = 'Payment rejected.';
+        NotificationDispatcher::paymentRejected((int) $payment['boarder_id'], $payment['billing_period']);
+
+        $wasApproved = in_array($payment['verification_status'], BillingService::APPROVED, true);
+        $_SESSION['flash_success'] = $wasApproved
+            ? 'Approved payment reversed. The boarder\'s balance has been recalculated.'
+            : 'Payment rejected.';
         header('Location: /admin/payments');
         exit;
     }
