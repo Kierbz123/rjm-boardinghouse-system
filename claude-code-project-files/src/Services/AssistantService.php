@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Controllers\LandingController;
 use App\Models\Bed;
 use App\Models\BoarderProfile;
 use App\Models\Expense;
@@ -51,53 +52,63 @@ class AssistantService
     /**
      * How the system works, written from what the code does (due day, late fee, approval,
      * scoring thresholds), so the answers stay true. `open` = the page offered per role.
-     * House rules the system does not hold (curfew, visitors) are said to be missing, not invented.
+     * {placeholders} are live values (see fact()). House rules the system does not hold,
+     * such as visitors, are said to be missing, not invented.
      */
     private const HELP = [
         ['roles' => ['boarder', 'staff', 'admin'],
+            'about' => 'when rent is due and how the late fee works',
             'ask' => ['due date', 'when is rent due', 'rent due', 'deadline', 'late fee', 'late payment', 'kailan ang bayad', 'kailan dapat', 'multa'],
             'en' => "Rent is due on or before the 5th of each month. From the 6th, a late fee is added for each day that month's rent is still unpaid: {late_fee}. It stops growing once an admin approves the payment.",
             'tl' => 'Dapat bayaran ang renta sa o bago ang ika-5 ng bawat buwan. Mula ika-6, may late fee sa bawat araw na hindi pa bayad ang renta ng buwan: {late_fee}. Titigil ang paglaki nito kapag na-approve na ng admin ang bayad.',
             'open' => ['boarder' => ['Pay Rent', '/portal/payments/new'], 'admin' => ['Penalties', '/admin/penalty-rules']]],
         ['roles' => ['boarder'],
+            'about' => 'how to pay rent and how payments get approved',
             'ask' => ['how do i pay', 'how to pay', 'how can i pay', 'paano magbayad', 'paano ako magbabayad', 'paano bayaran'],
             'en' => 'Open Pay Rent, check the month and amount, upload a photo of your receipt, then submit. An admin checks every payment, so your balance changes only after it is approved. If the amount differs from what is due, it is marked for a closer look.',
             'tl' => 'Buksan ang Pay Rent, tingnan ang buwan at halaga, i-upload ang litrato ng resibo, saka ipasa. Sinusuri ng admin ang bawat bayad, kaya magbabago lang ang balanse mo kapag na-approve na ito. Kapag iba ang halaga sa dapat bayaran, mamarkahan ito para masuri nang mabuti.',
             'open' => ['boarder' => ['Pay Rent', '/portal/payments/new']]],
         ['roles' => ['boarder'],
+            'about' => 'how to report something that needs repair',
             'ask' => ['how do i report', 'how to report', 'how do i submit a maintenance', 'how do i request a repair', 'paano mag report', 'paano magpaayos', 'paano ipaayos'],
             'en' => 'Open Report a Repair, pick a category, describe what is wrong and where, and add a photo if you can. The system rates how urgent it is from your description, and staff work on the most urgent first. You can also just tell me what is broken and I will fill in the form for you.',
             'tl' => 'Buksan ang Report a Repair, pumili ng category, ilarawan kung ano at saan ang sira, at maglagay ng litrato kung kaya. Tinatantya ng system kung gaano ito kaapurahan mula sa paglalarawan mo, at inuuna ng staff ang pinakaapurahan. Puwede mo ring sabihin sa akin kung ano ang sira at ako na ang maglalagay sa form.',
             'open' => ['boarder' => ['Report a Repair', '/portal/maintenance/new']]],
         ['roles' => ['boarder'],
+            'about' => 'what the emergency SOS button does',
             'ask' => ['sos', 'emergency', 'saklolo', 'panic'],
             'en' => 'The SOS button is on your dashboard. Pressing it alerts the staff and the admin at once, with your room. Use it only for a real emergency. Pressing it again while your alert is still open does not send a second one.',
             'tl' => 'Nasa dashboard mo ang SOS button. Kapag pinindot, agad na naaabisuhan ang staff at admin, kasama ang kuwarto mo. Gamitin lang ito sa totoong emergency. Kapag pinindot ulit habang bukas pa ang alert mo, hindi na ito magpapadala ng pangalawa.',
             'open' => ['boarder' => ['Dashboard', '/portal/dashboard']]],
         ['roles' => ['boarder', 'staff', 'admin'],
+            'about' => 'changing a password or a forgotten password',
             'ask' => ['change password', 'change my password', 'forgot password', 'forgot my password', 'reset password', 'new password', 'palitan ang password', 'nakalimutan ang password'],
             'en' => 'Open Profile, type your current password, then a new one of at least 8 characters, twice. Other devices signed in to your account are logged out. If you forgot your password, contact the house administrator.',
             'tl' => 'Buksan ang Profile, i-type ang kasalukuyang password, saka ang bago na hindi bababa sa 8 karakter, nang dalawang beses. Mala-log out ang ibang device na naka-sign in sa account mo. Kung nakalimutan mo ang password, lumapit sa house administrator.',
             'open' => ['boarder' => ['Profile', '/profile'], 'staff' => ['Profile', '/profile'], 'admin' => ['Profile', '/profile']]],
         ['roles' => ['boarder', 'staff', 'admin'],
+            'about' => 'how to log out',
             'ask' => ['log out', 'logout', 'sign out', 'mag log out'],
             'en' => 'The log out button is at the bottom of the sidebar, beside your name. You are also logged out after 30 minutes without activity.',
             'tl' => 'Nasa ibaba ng sidebar ang log out button, katabi ng pangalan mo. Kusa ka ring mala-log out pagkalipas ng 30 minutong walang galaw.',
             'open' => []],
         ['roles' => ['boarder', 'admin'],
+            'about' => 'how rent is worked out for a partial month',
             'ask' => ['prorate', 'partial month', 'half month', 'why is my rent', 'how is rent computed', 'how is rent calculated', 'kalahating buwan'],
             'en' => 'Rent is charged month by month from the move-in date. A month that is only partly stayed (the first or the last) is charged by the day: monthly rent × days stayed ÷ days in that month. Unpaid months carry over to the next.',
             'tl' => 'Sinisingil ang renta kada buwan mula sa petsa ng paglipat. Ang buwang hindi buo ang tinirhan (una o huli) ay sinisingil kada araw: buwanang renta × araw na tinirhan ÷ araw sa buwang iyon. Nadadala sa susunod na buwan ang hindi nabayaran.',
             'open' => ['boarder' => ['Pay Rent', '/portal/payments/new'], 'admin' => ['Boarders', '/admin/boarders']]],
         ['roles' => ['boarder', 'staff', 'admin'],
+            'about' => 'how the urgency of a repair is decided',
             'ask' => ['priority', 'how urgent', 'critical mean', 'severity', 'urgency score'],
             'en' => 'Each repair gets a score from 0 to 100 from the words in its description, its category and whether a photo is attached. 70 and up is critical, 45 and up high, 20 and up medium, anything lower is low. The queue shows the most urgent first.',
             'tl' => 'Bawat repair ay may score na 0 hanggang 100 batay sa mga salita sa paglalarawan, sa category, at kung may litrato. 70 pataas ay critical, 45 pataas high, 20 pataas medium, mas mababa ay low. Nauuna sa queue ang pinakaapurahan.',
             'open' => ['boarder' => ['Report a Repair', '/portal/maintenance/new'], 'staff' => ['Maintenance Queue', '/staff/maintenance'], 'admin' => ['Maintenance Queue', '/staff/maintenance']]],
         ['roles' => ['boarder', 'staff', 'admin'],
+            'about' => 'curfew and other house rules',
             'ask' => ['curfew', 'visitor', 'house rule', 'dorm rule', 'bisita', 'patakaran ng bahay', 'bawal'],
-            'en' => 'House rules such as curfew and visitors have not been written into the system yet, so I cannot quote them. Please ask the house administrator.',
-            'tl' => 'Hindi pa nakasulat sa system ang mga patakaran ng bahay gaya ng curfew at bisita, kaya hindi ko ito masasabi. Magtanong sa house administrator.',
+            'en' => 'Curfew is {curfew}. Violations with a set penalty: {penalties}. Other house rules, such as visitors, are not written in the system, so please ask the house administrator.',
+            'tl' => 'Ang curfew ay {curfew}. Mga paglabag na may nakatakdang multa: {penalties}. Ang ibang patakaran ng bahay, gaya ng bisita, ay hindi nakasulat sa system, kaya magtanong sa house administrator.',
             'open' => []],
     ];
 
@@ -112,9 +123,9 @@ class AssistantService
         // Whichever matches the message best wins; a how-to explanation beats a figure on a tie.
         $help = $lookup = null;
         $best = 0;
-        foreach (self::HELP as $topic) {
+        foreach (self::HELP as $i => $topic) {
             if (in_array($role, $topic['roles'], true) && ($score = NavRegistry::score($message, $topic['ask'])) > $best) {
-                [$help, $best] = [$topic, $score];
+                [$help, $best] = [$i, $score];
             }
         }
         foreach (self::LOOKUPS as $name => [$roles, $phrases]) {
@@ -123,12 +134,7 @@ class AssistantService
             }
         }
         if ($help !== null) {
-            $open = $help['open'][$role] ?? null;
-            return [
-                'reply' => str_replace('{late_fee}', self::lateFee($lang), $help[$lang]),
-                'actions' => $open ? [self::open($lang, ...$open)] : [],
-                'source' => 'help',
-            ];
+            return self::helpCard($help, $role, $lang);
         }
         if ($lookup !== null) {
             return self::{$lookup}($lang, $userId, $message) + ['source' => 'data'];
@@ -154,6 +160,87 @@ class AssistantService
             'actions' => array_slice(array_values($actions), 0, 3),
             'source' => 'pages',
         ];
+    }
+
+    private static function helpCard(int $topic, string $role, string $lang): array
+    {
+        $help = self::HELP[$topic];
+        $open = $help['open'][$role] ?? null;
+        return [
+            'reply' => preg_replace_callback('/\{(\w+)\}/', fn ($m) => self::fact($m[1], $lang), $help[$lang]),
+            'actions' => $open ? [self::open($lang, ...$open)] : [],
+            'source' => 'help',
+        ];
+    }
+
+    // ── For the AI layer: the model may only choose from this role's list ──────
+
+    /** What each lookup answers, in plain words the model can choose between. */
+    private const LOOKUP_ABOUT = [
+        'balance' => 'how much the resident still owes (unpaid rent, dues, penalties)',
+        'myPayments' => "whether the resident's payments were received, approved or rejected",
+        'myRepairs' => 'progress of a repair the resident already reported (is someone coming, is it fixed yet)',
+        'myRoom' => "the resident's room, bed and monthly rent",
+        'openRepairs' => 'repairs waiting to be done and which is most urgent',
+        'activeSos' => 'emergency SOS alerts that are active now',
+        'openIncidents' => 'incident reports not yet resolved',
+        'inquiries' => 'how many people inquired about a room',
+        'pendingPayments' => 'payments and receipts the admin has not reviewed yet',
+        'vacantBeds' => 'which beds or slots are free for new boarders',
+        'occupancy' => 'how many beds are occupied',
+        'whoOwes' => 'which boarders are behind on rent and how much they owe',
+        'expensesThisMonth' => 'how much the house spent this month',
+        'ledger' => 'download the ledger file',
+    ];
+
+    /** A readable key for a help topic, e.g. "help:due_date". */
+    private static function helpKey(array $topic): string
+    {
+        return 'help:' . str_replace(' ', '_', $topic['ask'][0]);
+    }
+
+    /** @return array<string,string> every answer this role may be given: key => plain description */
+    public static function catalogue(string $role): array
+    {
+        $entries = [];
+        foreach (self::LOOKUPS as $name => [$roles]) {
+            if (in_array($role, $roles, true)) {
+                $entries["lookup:{$name}"] = self::LOOKUP_ABOUT[$name];
+            }
+        }
+        foreach (self::HELP as $i => $topic) {
+            if (in_array($role, $topic['roles'], true)) {
+                $entries[self::helpKey($topic)] = 'a question about how it works: ' . $topic['about'];
+            }
+        }
+        foreach (NavRegistry::forRole($role) as $page) {
+            $entries["page:{$page['href']}"] ??= "wants the {$page['label']} page: " . $page['about']['en'];
+        }
+        return $entries;
+    }
+
+    /**
+     * Runs one catalogue entry. The key comes from the model, so it is checked against
+     * this role's own catalogue first: anything else returns null and nothing is run.
+     */
+    public static function run(string $key, string $message, string $role, string $lang = 'en', int $userId = 0): ?array
+    {
+        $lang = $lang === 'tl' ? 'tl' : 'en';
+        if (!isset(self::catalogue($role)[$key])) {
+            return null;
+        }
+        [$kind, $id] = explode(':', $key, 2);
+        if ($kind === 'lookup') {
+            return self::{$id}($lang, $userId, $message) + ['source' => 'data'];
+        }
+        if ($kind === 'help') {
+            $topic = current(array_filter(array_keys(self::HELP), fn ($i) => self::helpKey(self::HELP[$i]) === $key));
+            return self::helpCard($topic, $role, $lang);
+        }
+        $page = current(array_filter(NavRegistry::forRole($role), fn ($p) => $p['href'] === $id));
+        // The model judged the message to be about this page; if the page has a form to start, start it.
+        return (self::prefill($page, $message, $lang, true)
+            ?? ['reply' => $page['about'][$lang], 'actions' => [self::open($lang, $page['label'], $page['href'])]]) + ['source' => 'pages'];
     }
 
     /**
@@ -185,10 +272,10 @@ class AssistantService
         ],
     ];
 
-    private static function prefill(array $page, string $message, string $lang): ?array
+    private static function prefill(array $page, string $message, string $lang, bool $describesProblem = false): ?array
     {
         $form = self::PREFILL[$page['href']] ?? null;
-        if (!$form || !NavRegistry::score($message, $form['when'])) {
+        if (!$form || !($describesProblem || NavRegistry::score($message, $form['when']))) {
             return null;
         }
         $fields = ['description' => $message];
@@ -449,13 +536,23 @@ class AssistantService
 
     // ── Helpers ────────────────────────────────────────────────────────────────
 
-    /** The per-day late fee as the admin has set it on the Penalties page. */
-    private static function lateFee(string $lang): string
+    /** Live values the help text quotes, read from where the rest of the system keeps them. */
+    private static function fact(string $name, string $lang): string
     {
-        $perDay = array_sum(array_column(array_filter(PenaltyRule::allActive(), fn ($r) => $r['condition_type'] === 'late_per_day'), 'amount'));
-        return $perDay > 0
-            ? self::t($lang, '%s per day', '%s kada araw', self::peso($perDay))
-            : self::t($lang, 'no late fee is set right now', 'walang nakatakdang late fee ngayon');
+        if ($name === 'curfew') { // the landing page's own line, without its note in brackets
+            return trim(preg_replace('/\s*\(.*\)\s*$/', '', LandingController::CURFEW_HOURS));
+        }
+        $rules = PenaltyRule::allActive(); // as set by the admin on the Penalties page
+        if ($name === 'late_fee') {
+            $perDay = array_sum(array_column(array_filter($rules, fn ($r) => $r['condition_type'] === 'late_per_day'), 'amount'));
+            return $perDay > 0
+                ? self::t($lang, '%s per day', '%s kada araw', self::peso($perDay))
+                : self::t($lang, 'no late fee is set right now', 'walang nakatakdang late fee ngayon');
+        }
+        $flat = array_filter($rules, fn ($r) => $r['condition_type'] !== 'late_per_day');
+        return $flat
+            ? implode(', ', array_map(fn ($r) => "{$r['name']} " . self::peso($r['amount']), $flat))
+            : self::t($lang, 'none set', 'walang nakatakda');
     }
 
     private static function t(string $lang, string $en, string $tl, mixed ...$args): string

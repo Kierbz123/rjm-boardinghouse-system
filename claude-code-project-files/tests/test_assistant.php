@@ -180,12 +180,27 @@ check($ask('boarder', 'magkano ang multa?', 'tl', $boarderId)['source'] === 'hel
 $card = $ask('boarder', 'How do I pay my rent?', 'en', $boarderId);
 check($card['source'] === 'help' && str_contains($card['reply'], 'receipt') && $hrefsOf($card) === ['/portal/payments/new'], 'how to pay explains the receipt and approval');
 $card = $ask('boarder', 'what time is the curfew?', 'en', $boarderId);
-check($card['source'] === 'help' && str_contains($card['reply'], 'not been written') && $card['actions'] === [], 'house rules are not invented');
+check($card['source'] === 'help' && str_contains($card['reply'], 'Curfew is 10:00 PM Daily.') && str_contains($card['reply'], 'not written in the system') && $card['actions'] === [],
+    'curfew is quoted from the landing page; other house rules are not invented: ' . $card['reply']);
 check($ask('admin', 'how do I log out?', 'en', 1)['actions'] === [], 'log out is explained without a button');
 check($hrefsOf($ask('admin', 'late fees', 'en', 1)) === ['/admin/penalty-rules'], 'admin late-fee help links Penalties');
 check($hrefsOf($ask('staff', 'I forgot my password', 'en', 2)) === ['/profile'], 'password help links Profile');
 check($hrefsOf($ask('staff', 'what does critical mean?', 'en', 2)) === ['/staff/maintenance'], 'priority help links the queue for staff');
 check($ask('boarder', 'how much do I owe?', 'en', $boarderId)['source'] === 'data', 'figures still answer figure questions');
+
+echo "== The AI layer can only choose from the role's own list (plan A4) ==\n";
+$keys = fn (string $role) => array_keys(AssistantService::catalogue($role));
+check(!array_filter($keys('boarder'), fn ($k) => preg_match('#whoOwes|pendingPayments|vacantBeds|openRepairs|activeSos|ledger|page:/admin|page:/staff/(dashboard|maintenance)#', $k)),
+    'boarder list holds no staff or admin answers (' . count($keys('boarder')) . ' entries)');
+check(!array_filter($keys('staff'), fn ($k) => preg_match('#whoOwes|pendingPayments|vacantBeds|occupancy|expenses|ledger|balance|page:/admin/(?!inquiry)#', $k)),
+    'staff list holds no admin or boarder answers (' . count($keys('staff')) . ' entries)');
+check(in_array('lookup:whoOwes', $keys('admin'), true) && in_array('page:/admin/rooms', $keys('admin'), true), 'admin list holds the admin answers (' . count($keys('admin')) . ' entries)');
+foreach (['lookup:whoOwes', 'lookup:pendingPayments', 'page:/admin/payments', 'lookup:deleteEverything', 'help:99', 'nonsense'] as $key) {
+    check(AssistantService::run($key, 'x', 'boarder', 'en', $boarderId) === null, "a boarder session cannot run \"{$key}\", whatever the model says");
+}
+$card = AssistantService::run('lookup:balance', 'x', 'boarder', 'en', $boarderId);
+check($card !== null && $card['source'] === 'data' && $hrefsOf($card) === ['/portal/payments/new'], 'an allowed choice runs the normal lookup');
+check(AssistantService::run('page:/admin/rooms', 'x', 'admin', 'tl', 1)['actions'][0] === ['label' => 'Buksan ang Rooms & Beds', 'href' => '/admin/rooms'], 'a chosen page becomes an Open button');
 
 echo $failures === 0 ? "All assistant checks passed.\n" : "{$failures} assistant check(s) failed.\n";
 exit($failures === 0 ? 0 : 1);

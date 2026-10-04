@@ -55,7 +55,9 @@ class AssistantController
         $lang = ($input['lang'] ?? 'en') === 'tl' ? 'tl' : 'en';
         $role = (string) ($_SESSION['role'] ?? '');
 
-        $card = AssistantService::answer($message, $role, $lang, (int) ($_SESSION['user_id'] ?? 0));
+        $userId = (int) ($_SESSION['user_id'] ?? 0);
+
+        $card = AssistantService::answer($message, $role, $lang, $userId);
         if ($card) {
             echo json_encode(['ok' => true] + $card);
             return;
@@ -64,7 +66,18 @@ class AssistantController
         if (self::aiLimitReached()) {
             return;
         }
-        $result = OllamaClient::chat($message, self::buildBoarderContext());
+        // The rules found nothing: let the local model choose from this role's own list of answers.
+        // Its choice is only a name from that list, and run() checks the role again before running it.
+        $catalogue = AssistantService::catalogue($role);
+        $pick = OllamaClient::pick($message, $catalogue);
+        if ($pick !== null && ($card = AssistantService::run($pick, $message, $role, $lang, $userId))) {
+            // The model guesses right about three times in four on this machine, so say it is a guess.
+            $card['reply'] = ($lang === 'tl' ? 'Sa tingin ko ito ang ibig mong sabihin. ' : 'I think this is what you mean. ') . $card['reply'];
+            echo json_encode(['ok' => true] + $card + ['via' => 'ai']);
+            return;
+        }
+
+        $result = OllamaClient::chat($message, self::buildBoarderContext(), $lang);
         if ($result['ok']) {
             echo json_encode(['ok' => true, 'reply' => $result['reply'], 'actions' => [], 'source' => 'ai']);
             return;
