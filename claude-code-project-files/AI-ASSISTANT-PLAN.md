@@ -100,7 +100,8 @@ A0–A3 alone already give a fast, reliable assistant that navigates and answers
 | A1 Navigate + palette | Done (3 Oct 2026) | `Ctrl+K` opens the drawer; live page matches while typing; one "Open …" button per answer; English/Tagalog switch. Works with Ollama stopped. |
 | A2 Role lookups | Done (3 Oct 2026) | Boarder: balance, payment status, repair status, room. Staff: open repairs, SOS, incidents, inquiries. Admin: payments waiting, vacant beds, occupancy, who owes, expenses this month, a boarder by name. Figures come from the same models the pages use. |
 | A5 Prepare actions | Done (4 Oct 2026) | A described problem opens Report a Repair or the incident form already filled in (description plus a guessed category/type); the person reviews and submits. Admin gets a ledger download link (this month or last month). Pay Rent needs no pre-fill: the page already works out the amount. |
-| A3, A4, A6, A7 | Not started | Help library, AI tool-picking, accessibility pass, evaluation set. |
+| A3 Help library | Done (4 Oct 2026) | Nine topics written from what the code does: due date and the current late fee, how to pay, how to report a repair, SOS, password, log out, proration, repair priority. Kept as a table in `AssistantService` instead of `docs/help/*.md` (no separate "Read more" page). **House rules (curfew, visitors) are answered as "not in the system yet"; the owner still has to supply them.** |
+| A4, A6, A7 | Not started | AI tool-picking, accessibility pass, evaluation set. |
 
 Differences from the plan as written: the rules live in one file, `src/Services/AssistantService.php`, until there are enough tools to split; the palette is the same drawer rather than a second search box; the drawer does not trap focus because it is a side panel, not a blocking dialog (`Esc` closes it and returns focus).
 

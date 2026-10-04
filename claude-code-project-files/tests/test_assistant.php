@@ -10,6 +10,7 @@ require_once __DIR__ . '/../src/autoload.php';
 use App\Models\Bed;
 use App\Models\BoarderProfile;
 use App\Models\MaintenanceRequest;
+use App\Models\PenaltyRule;
 use App\Services\AssistantService;
 use App\Services\BillingService;
 use App\Support\NavRegistry;
@@ -167,6 +168,24 @@ $card = $ask('admin', 'export the ledger', 'en', 1);
 check($card['source'] === 'data' && str_starts_with($hrefsOf($card)[0], '/admin/ledger/export?from=' . date('Y-m-01')), 'admin gets a ledger download link for this month');
 check(str_contains($hrefsOf($ask('admin', 'ledger last month', 'en', 1))[0], 'from=' . date('Y-m-01', strtotime('first day of last month'))), '"last month" changes the range');
 check(($ask('staff', 'export the ledger', 'en', 2)['source'] ?? '') !== 'data', 'staff gets no ledger link');
+
+echo "== Help answers come from the system's own rules (plan A3) ==\n";
+$perDay = array_sum(array_column(array_filter(PenaltyRule::allActive(), fn ($r) => $r['condition_type'] === 'late_per_day'), 'amount'));
+$feeText = $perDay > 0 ? number_format($perDay, 2) . ' per day' : 'no late fee is set';
+$card = $ask('boarder', 'when is rent due?', 'en', $boarderId);
+check($card['source'] === 'help' && str_contains($card['reply'], '5th') && str_contains($card['reply'], $feeText) && $hrefsOf($card) === ['/portal/payments/new'],
+    "due date and the current late fee ({$feeText})");
+check(str_contains($ask('boarder', 'kailan ang bayad?', 'tl', $boarderId)['reply'], 'ika-5'), 'due date in Tagalog');
+check($ask('boarder', 'magkano ang multa?', 'tl', $boarderId)['source'] === 'help', 'a how-it-works question beats a figure on a tie');
+$card = $ask('boarder', 'How do I pay my rent?', 'en', $boarderId);
+check($card['source'] === 'help' && str_contains($card['reply'], 'receipt') && $hrefsOf($card) === ['/portal/payments/new'], 'how to pay explains the receipt and approval');
+$card = $ask('boarder', 'what time is the curfew?', 'en', $boarderId);
+check($card['source'] === 'help' && str_contains($card['reply'], 'not been written') && $card['actions'] === [], 'house rules are not invented');
+check($ask('admin', 'how do I log out?', 'en', 1)['actions'] === [], 'log out is explained without a button');
+check($hrefsOf($ask('admin', 'late fees', 'en', 1)) === ['/admin/penalty-rules'], 'admin late-fee help links Penalties');
+check($hrefsOf($ask('staff', 'I forgot my password', 'en', 2)) === ['/profile'], 'password help links Profile');
+check($hrefsOf($ask('staff', 'what does critical mean?', 'en', 2)) === ['/staff/maintenance'], 'priority help links the queue for staff');
+check($ask('boarder', 'how much do I owe?', 'en', $boarderId)['source'] === 'data', 'figures still answer figure questions');
 
 echo $failures === 0 ? "All assistant checks passed.\n" : "{$failures} assistant check(s) failed.\n";
 exit($failures === 0 ? 0 : 1);
