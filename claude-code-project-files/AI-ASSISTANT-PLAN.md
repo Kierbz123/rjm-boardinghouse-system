@@ -99,7 +99,8 @@ A0–A3 alone already give a fast, reliable assistant that navigates and answers
 | A0 Foundations | Done (3 Oct 2026) | `src/Support/NavRegistry.php` feeds the sidebar and the assistant; `POST /api/assistant/ask` returns answer cards; the old `/api/assistant/chat` route was folded into it. |
 | A1 Navigate + palette | Done (3 Oct 2026) | `Ctrl+K` opens the drawer; live page matches while typing; one "Open …" button per answer; English/Tagalog switch. Works with Ollama stopped. |
 | A2 Role lookups | Done (3 Oct 2026) | Boarder: balance, payment status, repair status, room. Staff: open repairs, SOS, incidents, inquiries. Admin: payments waiting, vacant beds, occupancy, who owes, expenses this month, a boarder by name. Figures come from the same models the pages use. |
-| A3–A7 | Not started | Help library, AI tool-picking, pre-filled forms, accessibility pass, evaluation set. |
+| A5 Prepare actions | Done (4 Oct 2026) | A described problem opens Report a Repair or the incident form already filled in (description plus a guessed category/type); the person reviews and submits. Admin gets a ledger download link (this month or last month). Pay Rent needs no pre-fill: the page already works out the amount. |
+| A3, A4, A6, A7 | Not started | Help library, AI tool-picking, accessibility pass, evaluation set. |
 
 Differences from the plan as written: the rules live in one file, `src/Services/AssistantService.php`, until there are enough tools to split; the palette is the same drawer rather than a second search box; the drawer does not trap focus because it is a side panel, not a blocking dialog (`Esc` closes it and returns focus).
 
@@ -107,6 +108,6 @@ Differences from the plan as written: the rules live in one file, `src/Services/
 
 1. **Go button, not automatic jump.** The assistant shows the page as a button; the person presses it.
 2. **Language is the user's choice.** A language switch in the assistant (English / Tagalog), remembered per browser. The router understands Tagalog and Bisaya keywords in either setting; the switch sets the language of the replies.
-3. **Staff/admin "confirm" actions: not answered, so navigation and pre-filled forms only.** The assistant never changes data; it opens the page where the person does it. Can be revisited after A5.
+3. **Navigation only (confirmed 4 October 2026).** The assistant never changes data, for any role; it opens the page, with the form filled in where that helps, and the person submits it there.
 4. **Model: keep llama3.2:3b.** Measured on this PC (Ryzen 5 6600H, 15.3 GB RAM, RTX 2050 4 GB): loads at 2.9 GB, 80% on the GPU, picks a tool in 0.6–1.3 s. qwen2.5:3b is the same size and would run equally well, but needs a 1.9 GB download and its 3b build has a research-only licence. Revisit only if llama3.2 misses the 90% target in A7.
 5. **No activity log.** No `assistant_log` table, no migration.

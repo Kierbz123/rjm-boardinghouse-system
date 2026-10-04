@@ -153,5 +153,20 @@ foreach (['who owes the most?', 'how many repairs are open?', 'any sos alerts?',
     check(array_diff($hrefsOf($card), $boarderPages) === [], "boarder asking \"{$text}\" is only offered boarder pages");
 }
 
+echo "== Forms are filled in, never submitted (plan A5) ==\n";
+$card = $ask('boarder', 'my faucet is leaking', 'en', $boarderId);
+check($card['actions'] === [['label' => 'Open Report a Repair, filled in', 'href' => '/portal/maintenance/new',
+    'prefill' => ['description' => 'my faucet is leaking', 'category' => 'plumbing']]], 'a described problem opens the repair form filled in, category guessed');
+$card = $ask('boarder', 'sira ang ilaw sa kwarto', 'tl', $boarderId);
+check(($card['actions'][0]['prefill']['category'] ?? '') === 'electrical' && str_contains($card['reply'], 'Submit Request'), 'Tagalog description: electrical, and the person is told to submit');
+check(!isset($ask('boarder', 'How do I submit a maintenance request?', 'en', $boarderId)['actions'][0]['prefill']), 'a how-to question opens the empty form');
+$card = $ask('boarder', 'my roommate is very noisy at night', 'en', $boarderId);
+check(($card['actions'][0]['href'] ?? '') === '/staff/incidents' && ($card['actions'][0]['prefill']['type'] ?? '') === 'Noise Disturbance', 'a complaint opens the incident form with its type');
+check(!isset($ask('staff', 'Log an incident', 'en', 2)['actions'][0]['prefill']), '"Log an incident" alone opens the empty form');
+$card = $ask('admin', 'export the ledger', 'en', 1);
+check($card['source'] === 'data' && str_starts_with($hrefsOf($card)[0], '/admin/ledger/export?from=' . date('Y-m-01')), 'admin gets a ledger download link for this month');
+check(str_contains($hrefsOf($ask('admin', 'ledger last month', 'en', 1))[0], 'from=' . date('Y-m-01', strtotime('first day of last month'))), '"last month" changes the range');
+check(($ask('staff', 'export the ledger', 'en', 2)['source'] ?? '') !== 'data', 'staff gets no ledger link');
+
 echo $failures === 0 ? "All assistant checks passed.\n" : "{$failures} assistant check(s) failed.\n";
 exit($failures === 0 ? 0 : 1);

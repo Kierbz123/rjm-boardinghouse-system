@@ -600,7 +600,8 @@
         // Only same-site paths become buttons, whatever the reply contains.
         const actions = (data.actions || []).filter(a => /^\/(?!\/)/.test(a.href || ''));
         const buttons = actions.map((a, i) =>
-            `<a class="ai-action${i === 0 ? ' ai-action-primary' : ''}" href="${escapeHtml(a.href)}">${escapeHtml(a.label)}</a>`).join('');
+            `<a class="ai-action${i === 0 ? ' ai-action-primary' : ''}" href="${escapeHtml(a.href)}"${
+                a.prefill ? ` data-prefill="${escapeHtml(JSON.stringify(a.prefill))}"` : ''}>${escapeHtml(a.label)}</a>`).join('');
         return escapeHtml(data.reply).replace(/\n/g, '<br>') + (buttons ? `<div class="ai-actions">${buttons}</div>` : '');
     }
 
@@ -706,6 +707,17 @@
 
         input.addEventListener('input', showMatches);
 
+        // A "filled in" button: remember what to put in the form, then let the link open the page.
+        msgBox.addEventListener('click', (e) => {
+            const link = e.target.closest('.ai-action[data-prefill]');
+            if (!link) return;
+            try {
+                sessionStorage.setItem('rjm_prefill', JSON.stringify({
+                    path: link.getAttribute('href'), fields: JSON.parse(link.dataset.prefill)
+                }));
+            } catch (err) { /* the page still opens, just empty */ }
+        });
+
         // Arrow keys move between the box and the matching pages; Enter on a page opens it.
         win.addEventListener('keydown', (e) => {
             if (e.key !== 'ArrowDown' && e.key !== 'ArrowUp') return;
@@ -754,6 +766,30 @@
 
         applyLanguage();
         if (!restoreChatHistory()) appendChatMessage('assistant', t('greeting'));
+    }
+
+    // Fills the form the assistant sent the person to. It never submits: they review and press the button.
+    function applyPrefill() {
+        let wanted;
+        try {
+            wanted = JSON.parse(sessionStorage.getItem('rjm_prefill') || 'null');
+            sessionStorage.removeItem('rjm_prefill');
+        } catch (e) { return; }
+        if (!wanted || wanted.path !== location.pathname) return;
+
+        let first = null;
+        Object.entries(wanted.fields || {}).forEach(([name, value]) => {
+            const field = document.querySelector(`form [name="${CSS.escape(name)}"]`);
+            if (!field || (field.options && ![...field.options].some(o => o.value === value))) return;
+            field.value = value;
+            field.dispatchEvent(new Event('input', { bubbles: true }));
+            field.dispatchEvent(new Event('change', { bubbles: true }));
+            first = first || field;
+        });
+        if (!first) return;
+        first.scrollIntoView({ block: 'center' });
+        first.focus();
+        showToast(lang === 'tl' ? 'Nilagyan na ng assistant. Tingnan muna bago ipasa.' : 'Filled in by the assistant. Review it before you submit.', 'success');
     }
 
     function setChatOpen(open) {
@@ -869,6 +905,7 @@
         initStaffTicketAnalysis();
         initStaffQueueSummary();
         initChatDrawer();
+        applyPrefill();
     });
 
     // Expose AiAssistant globally for inspection or page-specific triggers

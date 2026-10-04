@@ -44,6 +44,7 @@ class AssistantService
         'occupancy' => [['admin'], ['occupancy', 'how full', 'occupied', 'how many boarder', 'ilang boarder']],
         'whoOwes' => [['admin'], ['who owes', 'owes the most', 'unpaid', 'overdue', 'not paid', 'hasn t paid', 'haven t paid', 'may utang', 'di pa bayad']],
         'expensesThisMonth' => [['admin'], ['expenses this month', 'spent this month', 'how much spent', 'total expenses', 'gastos']],
+        'ledger' => [['admin'], ['ledger', 'export', 'csv', 'download report']],
     ];
 
     /**
@@ -62,7 +63,7 @@ class AssistantService
             }
         }
         if ($lookup !== null) {
-            return self::{$lookup}($lang, $userId) + ['source' => 'data'];
+            return self::{$lookup}($lang, $userId, $message) + ['source' => 'data'];
         }
         if ($role === 'admin' && ($card = self::boarderByName($message, $lang))) {
             return $card + ['source' => 'data'];
@@ -71,6 +72,9 @@ class AssistantService
         $pages = NavRegistry::find($role, $message);
         if (!$pages) {
             return null;
+        }
+        if ($card = self::prefill($pages[0], $message, $lang)) {
+            return $card + ['source' => 'pages'];
         }
         // The best match explains itself; up to two other matches are offered as buttons only.
         $actions = [];
@@ -81,6 +85,57 @@ class AssistantService
             'reply' => $pages[0]['about'][$lang],
             'actions' => array_slice(array_values($actions), 0, 3),
             'source' => 'pages',
+        ];
+    }
+
+    /**
+     * Forms the assistant can start from the message itself. `when` = words that show the
+     * message describes a problem (not a how-to question); `pick` guesses one extra field.
+     * The browser fills the form after the person opens it; nothing is submitted for them.
+     */
+    private const PREFILL = [
+        '/portal/maintenance/new' => [
+            'when' => ['broken', 'leak', 'not working', 'clogged', 'damage', 'won t', 'doesn t', 'no water', 'spark', 'flicker', 'stuck',
+                'sira', 'nasira', 'guba', 'naguba', 'tulo', 'barado', 'walang tubig', 'ayaw'],
+            'pick' => ['category', [
+                'plumbing' => ['faucet', 'sink', 'leak', 'toilet', 'pipe', 'drain', 'clog', 'water', 'shower', 'gripo', 'tulo', 'barado', 'tubig', 'lababo', 'inidoro'],
+                'electrical' => ['light', 'outlet', 'socket', 'wire', 'switch', 'spark', 'power', 'breaker', 'bulb', 'ilaw', 'kuryente', 'saksakan'],
+                'appliance' => ['aircon', 'air con', 'electric fan', 'heater', 'dispenser', 'refrigerator', 'fridge', 'bentilador'],
+                'structural' => ['door', 'window', 'wall', 'ceiling', 'roof', 'floor', 'lock', 'pinto', 'bintana', 'kisame', 'bubong', 'sahig', 'dingding'],
+            ]],
+            'reply' => ["Open the form and I'll fill in what you wrote. Check the category, add a photo if you can, then press Submit Request.",
+                'Buksan ang form at ilalagay ko ang isinulat mo. Tingnan ang category, maglagay ng litrato kung kaya, saka pindutin ang Submit Request.'],
+        ],
+        '/staff/incidents' => [
+            'when' => ['noise', 'noisy', 'loud', 'theft', 'stolen', 'fight', 'harass', 'missing', 'lost', 'nakaw', 'ingay', 'maingay', 'nawala', 'nawawala', 'nag away'],
+            'pick' => ['type', [
+                'Noise Disturbance' => ['noise', 'noisy', 'loud', 'ingay', 'maingay'],
+                'Lost Belongings' => ['theft', 'stolen', 'lost', 'missing', 'nakaw', 'nawala', 'nawawala'],
+            ]],
+            'reply' => ["Open the form and I'll fill in what you wrote. Check the details, then submit the report yourself.",
+                'Buksan ang form at ilalagay ko ang isinulat mo. Tingnan ang detalye, saka ikaw ang magpapasa ng report.'],
+        ],
+    ];
+
+    private static function prefill(array $page, string $message, string $lang): ?array
+    {
+        $form = self::PREFILL[$page['href']] ?? null;
+        if (!$form || !NavRegistry::score($message, $form['when'])) {
+            return null;
+        }
+        $fields = ['description' => $message];
+        [$field, $choices] = $form['pick'];
+        $scores = array_filter(array_map(fn ($words) => NavRegistry::score($message, $words), $choices));
+        if ($scores) {
+            $fields[$field] = array_search(max($scores), $scores, true); // first choice wins a tie
+        }
+        return [
+            'reply' => self::t($lang, ...$form['reply']),
+            'actions' => [[
+                'label' => self::t($lang, 'Open %s, filled in', 'Buksan ang %s na may laman', $page['label']),
+                'href' => $page['href'],
+                'prefill' => $fields,
+            ]],
         ];
     }
 
@@ -286,6 +341,21 @@ class AssistantService
                 self::peso(array_sum(array_column($month, 'amount'))), date('F Y'),
                 $lang === 'tl' ? count($month) . ' gastos' : count($month) . (count($month) === 1 ? ' expense' : ' expenses')),
             'actions' => [self::open($lang, 'Expenses', '/admin/expenses')],
+        ];
+    }
+
+    /** A download link, not an action: the ledger export only reads. */
+    private static function ledger(string $lang, int $userId, string $message = ''): array
+    {
+        $last = NavRegistry::score($message, ['last month', 'previous month', 'nakaraang buwan']) > 0;
+        [$from, $to] = $last ? [date('Y-m-01', strtotime('first day of last month')), date('Y-m-t', strtotime('first day of last month'))]
+            : [date('Y-m-01'), date('Y-m-d')];
+        return [
+            'reply' => self::t($lang, 'The ledger downloads as a spreadsheet file (CSV) covering %s to %s. Say "ledger last month" for the month before.',
+                'Mada-download ang ledger bilang spreadsheet file (CSV) mula %s hanggang %s. Sabihin ang "ledger last month" para sa nakaraang buwan.',
+                date('j M Y', strtotime($from)), date('j M Y', strtotime($to))),
+            'actions' => [['label' => self::t($lang, 'Download the ledger', 'I-download ang ledger'), 'href' => "/admin/ledger/export?from={$from}&to={$to}"],
+                self::open($lang, 'Payments', '/admin/payments')],
         ];
     }
 
