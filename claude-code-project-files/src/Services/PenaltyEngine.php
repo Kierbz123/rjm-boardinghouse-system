@@ -13,7 +13,8 @@ use App\Models\Penalty;
  *
  * A month's rent is late from the day after its due date (the 5th, or 30 days
  * after move-in for a new resident — BillingService::dueDate()). Every month that
- * is still unpaid is checked, not only the current one.
+ * is still unpaid is checked, not only the current one, except months that fell
+ * due before these rules went live (BillingService::rulesStartDate()).
  *
  * Safe to run any number of times: each boarder gets at most one late fee per
  * rule per month, whose amount tracks the days late until that month is paid.
@@ -33,6 +34,7 @@ class PenaltyEngine
         }
 
         $pdo = Database::getConnection();
+        $rulesStart = BillingService::rulesStartDate();
         $boarderIds = $pdo->query("SELECT user_id FROM boarder_profiles WHERE status IN ('active', 'on_notice')")
             ->fetchAll(\PDO::FETCH_COLUMN);
 
@@ -49,6 +51,9 @@ class PenaltyEngine
                 $due = new \DateTimeImmutable($dueDate);
                 if ($today <= $due) {
                     continue; // not late yet
+                }
+                if ($rulesStart !== null && $dueDate < $rulesStart) {
+                    continue; // due before these rules went live: never backdate a fee onto it
                 }
                 $daysLate = (int) $due->diff($today)->days;
                 $label = BillingService::periodLabel($period);

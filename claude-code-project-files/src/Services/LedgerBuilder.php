@@ -12,7 +12,7 @@ class LedgerBuilder
     {
         $sql = "SELECT 'Payment received' AS type, p.id, u.name AS user_name, u.email AS user_email,
                        CONCAT('Rent/penalty payment for ', p.billing_period) AS description,
-                       p.claimed_amount AS amount, p.verification_status AS status, p.created_at AS at
+                       COALESCE(p.approved_amount, p.claimed_amount) AS amount, p.verification_status AS status, p.created_at AS at
                 FROM payments p JOIN users u ON u.id = p.boarder_id
                 WHERE p.verification_status IN ('auto-matched','admin-approved') AND p.created_at BETWEEN ? AND ?
                 UNION ALL

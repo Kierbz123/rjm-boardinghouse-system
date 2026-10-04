@@ -188,6 +188,10 @@ $token = csrfFrom(http('GET', '/admin/payments', $jars['admin'])['body']);
 http('POST', "/admin/payments/{$pay['id']}/reject", $jars['admin'], ['csrf_token' => $token]);
 check($pdo->query("SELECT verification_status FROM payments WHERE id = {$pay['id']}")->fetchColumn() === 'pending', 'rejecting without a reason is refused');
 http('POST', "/admin/payments/{$pay['id']}/approve", $jars['admin'], ['csrf_token' => $token]);
+check($pdo->query("SELECT verification_status FROM payments WHERE id = {$pay['id']}")->fetchColumn() === 'pending', 'approving without confirming the receipt amount is refused');
+http('POST', "/admin/payments/{$pay['id']}/approve", $jars['admin'], ['csrf_token' => $token, 'approved_amount' => '2.00']);
+check($pdo->query("SELECT verification_status FROM payments WHERE id = {$pay['id']}")->fetchColumn() === 'pending', 'confirming more than the resident claimed is refused');
+http('POST', "/admin/payments/{$pay['id']}/approve", $jars['admin'], ['csrf_token' => $token, 'approved_amount' => '1.00']);
 check($pdo->query("SELECT verification_status FROM payments WHERE id = {$pay['id']}")->fetchColumn() === 'admin-approved', 'admin approval works');
 $note = $pdo->query("SELECT message FROM notifications WHERE user_id = 3 AND type = 'payment_approved' ORDER BY id DESC LIMIT 1")->fetchColumn();
 check($note !== false && str_contains($note, '₱1.00 GCash payment was approved')
@@ -205,6 +209,25 @@ check($row['verification_status'] === 'rejected' && $row['review_note'] === 'Rec
 $note = $pdo->query("SELECT message FROM notifications WHERE user_id = 3 AND type = 'payment_rejected' ORDER BY id DESC LIMIT 1")->fetchColumn();
 check($note !== false && str_contains($note, 'Receipt is blurry'), 'the resident is told why it was rejected');
 check(str_contains(http('GET', '/portal/payments/new', $jars['boarder'])['body'], 'Reason: Receipt is blurry'), 'Pay Rent history shows the reason');
+
+echo "== Billing credits the amount the admin confirmed, not the one typed (review W1) ==\n";
+$creditBefore = (float) App\Services\BillingService::calculateBalance(3)['credit'];
+$token = csrfFrom(http('GET', '/portal/payments/new', $jars['boarder'])['body']);
+http('POST', '/portal/payments', $jars['boarder'], ['csrf_token' => $token, 'payment_method' => 'gcash',
+    'reference_number' => '10-09 2234455', 'claimed_amount' => '900.00', 'proof' => $receipt]);
+$typed = (int) $pdo->query('SELECT MAX(id) FROM payments WHERE boarder_id = 3')->fetchColumn();
+$adminPage = http('GET', '/admin/payments', $jars['admin'])['body'];
+check(str_contains($adminPage, 'data-testid="reference-reused"') && str_contains($adminPage, "Same reference as payment #{$pay['id']}"),
+    'a reference already used on an approved payment is flagged to the admin (review W3)');
+$token = csrfFrom($adminPage);
+http('POST', "/admin/payments/{$typed}/approve", $jars['admin'], ['csrf_token' => $token, 'approved_amount' => '100.00']);
+$creditAfter = (float) App\Services\BillingService::calculateBalance(3)['credit'];
+check(abs(($creditAfter - $creditBefore) - 100.0) < 0.01, 'resident typed ₱900, receipt showed ₱100: only ₱100 is credited');
+$note = $pdo->query("SELECT message FROM notifications WHERE user_id = 3 AND type = 'payment_approved' ORDER BY id DESC LIMIT 1")->fetchColumn();
+check(str_contains($note, 'You entered ₱900.00; the receipt shows ₱100.00'), 'the resident is told the confirmed amount: ' . $note);
+$token = csrfFrom(http('GET', '/admin/payments', $jars['admin'])['body']);
+http('POST', "/admin/payments/{$typed}/reject", $jars['admin'], ['csrf_token' => $token, 'reason' => str_repeat('x', 161)]);
+check($pdo->query("SELECT verification_status FROM payments WHERE id = {$typed}")->fetchColumn() === 'admin-approved', 'a reason longer than 160 characters is refused (review S1)');
 
 echo "== Upload size limit is explained, not silently dropped ==\n";
 $big = tempnam(sys_get_temp_dir(), 'rjmbig');

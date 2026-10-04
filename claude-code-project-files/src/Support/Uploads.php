@@ -107,7 +107,15 @@ class Uploads
         return '/uploads/' . $subdir . '/' . $filename;
     }
 
-    /** GET /uploads/{subdir}/{file} — streams the file if the logged-in user may see it, else 404. */
+    /** Deletes a file stored by store() when the record it belonged to was never saved. */
+    public static function discard(?string $appPath): void
+    {
+        if ($appPath !== null && preg_match('#^/uploads/(receipts|maintenance)/([a-f0-9]{32}\.(?:jpg|png|webp|mp4))$#', $appPath, $m)) {
+            @unlink(self::DIR . "/{$m[1]}/{$m[2]}");
+        }
+    }
+
+        /** GET /uploads/{subdir}/{file} — streams the file if the logged-in user may see it, else 404. */
     public static function serve(string $subdir, string $filename): void
     {
         $path = "/uploads/{$subdir}/{$filename}";

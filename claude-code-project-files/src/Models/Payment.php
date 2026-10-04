@@ -60,7 +60,11 @@ class Payment
      * balance in the same transaction. Returns false (and changes nothing) when
      * the move isn't allowed, e.g. approving twice.
      */
-    public static function setVerification(int $id, string $status, ?int $verifiedBy = null, ?string $note = null): bool
+    /**
+     * @param ?float $approvedAmount for an approval: the amount the admin confirmed on the
+     *                               receipt (credited instead of the claimed amount)
+     */
+    public static function setVerification(int $id, string $status, ?int $verifiedBy = null, ?string $note = null, ?float $approvedAmount = null): bool
     {
         $pdo = Database::getConnection();
         $pdo->beginTransaction();
@@ -73,8 +77,8 @@ class Payment
                 return false;
             }
 
-            $pdo->prepare('UPDATE payments SET verification_status = ?, verified_by = ?, reviewed_at = NOW(), review_note = ? WHERE id = ?')
-                ->execute([$status, $verifiedBy, $note, $id]);
+            $pdo->prepare('UPDATE payments SET verification_status = ?, verified_by = ?, reviewed_at = NOW(), review_note = ?, approved_amount = ? WHERE id = ?')
+                ->execute([$status, $verifiedBy, $note, $status === 'admin-approved' ? $approvedAmount : null, $id]);
             \App\Services\BillingService::calculateBalance((int) $payment['boarder_id'], $pdo);
 
             $pdo->commit();
@@ -132,7 +136,7 @@ class Payment
     public static function summaryForBoarder(int $boarderId): array
     {
         $sql = "SELECT
-                    COALESCE(SUM(CASE WHEN verification_status IN ('admin-approved', 'auto-matched') THEN claimed_amount ELSE 0 END), 0) AS total_paid,
+                    COALESCE(SUM(CASE WHEN verification_status IN ('admin-approved', 'auto-matched') THEN COALESCE(approved_amount, claimed_amount) ELSE 0 END), 0) AS total_paid,
                     COUNT(*) AS count,
                     COALESCE(SUM(CASE WHEN verification_status = 'pending' THEN 1 ELSE 0 END), 0) AS pending_count
                 FROM payments

@@ -146,3 +146,17 @@ Verified (real output):
 - `php tests/run.php`: **6/6 test files passed**, including new checks for due dates, the 30-day grace, late fees on earlier months, the method requirement, the pop-up shown once, reject-needs-reason, the approve/reject notifications, and 21 MB / 26 MB uploads refused with "The limit is 20 MB".
 - Browser walkthrough (headless Chromium, demo DB): resident moved in 20 Aug sees August ₱1,354.84 and September both overdue since Sep 19, and October due Oct 5. A ₱5,000 GCash receipt gave the pending pop-up; admin approval notified "August 2026 rent ₱1,354.84, September 2026 rent ₱3,500.00, October 2026 rent ₱145.16". A Maya receipt rejected with a reason showed the reason to the resident. A ₱3,400 bank transfer left ₱45.16 credit. The landing page has no curfew and shows the CCTV line. No JavaScript errors.
 - Migration `0025` applied to a fresh database and re-applied over an old `flagged` row: converted to `pending`, no errors.
+
+**Security review (R1)** — `security-reviewer` pass on the diff: no critical findings. Fixed:
+- W1: approving now asks the admin for the amount the receipt shows, which is what billing credits (`payments.approved_amount`, migration `0026`).
+- W2: one-receipt-under-review is checked and inserted under the boarder's row lock (6 simultaneous submissions from 6 logins on a 4-worker server → 1 accepted, no orphaned files).
+- W3: a reused reference number is flagged on the admin list.
+- W4: no new late fees on months due before migration `0025` was applied (`BillingService::rulesStartDate()`).
+- S1: rejection reasons capped at 160 characters so the notification is never cut off.
+- S2: method values escaped.
+
+Left as is: S3 (integer values interpolated in test SQL, not exploitable; matches the existing tests).
+
+**Open question for the owner (S4):** late fees currently keep growing while a receipt is pending review, until an admin approves it. If a receipt submitted before the due date should stop the fee, that is a rule change to decide.
+
+Re-verified after the fixes: `php tests/run.php` 6/6, browser walkthrough 24/24.

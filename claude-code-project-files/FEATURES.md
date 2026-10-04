@@ -39,6 +39,7 @@ Read the section(s) relevant to the phase you're on (see `PHASES.md`). Not prelo
 - **Billing:** rent is charged per month from move-in, the first (and last) month prorated by days stayed. Each month is **due on the 5th**, except that **nothing is due during a resident's first 30 days** (due date = the later of the 5th and move-in + 30 days). See `BillingService::dueDate()`.
 - **Paying:** the resident pays by **GCash, Maya or bank transfer**, then uploads the receipt (JPG/PNG/WEBP, up to 20 MB) with the method, the amount paid and an optional reference number. The amount owed always comes from the system, never from the form.
 - **Review:** every receipt is saved as **pending** and a pop-up tells the resident it is *Pending review*. **An administrator checks every receipt**; nothing is ever approved automatically. An amount that differs from what is owed is marked ⚠ for the admin, not given a different status.
+- **Confirming the amount:** when approving, the admin types the amount the receipt actually shows (pre-filled with what the resident entered, never more). Billing credits that confirmed amount. A reference number already used on another non-rejected payment is flagged to the admin.
 - **Outcome:** on approval the payment clears the **oldest unpaid month first**, then penalties; **anything extra becomes credit** for later months. The resident is notified either way: approval lists what was paid and any credit; rejection carries the admin's (required) reason.
 - Statuses: `pending → admin-approved | rejected` (an approval can be reversed by rejecting it). `auto-matched` and `flagged` only exist on rows from before these rules.
 - Real text/amount extraction from the image (local OCR such as Tesseract) remains an optional upgrade, not assumed.
@@ -49,7 +50,7 @@ Read the section(s) relevant to the phase you're on (see `PHASES.md`). Not prelo
 
 ## 9. Penalty and Fee Automation
 - Configurable rules (e.g. "X/day late after due date," "flat damage fee for category Y") stored in `penalty_rules` so admins can adjust amounts without a code change.
-- A late fee starts the day after a month's own due date (§7), so never during a new resident's first 30 days. Each unpaid month has at most one fee per rule, growing with the days late until that month is paid; re-running the check never stacks fees.
+- A late fee starts the day after a month's own due date (§7), so never during a new resident's first 30 days. Each unpaid month has at most one fee per rule, growing with the days late until that month is paid; re-running the check never stacks fees. Months that fell due before these rules went live (migration `0025`) are never given a new backdated fee.
 - A triggered check (on admin login and/or a manual "run penalty check" button — no cron guarantee on localhost) applies rules and logs the resulting penalty.
 
 ## 10. Status Life System

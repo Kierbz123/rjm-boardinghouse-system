@@ -117,6 +117,10 @@ check($b['credit'], 500.0, 'waived penalty does not eat credit');
 check(Penalty::find($waived)['status'], 'paid', 'waiver stays paid');
 
 echo "== Late fees never stack ==\n";
+// The test database applied migration 0025 today; pretend these rules have always applied
+// so earlier months can be tested, then check the cut-off itself further down.
+$setRulesStart = fn (string $date) => $pdo->prepare("UPDATE schema_migrations SET applied_at = ? WHERE filename = '0025_add_rent_due_dates_and_payment_method.sql'")->execute([$date . ' 00:00:00']);
+$setRulesStart('2000-01-01');
 PenaltyRule::create('Late fee ' . mt_rand(), 'late_per_day', 10.00);
 $perDay = array_sum(array_map(fn ($r) => (float) $r['amount'],
     array_filter(PenaltyRule::allActive(), fn ($r) => $r['condition_type'] === 'late_per_day')));
@@ -154,6 +158,14 @@ check($fees($newcomer), 0.0, 'a new resident gets no late fee in their first 30 
 $graceEnd = (new DateTimeImmutable(date('Y-m-01')))->modify('+30 days');
 PenaltyEngine::runCheck($graceEnd->modify('+2 days'));
 check($fees($newcomer, $thisPeriod), $perDay * 2, 'two days after the 30-day grace ends: 2 days late');
+
+echo "== No backdated late fees on months due before the rules went live (review W4) ==\n";
+$setRulesStart(date('Y-m-01'));
+$arrears = $newResident($twoMonthsAgo->format('Y-m-d'));
+PenaltyEngine::runCheck(new DateTimeImmutable(date('Y-m-12')));
+check($fees($arrears, $lastPeriod), 0.0, 'last month was due before the start date: no new fee');
+check($fees($arrears, $thisPeriod), $perDay * 7, 'this month (due after the start date) is charged normally');
+$setRulesStart('2000-01-01');
 
 echo "== Past months keep the price they were billed at ==\n";
 Room::update($roomId, 'B-upd-' . mt_rand(), '2', 1, 4000.00);

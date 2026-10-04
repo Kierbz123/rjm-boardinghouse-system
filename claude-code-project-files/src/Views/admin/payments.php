@@ -11,7 +11,7 @@ $verifiedPaymentsCount = count(array_filter($payments ?? [], fn($p) => in_array(
 $rejectedPaymentsCount = count(array_filter($payments ?? [], fn($p) => ($p['verification_status'] ?? '') === 'rejected'));
 
 $totalCollected = array_sum(array_map(
-    fn($p) => in_array($p['verification_status'] ?? '', ['auto-matched', 'admin-approved'], true) ? (float) ($p['claimed_amount'] ?? 0) : 0,
+    fn($p) => in_array($p['verification_status'] ?? '', ['auto-matched', 'admin-approved'], true) ? (float) ($p['approved_amount'] ?? $p['claimed_amount'] ?? 0) : 0,
     $payments ?? []
 ));
 ?>
@@ -201,6 +201,14 @@ $totalCollected = array_sum(array_map(
                                             · <span class="font-mono">Ref <?= htmlspecialchars($p['reference_number']) ?></span>
                                         <?php endif; ?>
                                     </div>
+                                    <?php if (!empty($p['reference_also_on'])): ?>
+                                        <div class="text-caption font-semibold" style="color: #8a4b08;" data-testid="reference-reused">
+                                            ⚠ Same reference as payment <?= implode(', ', array_map(fn ($rid) => '#' . (int) $rid, $p['reference_also_on'])) ?>
+                                        </div>
+                                    <?php endif; ?>
+                                    <?php if ($p['approved_amount'] !== null && abs((float) $p['approved_amount'] - $claimedVal) > 0.004): ?>
+                                        <div class="text-caption text-neutral-500">Receipt confirmed: ₱<?= number_format((float) $p['approved_amount'], 2) ?></div>
+                                    <?php endif; ?>
                                     <?php if (!empty($p['allocations'])): ?>
                                         <div class="mt-1 flex flex-wrap gap-1">
                                             <?php foreach ($p['allocations'] as $al): ?>
@@ -243,7 +251,7 @@ $totalCollected = array_sum(array_map(
                                 <td class="p-3">
                                     <?php if (in_array($status, ['pending', 'flagged'], true)): ?>
                                         <div class="action-cluster" style="display:flex;align-items:center;gap:0.375rem;">
-                                            <form method="post" action="/admin/payments/<?= (int) $p['id'] ?>/approve" class="inline payment-approve-form" data-payment-id="<?= (int) $p['id'] ?>" data-boarder-name="<?= htmlspecialchars($p['boarder_name']) ?>">
+                                            <form method="post" action="/admin/payments/<?= (int) $p['id'] ?>/approve" class="inline payment-approve-form" data-payment-id="<?= (int) $p['id'] ?>" data-boarder-name="<?= htmlspecialchars($p['boarder_name']) ?>" data-claimed="<?= number_format($claimedVal, 2, '.', '') ?>" data-expected="<?= number_format($expectedVal, 2, '.', '') ?>">
                                                 <?= \App\Support\Csrf::field() ?>
                                                 <button type="button"
                                                         class="btn btn-primary !py-1 !px-2.5 !text-xs cursor-pointer shadow-xs payment-approve-btn"
@@ -348,7 +356,14 @@ $totalCollected = array_sum(array_map(
         </div>
         <h3 id="payment-approve-heading" style="font-size: 1.1rem; font-weight: 700; color: #0a0a0a; letter-spacing: -0.01em; margin: 0 0 0.375rem;">Approve Payment?</h3>
         <p id="payment-approve-subtext" style="font-size: 0.8rem; color: #6b6b6b; line-height: 1.6; margin: 0 0 1.5rem; padding: 0 0.5rem;">Are you sure you want to approve this payment? This will mark it as verified.</p>
-        <p id="payment-approve-details" style="font-size: 0.75rem; color: #9d9b97; line-height: 1.5; margin: 0 0 1.5rem; padding: 0 0.5rem; font-style: italic;"></p>
+        <p id="payment-approve-details" style="font-size: 0.75rem; color: #9d9b97; line-height: 1.5; margin: 0 0 0.75rem; padding: 0 0.5rem; font-style: italic;"></p>
+        <p id="payment-approve-amounts" style="font-size: 0.8rem; color: #3f3f3f; line-height: 1.5; margin: 0 0 0.75rem;"></p>
+        <p id="payment-approve-over" role="alert" hidden style="font-size: 0.75rem; color: #8a4b08; background: #fff7e6; border-radius: 0.5rem; padding: 0.5rem; margin: 0 0 0.75rem;">
+            The resident entered more than they owed. Check the receipt: anything above what is owed becomes credit.
+        </p>
+        <label for="payment-approve-amount" style="display: block; text-align: left; font-size: 0.75rem; font-weight: 600; color: #3f3f3f; margin-bottom: 0.25rem;">Amount shown on the receipt (₱)</label>
+        <input id="payment-approve-amount" type="number" step="0.01" min="0.01" class="input w-full" style="font-size: 0.85rem; margin-bottom: 0.25rem;">
+        <p id="payment-approve-amount-error" role="alert" hidden style="text-align: left; font-size: 0.75rem; color: #912018; margin: 0 0 0.75rem;"></p>
         <div style="display: flex; align-items: center; justify-content: flex-end; gap: 0.75rem; padding-top: 0.25rem;">
             <button type="button" id="payment-modal-cancel" style="padding: 0.5rem 1rem; border-radius: 0.75rem; font-size: 0.75rem; font-weight: 600; color: #6b6b6b; background: transparent; border: none; cursor: pointer; transition: all 150ms;">
                 Cancel
@@ -371,7 +386,7 @@ $totalCollected = array_sum(array_map(
         <p id="payment-reject-subtext" style="font-size: 0.8rem; color: #6b6b6b; line-height: 1.6; margin: 0 0 1rem; padding: 0 0.5rem;">The resident is notified with your reason so they can fix the receipt and upload it again.</p>
         <p id="payment-reject-details" style="font-size: 0.75rem; color: #9d9b97; line-height: 1.5; margin: 0 0 1rem; padding: 0 0.5rem; font-style: italic;"></p>
         <label for="payment-reject-reason" style="display: block; text-align: left; font-size: 0.75rem; font-weight: 600; color: #3f3f3f; margin-bottom: 0.25rem;">Reason (shown to the resident)</label>
-        <textarea id="payment-reject-reason" rows="3" maxlength="255" class="input w-full" style="font-size: 0.8rem; margin-bottom: 0.25rem;"
+        <textarea id="payment-reject-reason" rows="3" maxlength="160" class="input w-full" style="font-size: 0.8rem; margin-bottom: 0.25rem;"
                   placeholder="e.g. Amount on the receipt is ₱3,000, not ₱3,500. / Receipt is blurry."></textarea>
         <p id="payment-reject-reason-error" role="alert" hidden style="text-align: left; font-size: 0.75rem; color: #912018; margin: 0 0 0.75rem;">Please write a short reason (at least 3 characters).</p>
         <div style="display: flex; align-items: center; justify-content: flex-end; gap: 0.75rem; padding-top: 0.25rem;">
@@ -487,6 +502,16 @@ document.addEventListener('DOMContentLoaded', () => {
         if (detailsEl) {
             detailsEl.textContent = `Payment #${paymentId} for ${boarderName}`;
         }
+        const claimed = parseFloat(form.getAttribute('data-claimed') || '0');
+        const expected = parseFloat(form.getAttribute('data-expected') || '0');
+        const peso = v => '₱' + v.toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        document.getElementById('payment-approve-amounts').textContent =
+            `Resident entered ${peso(claimed)} · owed ${peso(expected)} when submitted`;
+        document.getElementById('payment-approve-over').hidden = !(claimed > expected + 0.004);
+        const amountInput = document.getElementById('payment-approve-amount');
+        amountInput.value = claimed.toFixed(2);
+        amountInput.max = claimed.toFixed(2);
+        document.getElementById('payment-approve-amount-error').hidden = true;
         if (approveConfirmBtn) {
             approveConfirmBtn.disabled = false;
             approveConfirmBtn.style.opacity = '';
@@ -525,7 +550,25 @@ document.addEventListener('DOMContentLoaded', () => {
     if (approveConfirmBtn) {
         approveConfirmBtn.addEventListener('click', () => {
             if (currentApproveForm) {
+                const amountInput = document.getElementById('payment-approve-amount');
+                const amountError = document.getElementById('payment-approve-amount-error');
+                const claimed = parseFloat(currentApproveForm.getAttribute('data-claimed') || '0');
+                const amount = parseFloat(amountInput.value);
+                if (!(amount > 0) || amount > claimed + 0.004) {
+                    amountError.textContent = `Enter the amount on the receipt (up to ₱${claimed.toFixed(2)} the resident entered).`;
+                    amountError.hidden = false;
+                    amountInput.focus();
+                    return;
+                }
                 const formToSubmit = currentApproveForm;
+                let hiddenAmount = formToSubmit.querySelector('input[name="approved_amount"]');
+                if (!hiddenAmount) {
+                    hiddenAmount = document.createElement('input');
+                    hiddenAmount.type = 'hidden';
+                    hiddenAmount.name = 'approved_amount';
+                    formToSubmit.appendChild(hiddenAmount);
+                }
+                hiddenAmount.value = amount.toFixed(2);
                 approveConfirmBtn.disabled = true;
                 approveConfirmBtn.style.opacity = '0.7';
                 approveConfirmBtn.style.cursor = 'not-allowed';

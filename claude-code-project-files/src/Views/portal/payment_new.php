@@ -166,8 +166,8 @@ $methods = \App\Models\Payment::METHODS;
                     <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
                         <?php foreach ($methods as $value => $label): ?>
                             <label class="flex items-center gap-2 cursor-pointer" style="padding: 0.6rem 0.75rem; border: 1px solid #e6e5e2; border-radius: 0.5rem; background: #fff;">
-                                <input type="radio" name="payment_method" value="<?= $value ?>" required data-testid="method-<?= $value ?>">
-                                <span class="text-sm font-semibold text-neutral-800"><?= $label ?></span>
+                                <input type="radio" name="payment_method" value="<?= htmlspecialchars($value) ?>" required data-testid="method-<?= htmlspecialchars($value) ?>">
+                                <span class="text-sm font-semibold text-neutral-800"><?= htmlspecialchars($label) ?></span>
                             </label>
                         <?php endforeach; ?>
                     </div>

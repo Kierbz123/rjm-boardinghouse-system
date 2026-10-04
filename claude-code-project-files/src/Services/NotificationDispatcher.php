@@ -208,7 +208,7 @@ class NotificationDispatcher
      */
     public static function paymentApproved(int $boarderId, array $payment, array $allocations, array $balance): void
     {
-        $paid = (float) $payment['claimed_amount'];
+        $paid = (float) ($payment['approved_amount'] ?? $payment['claimed_amount']);
         $parts = [];
         $applied = 0.0;
         foreach ($allocations as $al) {
@@ -217,7 +217,10 @@ class NotificationDispatcher
                 ? BillingService::periodLabel($al['reference_id']) . ' rent'
                 : 'late fee') . ' ₱' . number_format((float) $al['amount'], 2);
         }
-        $message = 'Your ' . self::describePayment($payment) . ' payment was approved.';
+        $message = 'Your ' . self::describePayment(['claimed_amount' => $paid] + $payment) . ' payment was approved.';
+        if (abs($paid - (float) $payment['claimed_amount']) > 0.004) {
+            $message .= ' (You entered ₱' . number_format((float) $payment['claimed_amount'], 2) . '; the receipt shows ₱' . number_format($paid, 2) . '.)';
+        }
         if ($parts) {
             $message .= ' Applied to: ' . implode(', ', $parts) . '.';
         }

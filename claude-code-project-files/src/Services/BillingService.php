@@ -90,6 +90,19 @@ class BillingService
         }
     }
 
+    /**
+     * The day these due-date rules went live (when migration 0025 was applied). Late
+     * fees are only charged on months due from then on, so the first penalty run after
+     * an upgrade never backdates fees onto months that were already overdue under the
+     * old rules (security review W4). Null when the date isn't recorded.
+     */
+    public static function rulesStartDate(): ?string
+    {
+        $stmt = Database::getConnection()->prepare('SELECT DATE(applied_at) FROM schema_migrations WHERE filename = ?');
+        $stmt->execute(['0025_add_rent_due_dates_and_payment_method.sql']);
+        return $stmt->fetchColumn() ?: null;
+    }
+
     /** "2026-10" → "October 2026". */
     public static function periodLabel(string $period): string
     {
@@ -182,14 +195,15 @@ class BillingService
         ');
 
         $placeholders = implode(',', array_fill(0, count(self::APPROVED), '?'));
-        $stmt = $pdo->prepare("SELECT id, claimed_amount FROM payments
+        // The admin-confirmed amount; payments approved before that existed keep their claimed amount.
+        $stmt = $pdo->prepare("SELECT id, COALESCE(approved_amount, claimed_amount) AS credited FROM payments
                                WHERE boarder_id = ? AND verification_status IN ({$placeholders}) ORDER BY id");
         $stmt->execute(array_merge([$boarderId], self::APPROVED));
 
         $credit = 0.0;
         $i = 0;
         foreach ($stmt->fetchAll() as $payment) {
-            $left = (float) $payment['claimed_amount'];
+            $left = (float) $payment['credited'];
             while ($left > 0.004 && $i < count($obligations)) {
                 $o = &$obligations[$i];
                 $take = round(min($left, $o['due'] - $o['paid']), 2);

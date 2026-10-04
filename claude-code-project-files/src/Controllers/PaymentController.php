@@ -80,12 +80,31 @@ class PaymentController
             self::backToForm('Please attach a photo or screenshot of your receipt.');
         }
 
-        // The amount owed is the server's figure, never the form's. The payment is filed
-        // under the oldest unpaid month, which is the month an approval settles first.
-        $balance = BillingService::calculateBalance($boarderId);
-        $period = array_key_first($balance['unpaid_rent']) ?? date('Y-m');
-        $paymentId = Payment::create($boarderId, $period, $balance['total_outstanding'], $claimed, $proofPath,
-            $method, $reference !== '' ? $reference : null);
+        // Check and insert under the boarder's row lock (the one BillingService uses), so two
+        // requests at the same moment cannot both get past "one receipt under review".
+        $pdo = Database::getConnection();
+        $pdo->beginTransaction();
+        try {
+            $pdo->prepare('SELECT user_id FROM boarder_profiles WHERE user_id = ? FOR UPDATE')->execute([$boarderId]);
+            if (Payment::hasOpenSubmission($boarderId)) {
+                $pdo->rollBack();
+                Uploads::discard($proofPath);
+                self::backToForm('You already have a receipt waiting for review. You will be notified once an administrator checks it.');
+            }
+            // The amount owed is the server's figure, never the form's. The payment is filed
+            // under the oldest unpaid month, which is the month an approval settles first.
+            $balance = BillingService::calculateBalance($boarderId, $pdo);
+            $period = array_key_first($balance['unpaid_rent']) ?? date('Y-m');
+            $paymentId = Payment::create($boarderId, $period, $balance['total_outstanding'], $claimed, $proofPath,
+                $method, $reference !== '' ? $reference : null);
+            $pdo->commit();
+        } catch (\Throwable $e) {
+            if ($pdo->inTransaction()) {
+                $pdo->rollBack();
+            }
+            Uploads::discard($proofPath);
+            throw $e;
+        }
 
         // Admins only — staff have no access to payments.
         NotificationDispatcher::paymentSubmitted($paymentId, $boarderId, $period, $claimed);
@@ -112,8 +131,22 @@ class PaymentController
         $payments = Payment::all();
         // Attach payment allocation breakdown to each payment
         $allocations = PaymentAllocationService::allGroupedByPayment();
+
+        // A receipt reference already used on another payment that wasn't rejected is
+        // shown to the admin, so the same GCash/Maya/bank receipt isn't credited twice.
+        $byReference = [];
+        foreach ($payments as $p) {
+            if (!empty($p['reference_number']) && $p['verification_status'] !== 'rejected') {
+                $key = $p['payment_method'] . '|' . strtoupper(preg_replace('/[\s\-]+/', '', $p['reference_number']));
+                $byReference[$key][] = (int) $p['id'];
+            }
+        }
         foreach ($payments as &$p) {
             $p['allocations'] = $allocations[(int) $p['id']] ?? [];
+            $key = $p['payment_method'] . '|' . strtoupper(preg_replace('/[\s\-]+/', '', (string) $p['reference_number']));
+            $p['reference_also_on'] = empty($p['reference_number'])
+                ? []
+                : array_values(array_diff($byReference[$key] ?? [], [(int) $p['id']]));
         }
         unset($p);
 
@@ -136,7 +169,17 @@ class PaymentController
             exit;
         }
 
-        if (!Payment::setVerification($paymentId, 'admin-approved', (int) $_SESSION['user_id'])) {
+        // The admin types the amount the receipt actually shows; that is what gets credited.
+        // It can't exceed what the resident claimed: a larger receipt means a new submission.
+        $approved = round((float) ($_POST['approved_amount'] ?? 0), 2);
+        if ($approved <= 0 || $approved > (float) $payment['claimed_amount']) {
+            $_SESSION['flash_error'] = 'Enter the amount shown on the receipt (more than ₱0 and no more than the ₱'
+                . number_format((float) $payment['claimed_amount'], 2) . ' the resident entered).';
+            header('Location: /admin/payments');
+            exit;
+        }
+
+        if (!Payment::setVerification($paymentId, 'admin-approved', (int) $_SESSION['user_id'], null, $approved)) {
             $_SESSION['flash_error'] = "Payment #{$paymentId} is already approved.";
             header('Location: /admin/payments');
             exit;
@@ -146,7 +189,7 @@ class PaymentController
         $balance = BillingService::calculateBalance($boarderId);
         NotificationDispatcher::paymentApproved(
             $boarderId,
-            $payment,
+            ['approved_amount' => $approved] + $payment,
             PaymentAllocationService::getAllocationsForPayment($paymentId),
             $balance
         );
@@ -166,8 +209,9 @@ class PaymentController
         }
         // The resident is told why, so they can fix the receipt and upload it again.
         $reason = trim((string) ($_POST['reason'] ?? ''));
-        if (mb_strlen($reason) < 3 || mb_strlen($reason) > 255) {
-            $_SESSION['flash_error'] = 'Give a reason (3 to 255 characters) so the resident knows what to fix.';
+        // 160 keeps the whole reason inside the 255-character notification.
+        if (mb_strlen($reason) < 3 || mb_strlen($reason) > 160) {
+            $_SESSION['flash_error'] = 'Give a reason (3 to 160 characters) so the resident knows what to fix.';
             header('Location: /admin/payments');
             exit;
         }

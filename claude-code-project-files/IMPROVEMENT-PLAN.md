@@ -23,7 +23,7 @@ These suggestions add to the fixes already made in batches B0–B7 (see `FINAL-R
 
 ## Two database changes that improve several features at once
 
-1. **Rent charges with due dates.** **Done**, plus due dates **Done now**. `rent_charges` holds one row per boarder per month (`period`, `monthly_rate`, `amount`, `due_date`). `payment_allocations` records which months each approved payment cleared. The rent amount comes from the system, never from the boarder's form (BE-01). Late fees are one per month per rule (BE-03). Unpaid months stay visible as arrears. **To do:** a database UNIQUE guard against two open receipts for one resident (today it's an application rule: one receipt under review at a time).
+1. **Rent charges with due dates.** **Done**, plus due dates **Done now**. `rent_charges` holds one row per boarder per month (`period`, `monthly_rate`, `amount`, `due_date`). `payment_allocations` records which months each approved payment cleared. The rent amount comes from the system, never from the boarder's form (BE-01). Late fees are one per month per rule (BE-03). Unpaid months stay visible as arrears. **Done now:** one receipt under review per resident, checked under a row lock (6 simultaneous submissions → 1 accepted). **To do:** decide whether late fees should pause while a receipt waits for review (see `PHASES.md`, R1 open question).
 2. **A `bed_assignments` history table.** **To do.** Who was in which bed, from when to when (`boarder_id, bed_id, start_date, end_date`; the open row is the current bed; one open row per boarder and per bed). The occupancy trend can then be calculated from move-in/move-out history instead of daily snapshots (DB-12), and each resident gets a move history. Bed moves are already all-or-nothing (B4).
 
 ## Per feature and page
@@ -58,7 +58,7 @@ These suggestions add to the fixes already made in batches B0–B7 (see `FINAL-R
   - the *Pending review* pop-up
   - statuses shown as Pending review / Approved / Rejected, with the reason
   - credit shown
-- **Admin (`/admin/payments`):** **Done now:** method and reference beside the amount; ⚠ when the amount differs from what was owed; rejecting requires a reason, which the resident sees. **To do:** a larger receipt preview beside the amounts; filter by month.
+- **Admin (`/admin/payments`):** **Done now:** method and reference beside the amount; ⚠ when the amount differs from what was owed; approving asks for the amount on the receipt, and billing credits that rather than what the resident typed; a warning when a reference number was already used on another payment; rejecting requires a reason (up to 160 characters), which the resident sees. **To do:** a larger receipt preview beside the amounts; filter by month.
 - **Back-end:** **Done:** never auto-approved. **Done now:** always "pending" (no separate "flagged" status); notifications on approve and reject; clear upload errors (BE-16).
 - **Database:** **Done now:** `payment_method`, `reference_number`, `reviewed_at`, `review_note`; older "flagged" receipts moved to "pending".
 
