@@ -37,9 +37,16 @@ class PaymentController
         require __DIR__ . '/../Views/portal/payment_new.php';
     }
 
-    /** Feature 7 — Proof of Payment Verifier. Fail-closed if the verification service fails. */
+    /**
+     * Feature 7 — the resident uploads a GCash, Maya or bank-transfer receipt. It is
+     * always saved as "pending": an administrator checks every receipt, and only an
+     * approved payment touches the balance (oldest unpaid month first, extra = credit).
+     */
     public static function create(): void
     {
+        if (Uploads::requestTooLarge()) {
+            self::backToForm(Uploads::tooLargeMessage());
+        }
         if (!Csrf::verify($_POST['csrf_token'] ?? null)) {
             http_response_code(400);
             echo 'Invalid session, please retry.';
@@ -47,41 +54,49 @@ class PaymentController
         }
 
         $boarderId = (int) $_SESSION['user_id'];
-        $billingPeriod = (string) ($_POST['billing_period'] ?? '');
+        $method = (string) ($_POST['payment_method'] ?? '');
+        $reference = trim((string) ($_POST['reference_number'] ?? ''));
         $claimed = round((float) ($_POST['claimed_amount'] ?? 0), 2);
 
-        // A real month, no further than one month ahead (paying next month's rent early is fine).
-        $nextMonth = date('Y-m', strtotime('first day of next month'));
-        if (!preg_match('/^\d{4}-(0[1-9]|1[0-2])$/', $billingPeriod) || $billingPeriod > $nextMonth || $billingPeriod < '2000-01') {
-            self::backToForm('Please choose a valid billing month.');
+        if (!isset(Payment::METHODS[$method])) {
+            self::backToForm('Choose how you paid: GCash, Maya or bank transfer.');
+        }
+        if (mb_strlen($reference) > 50 || !preg_match('/^[A-Za-z0-9 \-]*$/', $reference)) {
+            self::backToForm('The reference number can only have letters, numbers, spaces and dashes (up to 50).');
         }
         if ($claimed <= 0 || $claimed > 1000000) {
             self::backToForm('Enter the amount shown on your receipt.');
         }
-        if (empty($_FILES['proof']['tmp_name'])) {
-            self::backToForm('Please attach a photo or screenshot of your receipt.');
-        }
-        if (Payment::hasOpenSubmission($boarderId, $billingPeriod)) {
-            self::backToForm("You already have a payment for {$billingPeriod} waiting for review.");
+        if (Payment::hasOpenSubmission($boarderId)) {
+            self::backToForm('You already have a receipt waiting for review. You will be notified once an administrator checks it.');
         }
 
         try {
-            $proofPath = Uploads::store($_FILES['proof'], 'receipts');
+            $proofPath = Uploads::store($_FILES['proof'] ?? [], 'receipts');
         } catch (\RuntimeException $e) {
             self::backToForm($e->getMessage());
         }
+        if ($proofPath === null) {
+            self::backToForm('Please attach a photo or screenshot of your receipt.');
+        }
 
-        // The amount due is the server's figure, never the form's. Every submission waits
-        // for an admin; a mismatch is only flagged so the admin looks closer.
-        $expected = BillingService::calculateBalance($boarderId)['total_outstanding'];
-        $status = abs($expected - $claimed) < 0.01 ? 'pending' : 'flagged';
-        $paymentId = Payment::create($boarderId, $billingPeriod, $expected, $claimed, $proofPath, $status);
+        // The amount owed is the server's figure, never the form's. The payment is filed
+        // under the oldest unpaid month, which is the month an approval settles first.
+        $balance = BillingService::calculateBalance($boarderId);
+        $period = array_key_first($balance['unpaid_rent']) ?? date('Y-m');
+        $paymentId = Payment::create($boarderId, $period, $balance['total_outstanding'], $claimed, $proofPath,
+            $method, $reference !== '' ? $reference : null);
 
-        // Notify admins about new payment submission (Staff is NOT notified - financial isolation)
-        NotificationDispatcher::paymentSubmitted($paymentId, $boarderId, $billingPeriod, $claimed);
+        // Admins only — staff have no access to payments.
+        NotificationDispatcher::paymentSubmitted($paymentId, $boarderId, $period, $claimed);
 
-        $_SESSION['flash_success'] = 'Payment submitted. An administrator will review your receipt.';
-        header('Location: /portal/dashboard');
+        // Shown once as a pop-up on the next page (see portal/payment_new.php).
+        $_SESSION['payment_submitted'] = [
+            'id' => $paymentId,
+            'amount' => $claimed,
+            'method' => Payment::methodLabel($method),
+        ];
+        header('Location: /portal/payments/new');
         exit;
     }
 
@@ -128,26 +143,14 @@ class PaymentController
         }
 
         $boarderId = (int) $payment['boarder_id'];
-        $allocations = PaymentAllocationService::getAllocationsForPayment($paymentId);
-        $rentAllocated = 0.0;
-        $settledPenalties = [];
-        foreach ($allocations as $al) {
-            if ($al['allocation_type'] === 'rent') {
-                $rentAllocated += (float) $al['amount'];
-            } elseif ($al['allocation_type'] === 'penalty') {
-                $settledPenalties[] = $al;
-            }
-        }
         $balance = BillingService::calculateBalance($boarderId);
-        $remainingBalance = (float) $balance['total_outstanding'];
-
-        NotificationDispatcher::combinedPaymentApproved(
+        NotificationDispatcher::paymentApproved(
             $boarderId,
-            (float) $payment['claimed_amount'],
-            $rentAllocated,
-            $settledPenalties,
-            $remainingBalance
+            $payment,
+            PaymentAllocationService::getAllocationsForPayment($paymentId),
+            $balance
         );
+        $remainingBalance = (float) $balance['total_outstanding'];
 
         $_SESSION['flash_success'] = 'Payment approved and allocated successfully. Boarder balance updated to ₱' . number_format($remainingBalance, 2) . '.';
         header('Location: /admin/payments');
@@ -161,16 +164,22 @@ class PaymentController
             echo 'Invalid session, please retry.';
             return;
         }
+        // The resident is told why, so they can fix the receipt and upload it again.
+        $reason = trim((string) ($_POST['reason'] ?? ''));
+        if (mb_strlen($reason) < 3 || mb_strlen($reason) > 255) {
+            $_SESSION['flash_error'] = 'Give a reason (3 to 255 characters) so the resident knows what to fix.';
+            header('Location: /admin/payments');
+            exit;
+        }
         $payment = Payment::find((int) $id);
-        if (!$payment || !Payment::setVerification((int) $id, 'rejected', (int) $_SESSION['user_id'])) {
+        if (!$payment || !Payment::setVerification((int) $id, 'rejected', (int) $_SESSION['user_id'], $reason)) {
             $_SESSION['flash_error'] = 'Payment not found or already rejected.';
             header('Location: /admin/payments');
             exit;
         }
 
-        NotificationDispatcher::paymentRejected((int) $payment['boarder_id'], $payment['billing_period']);
-
         $wasApproved = in_array($payment['verification_status'], BillingService::APPROVED, true);
+        NotificationDispatcher::paymentRejected((int) $payment['boarder_id'], $payment, $reason, $wasApproved);
         $_SESSION['flash_success'] = $wasApproved
             ? 'Approved payment reversed. The boarder\'s balance has been recalculated.'
             : 'Payment rejected.';

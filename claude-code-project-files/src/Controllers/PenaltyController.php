@@ -234,7 +234,7 @@ class PenaltyController
         $new = count(array_filter($applied, fn ($a) => $a['new']));
         $_SESSION['flash_info'] = $applied
             ? "{$new} new late fee(s); " . (count($applied) - $new) . ' existing fee(s) updated to today\'s days late.'
-            : 'No late fees due (before the ' . PenaltyEngine::DUE_DAY . 'th, or everyone has paid this month\'s rent).';
+            : 'No late fees due: no unpaid month is past its due date (the 5th, or 30 days after move-in for new residents).';
         header('Location: /admin/penalty-rules');
         exit;
     }
@@ -246,14 +246,16 @@ class PenaltyController
             echo 'Invalid session, please retry.';
             return;
         }
-        $billingPeriod = date('Y-m');
         $pdo = Database::getConnection();
         $active = $pdo->query("SELECT user_id FROM boarder_profiles WHERE status IN ('active', 'on_notice')")->fetchAll();
         $sent = 0;
         foreach ($active as $b) {
             $boarderId = (int) $b['user_id'];
-            if ((BillingService::calculateBalance($boarderId, $pdo)['unpaid_rent'][$billingPeriod] ?? 0) > 0) {
-                NotificationDispatcher::rentDue($boarderId, $billingPeriod);
+            $balance = BillingService::calculateBalance($boarderId, $pdo);
+            // Remind about the oldest unpaid month, with its own due date (new residents get 30 days).
+            $period = array_key_first($balance['unpaid_rent']);
+            if ($period !== null) {
+                NotificationDispatcher::rentDue($boarderId, $period, $balance['unpaid_rent'][$period], $balance['rent_due_dates'][$period]);
                 $sent++;
             }
         }

@@ -6,15 +6,46 @@ use App\Database;
 
 class Payment
 {
-    /** New submissions always wait for an admin: 'pending' when the amount matches what's owed, 'flagged' when it doesn't. */
-    public static function create(int $boarderId, string $billingPeriod, float $expected, float $claimed, ?string $proofPath, string $status = 'pending'): int
-    {
+    /** How a resident may pay, as stored => as shown. */
+    public const METHODS = ['gcash' => 'GCash', 'maya' => 'Maya', 'bank_transfer' => 'Bank transfer'];
+
+    /**
+     * Every new submission waits for an admin as 'pending'. An amount that differs
+     * from what is owed is shown to the admin beside it, never as a different status.
+     */
+    public static function create(
+        int $boarderId,
+        string $billingPeriod,
+        float $expected,
+        float $claimed,
+        ?string $proofPath,
+        ?string $method = null,
+        ?string $referenceNumber = null
+    ): int {
         $stmt = Database::getConnection()->prepare(
-            'INSERT INTO payments (boarder_id, billing_period, expected_amount, claimed_amount, proof_path, verification_status)
-             VALUES (?, ?, ?, ?, ?, ?)'
+            'INSERT INTO payments (boarder_id, billing_period, expected_amount, claimed_amount, payment_method, reference_number, proof_path, verification_status)
+             VALUES (?, ?, ?, ?, ?, ?, ?, "pending")'
         );
-        $stmt->execute([$boarderId, $billingPeriod, $expected, $claimed, $proofPath, $status === 'flagged' ? 'flagged' : 'pending']);
+        $stmt->execute([$boarderId, $billingPeriod, $expected, $claimed,
+            isset(self::METHODS[$method]) ? $method : null, $referenceNumber, $proofPath]);
         return (int) Database::getConnection()->lastInsertId();
+    }
+
+    /** "gcash" → "GCash"; older payments recorded no method. */
+    public static function methodLabel(?string $method): string
+    {
+        return self::METHODS[$method] ?? 'Not recorded';
+    }
+
+    /** What the resident sees for each status. */
+    public static function statusLabel(string $status): string
+    {
+        return match ($status) {
+            'pending', 'flagged' => 'Pending review',
+            'admin-approved', 'auto-matched' => 'Approved',
+            'rejected' => 'Rejected',
+            default => ucfirst($status),
+        };
     }
 
     /** Which statuses a payment may move to, from which. Rejecting an approved payment reverses it. */
@@ -29,7 +60,7 @@ class Payment
      * balance in the same transaction. Returns false (and changes nothing) when
      * the move isn't allowed, e.g. approving twice.
      */
-    public static function setVerification(int $id, string $status, ?int $verifiedBy = null): bool
+    public static function setVerification(int $id, string $status, ?int $verifiedBy = null, ?string $note = null): bool
     {
         $pdo = Database::getConnection();
         $pdo->beginTransaction();
@@ -42,8 +73,8 @@ class Payment
                 return false;
             }
 
-            $pdo->prepare('UPDATE payments SET verification_status = ?, verified_by = ? WHERE id = ?')
-                ->execute([$status, $verifiedBy, $id]);
+            $pdo->prepare('UPDATE payments SET verification_status = ?, verified_by = ?, reviewed_at = NOW(), review_note = ? WHERE id = ?')
+                ->execute([$status, $verifiedBy, $note, $id]);
             \App\Services\BillingService::calculateBalance((int) $payment['boarder_id'], $pdo);
 
             $pdo->commit();
@@ -54,14 +85,17 @@ class Payment
         }
     }
 
-    /** A boarder may have only one submission awaiting review per billing period. */
-    public static function hasOpenSubmission(int $boarderId, string $billingPeriod): bool
+    /**
+     * A boarder may have one receipt awaiting review at a time: approved payments are
+     * applied oldest-month-first anyway, and this stops a double-click or a resubmitted
+     * form from creating two payments for the same receipt.
+     */
+    public static function hasOpenSubmission(int $boarderId): bool
     {
         $stmt = Database::getConnection()->prepare(
-            "SELECT COUNT(*) FROM payments WHERE boarder_id = ? AND billing_period = ?
-             AND verification_status IN ('pending', 'flagged')"
+            "SELECT COUNT(*) FROM payments WHERE boarder_id = ? AND verification_status IN ('pending', 'flagged')"
         );
-        $stmt->execute([$boarderId, $billingPeriod]);
+        $stmt->execute([$boarderId]);
         return (int) $stmt->fetchColumn() > 0;
     }
 

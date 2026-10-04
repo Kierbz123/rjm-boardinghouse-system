@@ -23,19 +23,68 @@ class Uploads
         'image/webp' => 'webp',
         'video/mp4' => 'mp4',
     ];
-    private const MAX_BYTES = 20 * 1024 * 1024; // 20MB
+    /**
+     * The app's own cap per file. 20 MB holds any phone photo (2–8 MB) and roughly
+     * 10–20 seconds of 1080p phone video, or 30–40 seconds at 720p. PHP's own
+     * upload_max_filesize / post_max_size can be lower (2 MB / 8 MB on a stock
+     * install), so start-system.bat raises them to match; maxBytes() is the real limit.
+     */
+    public const MAX_MB = 20;
 
-    /** @return string|null the app path stored in the DB, e.g. /uploads/receipts/<hex>.jpg */
+    /** The real per-file limit: the smallest of the app cap and PHP's two settings. */
+    public static function maxBytes(): int
+    {
+        return min(self::MAX_MB * 1024 * 1024, self::iniBytes('upload_max_filesize'), self::iniBytes('post_max_size'));
+    }
+
+    /** maxBytes() in whole megabytes, for messages and form hints. */
+    public static function maxMb(): int
+    {
+        return max(1, intdiv(self::maxBytes(), 1024 * 1024));
+    }
+
+    /**
+     * True when the request body was bigger than post_max_size. PHP then drops the
+     * whole form (including the CSRF token), so check this before anything else to
+     * show "file too large" instead of a misleading "session expired".
+     */
+    public static function requestTooLarge(): bool
+    {
+        return ($_SERVER['REQUEST_METHOD'] ?? '') === 'POST'
+            && empty($_POST) && empty($_FILES)
+            && (int) ($_SERVER['CONTENT_LENGTH'] ?? 0) > self::iniBytes('post_max_size');
+    }
+
+    public static function tooLargeMessage(): string
+    {
+        return 'That file is too large. The limit is ' . self::maxMb() . ' MB — try a photo or a shorter video.';
+    }
+
+    /**
+     * @return string|null the app path stored in the DB, e.g. /uploads/receipts/<hex>.jpg,
+     *                     or null when no file was chosen
+     * @throws \RuntimeException with a message safe to show the user
+     */
     public static function store(array $file, string $subdir): ?string
     {
-        if (empty($file['tmp_name']) || $file['error'] !== UPLOAD_ERR_OK) {
+        $error = $file['error'] ?? UPLOAD_ERR_NO_FILE;
+        if ($error === UPLOAD_ERR_NO_FILE) {
             return null;
+        }
+        if ($error === UPLOAD_ERR_INI_SIZE || $error === UPLOAD_ERR_FORM_SIZE) {
+            throw new \RuntimeException(self::tooLargeMessage());
+        }
+        if ($error === UPLOAD_ERR_PARTIAL) {
+            throw new \RuntimeException('The upload was interrupted. Please try again.');
+        }
+        if ($error !== UPLOAD_ERR_OK || empty($file['tmp_name'])) {
+            throw new \RuntimeException('The file could not be uploaded. Please try again.');
         }
         if (!in_array($subdir, self::SUBDIRS, true)) {
             throw new \InvalidArgumentException("Unknown upload folder {$subdir}");
         }
-        if ($file['size'] > self::MAX_BYTES) {
-            throw new \RuntimeException('File is too large (max 20MB).');
+        if ($file['size'] > self::maxBytes()) {
+            throw new \RuntimeException(self::tooLargeMessage());
         }
 
         $finfo = finfo_open(FILEINFO_MIME_TYPE);
@@ -80,6 +129,19 @@ class Uploads
         header('Cache-Control: private, max-age=3600');
         header('Content-Disposition: inline; filename="' . $filename . '"');
         readfile($file);
+    }
+
+    /** "20M" / "2G" / "8388608" → bytes. */
+    private static function iniBytes(string $key): int
+    {
+        $value = trim((string) ini_get($key));
+        $number = (int) $value;
+        return match (strtoupper(substr($value, -1))) {
+            'G' => $number * 1024 ** 3,
+            'M' => $number * 1024 ** 2,
+            'K' => $number * 1024,
+            default => $number > 0 ? $number : PHP_INT_MAX,
+        };
     }
 
     private static function mayView(string $subdir, string $path): bool

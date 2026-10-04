@@ -151,24 +151,83 @@ check($msg !== false && str_contains($msg, 'Room 101'), 'staff notice is linked 
 
 echo "== Boarder payments always wait for an admin (C3) ==\n";
 $receipt = new CURLFile(__DIR__ . '/../public/assets/images/landing-bg.jpg', 'image/jpeg', 'receipt.jpg');
-$period = date('Y-m');
 $token = csrfFrom(http('GET', '/portal/payments/new', $jars['boarder'])['body']);
 $owed = (float) App\Services\BillingService::calculateBalance(3)['total_outstanding'];
-$r = http('POST', '/portal/payments', $jars['boarder'], ['csrf_token' => $token, 'billing_period' => $period,
+$countPayments = fn () => (int) $pdo->query('SELECT COUNT(*) FROM payments WHERE boarder_id = 3')->fetchColumn();
+$notifBefore = (int) $pdo->query('SELECT COALESCE(MAX(id), 0) FROM notifications')->fetchColumn();
+$before = $countPayments();
+$r = http('POST', '/portal/payments', $jars['boarder'], ['csrf_token' => $token, 'payment_method' => 'gcash',
     'claimed_amount' => '1.00', 'expected_amount' => '1.00']);
-check($r['location'] === '/portal/payments/new', 'submission without a receipt is refused');
-$r = http('POST', '/portal/payments', $jars['boarder'], ['csrf_token' => $token, 'billing_period' => $period,
-    'claimed_amount' => '1.00', 'expected_amount' => '1.00', 'proof' => $receipt]);
+check($r['location'] === '/portal/payments/new' && $countPayments() === $before, 'submission without a receipt is refused');
+$r = http('POST', '/portal/payments', $jars['boarder'], ['csrf_token' => $token,
+    'claimed_amount' => '1.00', 'proof' => $receipt]);
+check($countPayments() === $before, 'submission without a payment method (GCash/Maya/bank) is refused');
+$r = http('POST', '/portal/payments', $jars['boarder'], ['csrf_token' => $token, 'payment_method' => 'paypal',
+    'claimed_amount' => '1.00', 'proof' => $receipt]);
+check($countPayments() === $before, 'an unknown payment method is refused');
+$r = http('POST', '/portal/payments', $jars['boarder'], ['csrf_token' => $token, 'payment_method' => 'gcash',
+    'reference_number' => '1009 223 4455', 'claimed_amount' => '1.00', 'expected_amount' => '1.00', 'proof' => $receipt]);
 $pay = $pdo->query('SELECT * FROM payments WHERE boarder_id = 3 ORDER BY id DESC LIMIT 1')->fetch();
-check($pay && $pay['verification_status'] === 'flagged', '₱1 "matching" payment is flagged, not approved');
+check($pay && $pay['verification_status'] === 'pending', 'a ₱1 "matching" payment waits as pending, not approved');
+check($pay && $pay['payment_method'] === 'gcash' && $pay['reference_number'] === '1009 223 4455', 'method and reference number are saved');
 check($pay && abs((float) $pay['expected_amount'] - $owed) < 0.01, 'expected amount is the server\'s figure, not the form\'s');
 check(abs((float) App\Services\BillingService::calculateBalance(3)['total_outstanding'] - $owed) < 0.01, 'balance unchanged until an admin approves');
-$r = http('POST', '/portal/payments', $jars['boarder'], ['csrf_token' => $token, 'billing_period' => $period,
+check($r['location'] === '/portal/payments/new', 'after submitting, the resident lands on Pay Rent');
+$page = http('GET', '/portal/payments/new', $jars['boarder'])['body'];
+check(str_contains($page, 'data-testid="payment-submitted-dialog"') && str_contains($page, 'Status: Pending review'), 'a pop-up confirms the receipt is pending review');
+check(str_contains($page, 'GCash receipt for <strong>₱1.00</strong>'), 'the pop-up names the method and amount');
+check(!str_contains(http('GET', '/portal/payments/new', $jars['boarder'])['body'], 'payment-submitted-dialog'), 'the pop-up shows only once');
+check((int) $pdo->query("SELECT COUNT(*) FROM notifications n JOIN users u ON u.id = n.user_id
+    WHERE u.role = 'admin' AND n.id > {$notifBefore} AND n.message LIKE 'New payment proof submitted by Boarder #3 %'")->fetchColumn() > 0,
+    'admins are notified of the new receipt');
+$r = http('POST', '/portal/payments', $jars['boarder'], ['csrf_token' => $token, 'payment_method' => 'maya',
     'claimed_amount' => '5.00', 'proof' => $receipt]);
-check($r['location'] === '/portal/payments/new', 'second submission for the same month is refused while one is open');
+check($r['location'] === '/portal/payments/new' && $countPayments() === $before + 1, 'a second receipt is refused while one is waiting for review');
+
 $token = csrfFrom(http('GET', '/admin/payments', $jars['admin'])['body']);
+http('POST', "/admin/payments/{$pay['id']}/reject", $jars['admin'], ['csrf_token' => $token]);
+check($pdo->query("SELECT verification_status FROM payments WHERE id = {$pay['id']}")->fetchColumn() === 'pending', 'rejecting without a reason is refused');
 http('POST', "/admin/payments/{$pay['id']}/approve", $jars['admin'], ['csrf_token' => $token]);
 check($pdo->query("SELECT verification_status FROM payments WHERE id = {$pay['id']}")->fetchColumn() === 'admin-approved', 'admin approval works');
+$note = $pdo->query("SELECT message FROM notifications WHERE user_id = 3 AND type = 'payment_approved' ORDER BY id DESC LIMIT 1")->fetchColumn();
+check($note !== false && str_contains($note, '₱1.00 GCash payment was approved')
+    && str_contains($note, $owed > 0 ? 'Applied to:' : 'kept as credit'), 'the resident is notified once the receipt is confirmed: ' . $note);
+check((bool) preg_match('/data-testid="payment-status">\s*Approved/', http('GET', '/portal/payments/new', $jars['boarder'])['body']), 'Pay Rent history shows it as Approved');
+
+$token = csrfFrom(http('GET', '/portal/payments/new', $jars['boarder'])['body']);
+http('POST', '/portal/payments', $jars['boarder'], ['csrf_token' => $token, 'payment_method' => 'bank_transfer',
+    'claimed_amount' => '2.00', 'proof' => $receipt]);
+$second = (int) $pdo->query('SELECT MAX(id) FROM payments WHERE boarder_id = 3')->fetchColumn();
+$token = csrfFrom(http('GET', '/admin/payments', $jars['admin'])['body']);
+http('POST', "/admin/payments/{$second}/reject", $jars['admin'], ['csrf_token' => $token, 'reason' => 'Receipt is blurry']);
+$row = $pdo->query("SELECT verification_status, review_note, reviewed_at FROM payments WHERE id = {$second}")->fetch();
+check($row['verification_status'] === 'rejected' && $row['review_note'] === 'Receipt is blurry' && $row['reviewed_at'] !== null, 'rejection stores the reason and when');
+$note = $pdo->query("SELECT message FROM notifications WHERE user_id = 3 AND type = 'payment_rejected' ORDER BY id DESC LIMIT 1")->fetchColumn();
+check($note !== false && str_contains($note, 'Receipt is blurry'), 'the resident is told why it was rejected');
+check(str_contains(http('GET', '/portal/payments/new', $jars['boarder'])['body'], 'Reason: Receipt is blurry'), 'Pay Rent history shows the reason');
+
+echo "== Upload size limit is explained, not silently dropped ==\n";
+$big = tempnam(sys_get_temp_dir(), 'rjmbig');
+file_put_contents($big, "\xFF\xD8\xFF\xE0" . str_repeat("\0", 21 * 1024 * 1024));
+$token = csrfFrom(http('GET', '/portal/payments/new', $jars['boarder'])['body']);
+$before = $countPayments();
+$r = http('POST', '/portal/payments', $jars['boarder'], ['csrf_token' => $token, 'payment_method' => 'gcash',
+    'claimed_amount' => '10.00', 'proof' => new CURLFile($big, 'image/jpeg', 'big.jpg')]);
+$page = http('GET', '/portal/payments/new', $jars['boarder'])['body'];
+check($countPayments() === $before && str_contains($page, 'The limit is 20 MB'), '21 MB receipt: refused with "the limit is 20 MB"');
+$token = csrfFrom(http('GET', '/portal/maintenance/new', $jars['boarder'])['body']);
+$r = http('POST', '/portal/maintenance', $jars['boarder'], ['csrf_token' => $token, 'category' => 'plumbing',
+    'description' => 'big video test', 'media' => new CURLFile($big, 'video/mp4', 'big.mp4')]);
+$page = http('GET', '/portal/maintenance/new', $jars['boarder'])['body'];
+check(str_contains($page, 'The limit is 20 MB') && $pdo->query("SELECT COUNT(*) FROM maintenance_requests WHERE description = 'big video test'")->fetchColumn() == 0,
+    '21 MB repair video: refused with the limit instead of saving the request without it');
+file_put_contents($big, str_repeat("\0", 26 * 1024 * 1024));
+$r = http('POST', '/portal/maintenance', $jars['boarder'], ['csrf_token' => $token, 'category' => 'plumbing',
+    'description' => 'huge video test', 'media' => new CURLFile($big, 'video/mp4', 'huge.mp4')]);
+check($r['location'] === '/portal/maintenance/new' && str_contains(http('GET', '/portal/maintenance/new', $jars['boarder'])['body'], 'The limit is 20 MB'),
+    '26 MB (over post_max_size): "too large", not "invalid session"');
+unlink($big);
+check(str_contains(http('GET', '/portal/maintenance/new', $jars['boarder'])['body'], 'up to 20 MB'), 'the repair form states the real limit');
 
 echo "== Staff penalties use the rule's amount (decision 7a) ==\n";
 $rule = $pdo->query("SELECT * FROM penalty_rules WHERE active = 1 LIMIT 1")->fetch();

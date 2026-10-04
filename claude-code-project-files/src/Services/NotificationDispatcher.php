@@ -128,24 +128,26 @@ class NotificationDispatcher
     }
 
 
-    public static function paymentRejected(int $boarderId, string $billingPeriod): void
+    /** Sent ONLY to the boarder, with the admin's reason, so they can fix the receipt. */
+    public static function paymentRejected(int $boarderId, array $payment, string $reason, bool $wasApproved = false): void
     {
-        // Sent ONLY to the boarder
-        Notification::create(
-            $boarderId,
-            'payment_rejected',
-            "Your rent payment proof for {$billingPeriod} was REJECTED. Please check your submission and retry.",
-            '/portal/payments/new'
-        );
+        $what = self::describePayment($payment) . ' receipt';
+        $message = $wasApproved
+            ? "Your earlier approved {$what} was reversed by an administrator: {$reason}. Your balance has been recalculated."
+            : "Your {$what} was not accepted: {$reason}. Please check it and upload it again.";
+        Notification::create($boarderId, 'payment_rejected', $message, '/portal/payments/new');
     }
 
-    public static function rentDue(int $boarderId, string $billingPeriod): void
+    public static function rentDue(int $boarderId, string $billingPeriod, float $amount, string $dueDate): void
     {
         // Sent ONLY to the boarder
+        $label = BillingService::periodLabel($billingPeriod);
+        $due = new \DateTimeImmutable($dueDate);
+        $when = $due < new \DateTimeImmutable('today') ? 'was due on' : 'is due on';
         Notification::create(
             $boarderId,
             'rent_due',
-            "Rent for {$billingPeriod} is due soon. Please submit payment proof.",
+            "Rent for {$label} (₱" . number_format($amount, 2) . ") {$when} " . $due->format('M j, Y') . '. Pay by GCash, Maya or bank transfer, then upload your receipt.',
             '/portal/payments/new'
         );
     }
@@ -197,16 +199,43 @@ class NotificationDispatcher
         );
     }
 
-    public static function combinedPaymentApproved(int $boarderId, float $totalPaid, float $rentAllocated, array $settledPenalties, float $remainingBalance): void
+    /**
+     * Sent ONLY to the boarder once an admin confirms their receipt: what it paid
+     * (oldest month first), any amount kept as credit, and what is still owed.
+     *
+     * @param array $allocations this payment's rows from PaymentAllocationService
+     * @param array $balance     BillingService::calculateBalance() after approval
+     */
+    public static function paymentApproved(int $boarderId, array $payment, array $allocations, array $balance): void
     {
-        $penCount = count($settledPenalties);
-        $penText = $penCount > 0 ? " and {$penCount} penalty obligation(s) fully settled" : "";
-        Notification::create(
-            $boarderId,
-            'payment_approved',
-            "Payment Approved: ₱" . number_format($totalPaid, 2) . " applied to Monthly Rent (₱" . number_format($rentAllocated, 2) . "){$penText}. Remaining balance: ₱" . number_format($remainingBalance, 2),
-            '/portal/dashboard'
-        );
+        $paid = (float) $payment['claimed_amount'];
+        $parts = [];
+        $applied = 0.0;
+        foreach ($allocations as $al) {
+            $applied += (float) $al['amount'];
+            $parts[] = ($al['allocation_type'] === 'rent'
+                ? BillingService::periodLabel($al['reference_id']) . ' rent'
+                : 'late fee') . ' ₱' . number_format((float) $al['amount'], 2);
+        }
+        $message = 'Your ' . self::describePayment($payment) . ' payment was approved.';
+        if ($parts) {
+            $message .= ' Applied to: ' . implode(', ', $parts) . '.';
+        }
+        $extra = round($paid - $applied, 2);
+        if ($extra > 0) {
+            $message .= ' ₱' . number_format($extra, 2) . ' was kept as credit for your next bill.';
+        }
+        $message .= ' Balance now: ₱' . number_format((float) $balance['total_outstanding'], 2) . '.';
+
+        Notification::create($boarderId, 'payment_approved', $message, '/portal/payments/new');
+    }
+
+    /** "₱3,500.00 GCash"; payments recorded before methods existed show just the amount. */
+    private static function describePayment(array $payment): string
+    {
+        $amount = '₱' . number_format((float) $payment['claimed_amount'], 2);
+        $method = $payment['payment_method'] ?? null;
+        return $method ? $amount . ' ' . \App\Models\Payment::methodLabel($method) : $amount;
     }
 
     public static function manualPenaltyOverrideSettled(int $boarderId, string $ruleName, float $amount, float $remainingBalance): void

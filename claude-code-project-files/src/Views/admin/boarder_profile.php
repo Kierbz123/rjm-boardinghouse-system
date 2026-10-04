@@ -780,7 +780,7 @@ input[type="date"].profile-input {
                         <span class="font-bold <?= $pendingPayments > 0 ? 'text-amber-600' : 'text-neutral-500' ?>"><?= $pendingPayments ?> pending</span>
                     </div>
                     <div class="py-2 flex justify-between items-center">
-                        <span class="text-neutral-600">Approved / Auto-matched:</span>
+                        <span class="text-neutral-600">Reviewed:</span>
                         <span class="font-semibold text-neutral-700"><?= max(0, $paymentCount - $pendingPayments) ?> recorded</span>
                     </div>
                     <div class="py-2 flex justify-end items-center">
@@ -988,7 +988,7 @@ input[type="date"].profile-input {
                                     ₱<?= number_format((float) ($pm['expected_amount'] ?? 0), 2) ?>
                                 </td>
                                 <td>
-                                    <span class="badge <?= $vBadge ?> capitalize font-semibold"><?= htmlspecialchars(str_replace('-', ' ', $vStatus)) ?></span>
+                                    <span class="badge <?= $vBadge ?> font-semibold"><?= htmlspecialchars(\App\Models\Payment::statusLabel($vStatus)) ?></span>
                                 </td>
                                 <td class="text-neutral-500">
                                     <?= !empty($pm['created_at']) ? date('M j, Y g:i A', strtotime($pm['created_at'])) : '—' ?>

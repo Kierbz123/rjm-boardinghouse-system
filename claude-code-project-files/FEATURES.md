@@ -20,6 +20,7 @@ Read the section(s) relevant to the phase you're on (see `PHASES.md`). Not prelo
 - Boarder taps a single SOS button → creates an alert with boarder identity, **room/bed location**, and timestamp; visible (poll or refresh) to Admin/Staff dashboards with highest visual urgency.
 - Staff can separately log **incidents** (not just SOS-triggered) with type, description, people involved, and resolution notes — a historical safety record independent of live alerts.
 - SOS alerts need a status lifecycle: `active → acknowledged → resolved`, with who and when.
+- House security as advertised on the landing page: **live CCTV covers the entire boardinghouse; there is no curfew.** An in-system camera page with motion sensing, people-per-hour counts and face snapshots (a phone as the camera for the demo) is planned in `CCTV-PEOPLE-COUNTER-PLAN.md`, pending owner decisions.
 
 ## 3. Cross-Module Command Center (Admin Dashboard)
 - One screen aggregating: pending payments, open maintenance requests by priority, active SOS/incidents, occupancy snapshot, recent expenses. Read/aggregate view over the other modules — build it after they exist (Phase 6), not before.
@@ -34,10 +35,13 @@ Read the section(s) relevant to the phase you're on (see `PHASES.md`). Not prelo
 - Track occupancy over time (snapshot per day/week, or derived from move-in/move-out events) and chart it. Useful output: occupancy % over time, vacancy patterns by room type/season.
 
 ## 7. Proof of Payment Verifier
-- Boarder uploads a receipt/screenshot plus the amount they claim to have paid.
-- Local verification logic (Python service, no external OCR API unless the user opts in): rule-based check — does the claimed amount match the expected rent for their room/bed and billing period? Flag mismatches for admin review rather than silently auto-approving.
-- Real text/amount extraction from the image requires a local OCR library (e.g. Tesseract) — optional upgrade, confirm scope in Phase 0, not assumed.
-- Verification status: `pending / auto-matched / flagged / admin-approved / rejected`.
+*Owner rules, Oct 2026 — this replaces the original automatic-verifier design.*
+- **Billing:** rent is charged per month from move-in, the first (and last) month prorated by days stayed. Each month is **due on the 5th**, except that **nothing is due during a resident's first 30 days** (due date = the later of the 5th and move-in + 30 days). See `BillingService::dueDate()`.
+- **Paying:** the resident pays by **GCash, Maya or bank transfer**, then uploads the receipt (JPG/PNG/WEBP, up to 20 MB) with the method, the amount paid and an optional reference number. The amount owed always comes from the system, never from the form.
+- **Review:** every receipt is saved as **pending** and a pop-up tells the resident it is *Pending review*. **An administrator checks every receipt**; nothing is ever approved automatically. An amount that differs from what is owed is marked ⚠ for the admin, not given a different status.
+- **Outcome:** on approval the payment clears the **oldest unpaid month first**, then penalties; **anything extra becomes credit** for later months. The resident is notified either way: approval lists what was paid and any credit; rejection carries the admin's (required) reason.
+- Statuses: `pending → admin-approved | rejected` (an approval can be reversed by rejecting it). `auto-matched` and `flagged` only exist on rows from before these rules.
+- Real text/amount extraction from the image (local OCR such as Tesseract) remains an optional upgrade, not assumed.
 
 ## 8. Detailed Bed Mapping
 - Rooms contain multiple beds/spaces; track occupancy at the **bed** level so two boarders can't be double-booked into the same bed.
@@ -45,6 +49,7 @@ Read the section(s) relevant to the phase you're on (see `PHASES.md`). Not prelo
 
 ## 9. Penalty and Fee Automation
 - Configurable rules (e.g. "X/day late after due date," "flat damage fee for category Y") stored in `penalty_rules` so admins can adjust amounts without a code change.
+- A late fee starts the day after a month's own due date (§7), so never during a new resident's first 30 days. Each unpaid month has at most one fee per rule, growing with the days late until that month is paid; re-running the check never stacks fees.
 - A triggered check (on admin login and/or a manual "run penalty check" button — no cron guarantee on localhost) applies rules and logs the resulting penalty.
 
 ## 10. Status Life System

@@ -2,7 +2,6 @@
 
 namespace App\Services;
 
-use App\Controllers\LandingController;
 use App\Models\Bed;
 use App\Models\BoarderProfile;
 use App\Models\Expense;
@@ -59,14 +58,14 @@ class AssistantService
         ['roles' => ['boarder', 'staff', 'admin'],
             'about' => 'when rent is due and how the late fee works',
             'ask' => ['due date', 'when is rent due', 'rent due', 'deadline', 'late fee', 'late payment', 'kailan ang bayad', 'kailan dapat', 'multa'],
-            'en' => "Rent is due on or before the 5th of each month. From the 6th, a late fee is added for each day that month's rent is still unpaid: {late_fee}. It stops growing once an admin approves the payment.",
-            'tl' => 'Dapat bayaran ang renta sa o bago ang ika-5 ng bawat buwan. Mula ika-6, may late fee sa bawat araw na hindi pa bayad ang renta ng buwan: {late_fee}. Titigil ang paglaki nito kapag na-approve na ng admin ang bayad.',
+            'en' => "Rent is due on or before the 5th of each month. A new resident's first payment is due 30 days after moving in, so nothing is due in your first 30 days. After a month's due date, a late fee is added for each day its rent is still unpaid: {late_fee}. It stops growing once an admin approves the payment.",
+            'tl' => 'Dapat bayaran ang renta sa o bago ang ika-5 ng bawat buwan. Ang unang bayad ng bagong residente ay 30 araw pagkatapos lumipat, kaya walang babayaran sa unang 30 araw. Paglampas ng due date ng isang buwan, may late fee sa bawat araw na hindi pa bayad ang renta nito: {late_fee}. Titigil ang paglaki nito kapag na-approve na ng admin ang bayad.',
             'open' => ['boarder' => ['Pay Rent', '/portal/payments/new'], 'admin' => ['Penalties', '/admin/penalty-rules']]],
         ['roles' => ['boarder'],
             'about' => 'how to pay rent and how payments get approved',
             'ask' => ['how do i pay', 'how to pay', 'how can i pay', 'paano magbayad', 'paano ako magbabayad', 'paano bayaran'],
-            'en' => 'Open Pay Rent, check the month and amount, upload a photo of your receipt, then submit. An admin checks every payment, so your balance changes only after it is approved. If the amount differs from what is due, it is marked for a closer look.',
-            'tl' => 'Buksan ang Pay Rent, tingnan ang buwan at halaga, i-upload ang litrato ng resibo, saka ipasa. Sinusuri ng admin ang bawat bayad, kaya magbabago lang ang balanse mo kapag na-approve na ito. Kapag iba ang halaga sa dapat bayaran, mamarkahan ito para masuri nang mabuti.',
+            'en' => 'Pay by GCash, Maya or bank transfer. Then open Pay Rent, choose how you paid, enter the amount on your receipt, upload a photo of it and submit. It shows as Pending review until an admin checks it, and you get a notification when it is approved or rejected. Approved payments clear your oldest unpaid month first; anything extra becomes credit.',
+            'tl' => 'Magbayad sa GCash, Maya o bank transfer. Saka buksan ang Pay Rent, piliin kung paano ka nagbayad, ilagay ang halaga sa resibo, i-upload ang litrato nito at ipasa. Pending review ito hanggang suriin ng admin, at may notification ka kapag na-approve o hindi tinanggap. Ang na-approve na bayad ay unang ibabayad sa pinakalumang hindi pa bayad na buwan; ang sobra ay magiging credit.',
             'open' => ['boarder' => ['Pay Rent', '/portal/payments/new']]],
         ['roles' => ['boarder'],
             'about' => 'how to report something that needs repair',
@@ -105,10 +104,10 @@ class AssistantService
             'tl' => 'Bawat repair ay may score na 0 hanggang 100 batay sa mga salita sa paglalarawan, sa category, at kung may litrato. 70 pataas ay critical, 45 pataas high, 20 pataas medium, mas mababa ay low. Nauuna sa queue ang pinakaapurahan.',
             'open' => ['boarder' => ['Report a Repair', '/portal/maintenance/new'], 'staff' => ['Maintenance Queue', '/staff/maintenance'], 'admin' => ['Maintenance Queue', '/staff/maintenance']]],
         ['roles' => ['boarder', 'staff', 'admin'],
-            'about' => 'curfew and other house rules',
+            'about' => 'curfew (there is none) and other house rules',
             'ask' => ['curfew', 'visitor', 'house rule', 'dorm rule', 'bisita', 'patakaran ng bahay', 'bawal'],
-            'en' => 'Curfew is {curfew}. Violations with a set penalty: {penalties}. Other house rules, such as visitors, are not written in the system, so please ask the house administrator.',
-            'tl' => 'Ang curfew ay {curfew}. Mga paglabag na may nakatakdang multa: {penalties}. Ang ibang patakaran ng bahay, gaya ng bisita, ay hindi nakasulat sa system, kaya magtanong sa house administrator.',
+            'en' => 'There is no curfew. Live CCTV covers the boardinghouse. Violations with a set penalty: {penalties}. Other house rules, such as visitors, are not written in the system, so please ask the house administrator.',
+            'tl' => 'Walang curfew. May live CCTV sa buong boardinghouse. Mga paglabag na may nakatakdang multa: {penalties}. Ang ibang patakaran ng bahay, gaya ng bisita, ay hindi nakasulat sa system, kaya magtanong sa house administrator.',
             'open' => []],
     ];
 
@@ -322,7 +321,7 @@ class AssistantService
     {
         $status = [
             'pending' => ['waiting for an admin', 'hinihintay ang admin'],
-            'flagged' => ['being reviewed by an admin', 'sinusuri ng admin'],
+            'flagged' => ['waiting for an admin', 'hinihintay ang admin'], // older rows only
             'auto-matched' => ['approved', 'aprubado'],
             'admin-approved' => ['approved', 'aprubado'],
             'rejected' => ['rejected', 'hindi tinanggap'],
@@ -426,12 +425,13 @@ class AssistantService
     private static function pendingPayments(string $lang, int $userId): array
     {
         $waiting = array_filter(Payment::all(), fn ($p) => in_array($p['verification_status'], ['pending', 'flagged'], true));
-        $by = array_count_values(array_column($waiting, 'verification_status')) + ['pending' => 0, 'flagged' => 0];
+        // Every receipt waits as "pending"; the ones whose amount differs from what was owed need a closer look.
+        $differs = count(array_filter($waiting, fn ($p) => abs((float) $p['expected_amount'] - (float) $p['claimed_amount']) > 0.01));
         return [
             'reply' => $waiting
-                ? self::t($lang, '%s waiting for you (%s in total): %d pending, %d flagged.', '%s (%s lahat): %d pending, %d flagged.',
+                ? self::t($lang, '%s waiting for you (%s in total); %d of them differ from the amount owed.', '%s (%s lahat); %d ang iba sa halagang dapat bayaran.',
                     $lang === 'tl' ? count($waiting) . ' bayad ang naghihintay sa iyo' : self::count(count($waiting), 'payment is', 'payments are'),
-                    self::peso(array_sum(array_column($waiting, 'claimed_amount'))), $by['pending'], $by['flagged'])
+                    self::peso(array_sum(array_column($waiting, 'claimed_amount'))), $differs)
                 : self::t($lang, 'No payments are waiting for review.', 'Walang bayad na naghihintay ng review.'),
             'actions' => [self::open($lang, 'Payments', '/admin/payments')],
         ];
@@ -539,9 +539,6 @@ class AssistantService
     /** Live values the help text quotes, read from where the rest of the system keeps them. */
     private static function fact(string $name, string $lang): string
     {
-        if ($name === 'curfew') { // the landing page's own line, without its note in brackets
-            return trim(preg_replace('/\s*\(.*\)\s*$/', '', LandingController::CURFEW_HOURS));
-        }
         $rules = PenaltyRule::allActive(); // as set by the admin on the Penalties page
         if ($name === 'late_fee') {
             $perDay = array_sum(array_column(array_filter($rules, fn ($r) => $r['condition_type'] === 'late_per_day'), 'amount'));

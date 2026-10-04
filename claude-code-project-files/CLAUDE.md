@@ -21,7 +21,7 @@ A boardinghouse management system: rent/payments, maintenance requests with loca
 If you're ever unsure whether to keep going or ask: prefer asking when the ambiguity is a constraint (localhost/offline, tech stack) rather than an implementation detail (variable names, file layout) — pick a reasonable default for the latter and note it in the Progress Log.
 
 ## Commands (can't be guessed from the code)
-- PHP dev server: `php -S 127.0.0.1:8000 -t public public/index.php` (the router argument is required; on Windows just run `start-system.bat`). `php-curl` is only needed for the optional Ollama assistant.
+- PHP dev server: `php -d upload_max_filesize=20M -d post_max_size=25M -S 127.0.0.1:8000 -t public public/index.php` (the router argument is required; the two `-d` flags let 20 MB receipts/repair videos through on any PHP install; on Windows just run `start-system.bat`). `php-curl` is only needed for the optional Ollama assistant.
 - PHP lint a file: `php -l path/to/file.php`
 - DB: `php database/migrate.php` applies new migrations and records them in `schema_migrations`; never edit an applied migration
 - Tests: `php tests/run.php` (throwaway `_test` database + private server; never run test files directly)

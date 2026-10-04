@@ -11,22 +11,21 @@ use App\Models\Penalty;
  * check" button — no cron on localhost, per ARCHITECTURE.md §4.5. $today is
  * injectable so this is testable without touching the system clock.
  *
+ * A month's rent is late from the day after its due date (the 5th, or 30 days
+ * after move-in for a new resident — BillingService::dueDate()). Every month that
+ * is still unpaid is checked, not only the current one.
+ *
  * Safe to run any number of times: each boarder gets at most one late fee per
- * rule per month, whose amount tracks the days late until it is paid.
+ * rule per month, whose amount tracks the days late until that month is paid.
  */
 class PenaltyEngine
 {
-    public const DUE_DAY = 5;
+    /** Kept for older callers; the rule itself lives in BillingService. */
+    public const DUE_DAY = BillingService::DUE_DAY;
 
     public static function runCheck(?\DateTimeImmutable $today = null): array
     {
         $today = $today ?? new \DateTimeImmutable('today');
-        $dayOfMonth = (int) $today->format('j');
-        if ($dayOfMonth <= self::DUE_DAY) {
-            return [];
-        }
-        $daysLate = $dayOfMonth - self::DUE_DAY;
-        $billingPeriod = $today->format('Y-m');
 
         $rules = array_filter(PenaltyRule::allActive(), fn ($r) => $r['condition_type'] === 'late_per_day');
         if (empty($rules)) {
@@ -40,25 +39,35 @@ class PenaltyEngine
         $applied = [];
         foreach ($boarderIds as $boarderId) {
             $boarderId = (int) $boarderId;
-            // Late only if this month's rent is still not fully covered by approved payments.
-            $unpaidThisMonth = BillingService::calculateBalance($boarderId, $pdo)['unpaid_rent'][$billingPeriod] ?? 0;
-            if ($unpaidThisMonth <= 0) {
-                continue;
-            }
-            foreach ($rules as $rule) {
-                $amount = round((float) $rule['amount'] * $daysLate, 2);
-                $created = Penalty::upsertLateFee(
-                    $boarderId,
-                    (int) $rule['id'],
-                    $billingPeriod,
-                    $amount,
-                    "Late {$daysLate} day(s) for {$billingPeriod}",
-                    $today->format('Y-m-t')
-                );
-                if ($created) {
-                    NotificationDispatcher::penaltyApplied($boarderId, $amount, $billingPeriod);
+            $balance = BillingService::calculateBalance($boarderId, $pdo);
+
+            foreach ($balance['unpaid_rent'] as $period => $unpaid) {
+                $dueDate = $balance['rent_due_dates'][$period] ?? null;
+                if ($unpaid <= 0 || $dueDate === null) {
+                    continue;
                 }
-                $applied[] = ['boarder_id' => $boarderId, 'amount' => $amount, 'days_late' => $daysLate, 'new' => $created];
+                $due = new \DateTimeImmutable($dueDate);
+                if ($today <= $due) {
+                    continue; // not late yet
+                }
+                $daysLate = (int) $due->diff($today)->days;
+                $label = BillingService::periodLabel($period);
+
+                foreach ($rules as $rule) {
+                    $amount = round((float) $rule['amount'] * $daysLate, 2);
+                    $created = Penalty::upsertLateFee(
+                        $boarderId,
+                        (int) $rule['id'],
+                        $period,
+                        $amount,
+                        "Late {$daysLate} day(s) for {$label} rent (due " . $due->format('M j, Y') . ')',
+                        $dueDate
+                    );
+                    if ($created) {
+                        NotificationDispatcher::penaltyApplied($boarderId, $amount, $label);
+                    }
+                    $applied[] = ['boarder_id' => $boarderId, 'period' => $period, 'amount' => $amount, 'days_late' => $daysLate, 'new' => $created];
+                }
             }
         }
 

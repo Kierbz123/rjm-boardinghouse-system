@@ -10,8 +10,10 @@ use App\Database;
  *   owed = rent charges + penalties - approved payments
  *
  * Rent is charged per month from move-in (to move-out), prorated by days for
- * partial months. Approved payments are applied oldest-first: rent months in
- * order, then penalties by due date. Anything left over is credit.
+ * partial months. Each month is due on the 5th, except that nothing falls due
+ * during a resident's first 30 days (see dueDate()). Approved payments are
+ * applied oldest-first: rent months in order, then penalties by due date.
+ * Anything left over is credit.
  *
  * Allocations are rebuilt from scratch on every calculation, so approving,
  * rejecting or reversing a payment, adding a penalty or changing move dates can
@@ -20,12 +22,32 @@ use App\Database;
  */
 class BillingService
 {
+    /** 'auto-matched' only exists on payments recorded before every receipt needed an admin. */
     public const APPROVED = ['auto-matched', 'admin-approved'];
+
+    /** Rent is due on this day of each month. */
+    public const DUE_DAY = 5;
+
+    /** Nothing is due until this many days after a resident moves in. */
+    public const FIRST_PAYMENT_GRACE_DAYS = 30;
+
+    /**
+     * When a month's rent is due: the 5th of that month, or 30 days after move-in if
+     * that is later. Moving in on 20 Oct makes both October (prorated) and November
+     * due on 19 Nov; December is due on 5 Dec as usual.
+     */
+    public static function dueDate(string $period, \DateTimeImmutable $moveIn): \DateTimeImmutable
+    {
+        $fifth = new \DateTimeImmutable($period . '-' . sprintf('%02d', self::DUE_DAY));
+        $graceEnds = $moveIn->modify('+' . self::FIRST_PAYMENT_GRACE_DAYS . ' days');
+        return max($fifth, $graceEnds);
+    }
 
     /**
      * @return array{boarder_id:int, base_price:float, billing_period:string, rent_due:float,
      *   penalties_due:float, total_outstanding:float, credit:float,
-     *   unpaid_rent:array<string,float>, unpaid_penalties:array}
+     *   unpaid_rent:array<string,float>, rent_due_dates:array<string,string>,
+     *   next_due_date:?string, unpaid_penalties:array}
      */
     public static function calculateBalance(int $boarderId, ?\PDO $pdo = null): array
     {
@@ -68,6 +90,12 @@ class BillingService
         }
     }
 
+    /** "2026-10" → "October 2026". */
+    public static function periodLabel(string $period): string
+    {
+        return (new \DateTimeImmutable($period . '-01'))->format('F Y');
+    }
+
     /** Recalculates and caches the balance; returns the amount owed. */
     public static function syncBalance(int $boarderId, ?\PDO $pdo = null): float
     {
@@ -106,11 +134,12 @@ class BillingService
                     ? (float) $billedRates[$period]
                     : (float) ($profile['base_price'] ?? 0);
                 $amount = round($rate * $days / (int) $month->format('t'), 2);
+                $dueDate = self::dueDate($period, $moveIn)->format('Y-m-d');
 
                 $pdo->prepare('
-                    INSERT INTO rent_charges (boarder_id, period, monthly_rate, amount) VALUES (?, ?, ?, ?)
-                    ON DUPLICATE KEY UPDATE monthly_rate = VALUES(monthly_rate), amount = VALUES(amount)
-                ')->execute([$boarderId, $period, $rate, $amount]);
+                    INSERT INTO rent_charges (boarder_id, period, monthly_rate, amount, due_date) VALUES (?, ?, ?, ?, ?)
+                    ON DUPLICATE KEY UPDATE monthly_rate = VALUES(monthly_rate), amount = VALUES(amount), due_date = VALUES(due_date)
+                ')->execute([$boarderId, $period, $rate, $amount, $dueDate]);
                 $periods[] = $period;
             }
         }
@@ -126,10 +155,11 @@ class BillingService
     {
         $obligations = [];
 
-        $stmt = $pdo->prepare('SELECT period, amount FROM rent_charges WHERE boarder_id = ? ORDER BY period');
+        $stmt = $pdo->prepare('SELECT period, amount, due_date FROM rent_charges WHERE boarder_id = ? ORDER BY period');
         $stmt->execute([$boarderId]);
         foreach ($stmt->fetchAll() as $c) {
-            $obligations[] = ['type' => 'rent', 'ref' => $c['period'], 'due' => (float) $c['amount'], 'paid' => 0.0, 'by' => null];
+            $obligations[] = ['type' => 'rent', 'ref' => $c['period'], 'due' => (float) $c['amount'], 'paid' => 0.0, 'by' => null,
+                'due_date' => $c['due_date']];
         }
 
         // Penalties waived/settled by an admin override (paid with no payment) are not owed.
@@ -180,6 +210,7 @@ class BillingService
         $rentDue = 0.0;
         $penaltiesDue = 0.0;
         $unpaidRent = [];
+        $rentDueDates = [];
         $unpaidPenalties = [];
         $markPaid = $pdo->prepare('UPDATE penalties SET status = "paid", paid_payment_id = ?, paid_at = COALESCE(paid_at, NOW()) WHERE id = ?');
         $markUnpaid = $pdo->prepare('UPDATE penalties SET status = "unpaid", paid_payment_id = NULL, paid_at = NULL WHERE id = ?');
@@ -190,6 +221,7 @@ class BillingService
                 if ($remaining > 0) {
                     $rentDue += $remaining;
                     $unpaidRent[$o['ref']] = $remaining;
+                    $rentDueDates[$o['ref']] = $o['due_date'];
                 }
                 continue;
             }
@@ -210,6 +242,8 @@ class BillingService
             'total_outstanding' => round($rentDue + $penaltiesDue, 2),
             'credit'            => $credit,
             'unpaid_rent'       => $unpaidRent,
+            'rent_due_dates'    => $rentDueDates, // period => Y-m-d, for each unpaid month
+            'next_due_date'     => $rentDueDates ? min($rentDueDates) : null,
             'unpaid_penalties'  => $unpaidPenalties,
         ];
     }

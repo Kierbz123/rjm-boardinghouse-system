@@ -31,9 +31,10 @@ if ($stats['avg_repair_hours'] !== null) {
 $amenities = [
     [
         'title' => 'Security',
-        'summary' => 'Curfew at 10:00 PM with gate-pass entry, and an SOS button in every resident\'s portal that alerts staff at once.',
+        'summary' => 'Live CCTV covers the entire boardinghouse, and an SOS button in every resident\'s portal alerts staff at once. No curfew.',
         'points' => [
-            'Curfew: ' . ($c['curfew_hours'] ?? '10:00 PM daily') . '.',
+            'Live CCTV covers the entire boardinghouse.',
+            'No curfew: come and go when you need to.',
             'One tap on SOS in the resident portal alerts every staff member with your room and bed; you get a notice when they acknowledge and when it is resolved.',
             'Lost items, noise or other concerns can be reported as incidents and followed until staff close them.',
             'On-site caretakers: ' . ($c['caretakers'] ?? 'available on site') . '.',
@@ -43,7 +44,7 @@ $amenities = [
         'title' => 'Repairs',
         'summary' => 'Report a problem from your phone with a photo; urgent issues go to the top of the caretaker\'s list.',
         'points' => [
-            'Describe the problem and attach a photo or short video from the resident portal.',
+            'Describe the problem and attach a photo or short video from the resident portal (up to ' . \App\Support\Uploads::maxMb() . ' MB per file: any phone photo, or about 10–20 seconds of video).',
             'Each request is rated critical, high, medium or low — gas leaks, sparks or flooding go straight to the top.',
             'You are notified when work starts and when the repair is done.',
         ],
@@ -61,10 +62,11 @@ $amenities = [
         'title' => 'Payments',
         'summary' => 'Upload your receipt online; your balance updates as soon as it is approved.',
         'points' => [
-            'Rent is due on the 5th of each month; your first month is charged only for the days you stay.',
+            'Rent is due on the 5th of each month; your first month is charged only for the days you stay, and your first payment is due 30 days after you move in.',
             'Pay by GCash, Maya or bank transfer, then upload the receipt in the resident portal.',
-            'An administrator checks every receipt. Approved payments clear your oldest unpaid month first; anything extra becomes credit.',
-            'A small daily late fee applies after the 5th while that month\'s rent is unpaid.',
+            'An administrator checks every receipt. Until then it shows as Pending review, and you are notified as soon as it is approved or rejected.',
+            'Approved payments clear your oldest unpaid month first; anything extra becomes credit.',
+            'A small daily late fee applies after a month\'s due date while its rent is unpaid.',
         ],
     ],
 ];
@@ -258,7 +260,7 @@ $amenities = [
                         <div class="flex flex-1 flex-col justify-between rounded-[0.875rem] bg-surface/70 p-3">
                             <div class="relative min-h-[3.4rem]" aria-live="polite">
                                 <p class="text-[.7rem] font-medium text-neutral-500" data-card-caption>Safety</p>
-                                <p class="max-w-[9rem] text-sm font-medium leading-snug" data-card-title>Curfew at 10 PM, gate-pass entry.</p>
+                                <p class="max-w-[9rem] text-sm font-medium leading-snug" data-card-title>Live CCTV across the whole house.</p>
                             </div>
                             <div class="flex items-center justify-between">
                                 <div class="flex gap-1" data-card-dots></div>
@@ -428,7 +430,7 @@ $amenities = [
             </div>
             <dl class="grid gap-6 self-end sm:grid-cols-2">
                 <div class="rounded-[1.25rem] bg-surface p-5"><dt class="text-sm text-neutral-500">Office hours</dt><dd class="mt-1 font-medium"><?= implode('<br>', array_map($e, explode(' | ', $c['office_hours'] ?? ''))) ?></dd></div>
-                <div class="rounded-[1.25rem] bg-surface p-5"><dt class="text-sm text-neutral-500">Curfew</dt><dd class="mt-1 font-medium"><?= $e($c['curfew_hours'] ?? '') ?></dd></div>
+                <div class="rounded-[1.25rem] bg-surface p-5"><dt class="text-sm text-neutral-500">Security</dt><dd class="mt-1 font-medium"><?= $e($c['security'] ?? '') ?></dd></div>
                 <div class="rounded-[1.25rem] bg-surface p-5"><dt class="text-sm text-neutral-500">Call or text</dt><dd class="mt-1 font-medium"><a href="<?= $e($c['primary_tel'] ?? '#') ?>"><?= $e($c['primary_phone'] ?? '') ?></a></dd></div>
                 <div class="rounded-[1.25rem] bg-surface p-5"><dt class="text-sm text-neutral-500">Landline</dt><dd class="mt-1 font-medium"><a href="<?= $e($c['landline_tel'] ?? '#') ?>"><?= $e($c['landline'] ?? '') ?></a></dd></div>
             </dl>
@@ -616,7 +618,7 @@ $amenities = [
 
     // ---- Hero card carousel ----
     const items = [
-        ['Safety', 'Curfew at 10 PM, gate-pass entry.'],
+        ['Safety', 'Live CCTV across the whole house.'],
         ['Emergencies', 'One SOS tap alerts the caretaker.'],
         ['Repairs', 'Reported online, tracked to done.'],
     ];

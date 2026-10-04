@@ -36,9 +36,12 @@ foreach (['database/migrate.php', 'database/seed.php'] as $script) {
     }
 }
 
+// Same upload limits as start-system.bat, so upload tests match real use.
+$devNull = PHP_OS_FAMILY === 'Windows' ? 'NUL' : '/dev/null';
 $server = proc_open(
-    [$php, '-S', "127.0.0.1:{$port}", '-t', "{$root}/public", "{$root}/public/index.php"],
-    [1 => ['file', 'NUL', 'w'], 2 => ['file', 'NUL', 'w']],
+    [$php, '-d', 'upload_max_filesize=20M', '-d', 'post_max_size=25M',
+        '-S', "127.0.0.1:{$port}", '-t', "{$root}/public", "{$root}/public/index.php"],
+    [1 => ['file', $devNull, 'w'], 2 => ['file', $devNull, 'w']],
     $pipes,
     $root
 );

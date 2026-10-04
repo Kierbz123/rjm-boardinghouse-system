@@ -209,7 +209,7 @@ $tierBadges = [
             <span style="font-size: 1.25rem;">⚖️</span>
             <div>
                 <h2 class="text-heading-sm font-bold text-neutral-900">Issue Dorm Rule Penalty</h2>
-                <p class="text-caption text-neutral-500">Record house rule infractions (curfew, trash, noise, minor damages). Balance updates immediately.</p>
+                <p class="text-caption text-neutral-500">Record house rule infractions (trash, noise, minor damages). Balance updates immediately.</p>
             </div>
         </div>
 

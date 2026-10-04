@@ -180,8 +180,8 @@ check($ask('boarder', 'magkano ang multa?', 'tl', $boarderId)['source'] === 'hel
 $card = $ask('boarder', 'How do I pay my rent?', 'en', $boarderId);
 check($card['source'] === 'help' && str_contains($card['reply'], 'receipt') && $hrefsOf($card) === ['/portal/payments/new'], 'how to pay explains the receipt and approval');
 $card = $ask('boarder', 'what time is the curfew?', 'en', $boarderId);
-check($card['source'] === 'help' && str_contains($card['reply'], 'Curfew is 10:00 PM Daily.') && str_contains($card['reply'], 'not written in the system') && $card['actions'] === [],
-    'curfew is quoted from the landing page; other house rules are not invented: ' . $card['reply']);
+check($card['source'] === 'help' && str_contains($card['reply'], 'There is no curfew.') && str_contains($card['reply'], 'not written in the system') && $card['actions'] === [],
+    'no curfew, as on the landing page; other house rules are not invented: ' . $card['reply']);
 check($ask('admin', 'how do I log out?', 'en', 1)['actions'] === [], 'log out is explained without a button');
 check($hrefsOf($ask('admin', 'late fees', 'en', 1)) === ['/admin/penalty-rules'], 'admin late-fee help links Penalties');
 check($hrefsOf($ask('staff', 'I forgot my password', 'en', 2)) === ['/profile'], 'password help links Profile');

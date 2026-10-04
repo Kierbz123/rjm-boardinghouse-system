@@ -178,7 +178,7 @@ $tierBadges = [
                                accept="image/*,video/mp4"
                                class="w-full text-body-sm text-neutral-600 file:mr-3 file:py-1.5 file:px-3 file:rounded-md file:border-0 file:text-xs file:font-semibold file:bg-neutral-200 file:text-neutral-800 hover:file:bg-neutral-300 cursor-pointer">
                         <p class="text-caption text-neutral-400" style="margin-top: 0.5rem;">
-                            Upload JPG, PNG, WEBP, or MP4 files up to 10MB. Visual proof assists staff diagnosis.
+                            JPG, PNG or WEBP photo, or an MP4 video, up to <?= \App\Support\Uploads::maxMb() ?> MB (any phone photo, or about 10–20 seconds of video). Visual proof helps staff diagnose the problem.
                         </p>
                     </div>
                 </div>

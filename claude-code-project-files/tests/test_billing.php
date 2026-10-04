@@ -4,6 +4,7 @@
  *  - rent accrues every month from move-in; unpaid months carry over
  *  - partial first/last months are prorated by days
  *  - payments always need admin approval and apply oldest-first: rent months, then penalties
+ *  - rent is due on the 5th; nothing is due in a resident's first 30 days
  *  - late fees: one per boarder per rule per month, never stacked by re-running the check
  * Runs against the throwaway test database via tests/run.php.
  */
@@ -59,6 +60,17 @@ check($b['unpaid_rent'][$lastPeriod] ?? null, $firstCharge, "first month prorate
 check($b['unpaid_rent'][$thisPeriod] ?? null, $rate, 'this month charged in full');
 check($b['total_outstanding'], round($firstCharge + $rate, 2), 'both months owed');
 
+echo "== Rent is due on the 5th; nothing is due in the first 30 days ==\n";
+$due = fn (string $period, string $moveIn) => BillingService::dueDate($period, new DateTimeImmutable($moveIn))->format('Y-m-d');
+check($due('2026-10', '2026-10-20'), '2026-11-19', 'moved in 20 Oct: prorated October is due 19 Nov (30 days later)');
+check($due('2026-11', '2026-10-20'), '2026-11-19', 'November also waits for the 30 days instead of the 5th');
+check($due('2026-12', '2026-10-20'), '2026-12-05', 'from December, rent is due on the 5th');
+check($due('2026-10', '2026-10-01'), '2026-10-31', 'moved in on the 1st: first month due 30 days later');
+check($due('2026-10', '2025-06-15'), '2026-10-05', 'long-time resident: due on the 5th');
+check(round(3500 * 12 / 31, 2), 1354.84, 'the 20th to the 31st of October at ₱3,500 = ₱1,354.84');
+check($b['rent_due_dates'][$lastPeriod] ?? null, $due($lastPeriod, $moveIn->format('Y-m-d')), 'each unpaid month carries its due date');
+check($b['next_due_date'], min($b['rent_due_dates']), 'next due date is the earliest unpaid one');
+
 echo "== Payments apply oldest month first, only after approval ==\n";
 $p1 = Payment::create($boarderId, $thisPeriod, 0, $firstCharge, null);
 check(BillingService::calculateBalance($boarderId)['total_outstanding'], round($firstCharge + $rate, 2), 'pending payment changes nothing');
@@ -91,6 +103,11 @@ Payment::setVerification($p3, 'admin-approved', $adminId);
 $b = BillingService::calculateBalance($boarderId);
 check($b['total_outstanding'], 0.0, 'nothing owed');
 check($b['credit'], 500.0, '₱500 credit');
+App\Services\NotificationDispatcher::paymentApproved($boarderId, Payment::find($p3),
+    App\Services\PaymentAllocationService::getAllocationsForPayment($p3), $b);
+$note = (string) $pdo->query("SELECT message FROM notifications WHERE user_id = {$boarderId} AND type = 'payment_approved' ORDER BY id DESC LIMIT 1")->fetchColumn();
+check(str_contains($note, BillingService::periodLabel($thisPeriod) . ' rent') && str_contains($note, '₱500.00 was kept as credit'), true,
+    'approval notice names the month it paid and the credit kept: ' . $note);
 
 echo "== Admin waiver is not owed and not re-opened ==\n";
 $waived = Penalty::createManual($boarderId, $ruleId, 999.00, 'waive me', date('Y-m-d'), $adminId);
@@ -100,25 +117,43 @@ check($b['credit'], 500.0, 'waived penalty does not eat credit');
 check(Penalty::find($waived)['status'], 'paid', 'waiver stays paid');
 
 echo "== Late fees never stack ==\n";
-$late = User::create('boarder', 'Late Payer', 'late-' . mt_rand() . '@rjm.test', 'Secret123!');
-BoarderProfile::create($late, $roomId, null);
-$pdo->prepare('UPDATE boarder_profiles SET move_in_date = ? WHERE user_id = ?')->execute([date('Y-m-01'), $late]);
-BoarderProfile::updateStatus($late, 'active', $adminId, 'test');
 PenaltyRule::create('Late fee ' . mt_rand(), 'late_per_day', 10.00);
 $perDay = array_sum(array_map(fn ($r) => (float) $r['amount'],
     array_filter(PenaltyRule::allActive(), fn ($r) => $r['condition_type'] === 'late_per_day')));
-$countFees = fn () => (int) $pdo->query("SELECT COUNT(*) FROM penalties WHERE boarder_id = {$late} AND billing_period = '{$thisPeriod}'")->fetchColumn();
-$feeTotal = fn () => (float) $pdo->query("SELECT SUM(amount) FROM penalties WHERE boarder_id = {$late} AND billing_period = '{$thisPeriod}'")->fetchColumn();
+$newResident = function (string $moveIn) use ($pdo, $roomId, $adminId): int {
+    $id = User::create('boarder', 'Late Payer', 'late-' . mt_rand() . '@rjm.test', 'Secret123!');
+    BoarderProfile::create($id, $roomId, null);
+    $pdo->prepare('UPDATE boarder_profiles SET move_in_date = ? WHERE user_id = ?')->execute([$moveIn, $id]);
+    BoarderProfile::updateStatus($id, 'active', $adminId, 'test');
+    return $id;
+};
+$fees = fn (int $id, ?string $period = null) => (float) $pdo->query("SELECT COALESCE(SUM(amount), 0) FROM penalties WHERE boarder_id = {$id}"
+    . ($period ? " AND billing_period = '{$period}'" : ''))->fetchColumn();
+$countFees = fn (int $id, string $period) => (int) $pdo->query("SELECT COUNT(*) FROM penalties WHERE boarder_id = {$id} AND billing_period = '{$period}'")->fetchColumn();
+
+// Moved in on the 1st two months ago: this month's rent is due on the 5th.
+$twoMonthsAgo = new DateTimeImmutable('first day of -2 months');
+$late = $newResident($twoMonthsAgo->format('Y-m-d'));
+PenaltyEngine::runCheck(new DateTimeImmutable(date('Y-m-05')));
+check($countFees($late, $thisPeriod), 0, 'no late fee for this month on the 5th itself');
 $day10 = new DateTimeImmutable(date('Y-m-10'));
 PenaltyEngine::runCheck($day10);
 PenaltyEngine::runCheck($day10);
-$feesPerRun = $countFees();
-check($feesPerRun >= 1, true, 'a late fee was charged');
-check($feeTotal(), $perDay * 5, 'running twice on the 10th: 5 days late, not 10');
+check($countFees($late, $thisPeriod), count(array_filter(PenaltyRule::allActive(), fn ($r) => $r['condition_type'] === 'late_per_day')), 'one fee per rule for this month');
+check($fees($late, $thisPeriod), $perDay * 5, 'running twice on the 10th: 5 days late, not 10');
 PenaltyEngine::runCheck(new DateTimeImmutable(date('Y-m-12')));
-check($countFees(), $feesPerRun, 'running on the 12th updates, does not add');
-check($feeTotal(), $perDay * 7, 'fee follows days late (7)');
-check(PenaltyEngine::runCheck(new DateTimeImmutable(date('Y-m-05'))), [], 'nothing on or before the 5th');
+check($fees($late, $thisPeriod), $perDay * 7, 'running on the 12th updates the fee to 7 days late');
+$lastDue = new DateTimeImmutable(BillingService::dueDate($lastPeriod, $twoMonthsAgo)->format('Y-m-d'));
+check($fees($late, $lastPeriod), $perDay * $lastDue->diff(new DateTimeImmutable(date('Y-m-12')))->days,
+    'an unpaid earlier month keeps its own late fee, counted from its own due date');
+
+// Moved in on the 1st of this month: first payment due 30 days later, so no fee yet.
+$newcomer = $newResident(date('Y-m-01'));
+PenaltyEngine::runCheck(new DateTimeImmutable(date('Y-m-25')));
+check($fees($newcomer), 0.0, 'a new resident gets no late fee in their first 30 days');
+$graceEnd = (new DateTimeImmutable(date('Y-m-01')))->modify('+30 days');
+PenaltyEngine::runCheck($graceEnd->modify('+2 days'));
+check($fees($newcomer, $thisPeriod), $perDay * 2, 'two days after the 30-day grace ends: 2 days late');
 
 echo "== Past months keep the price they were billed at ==\n";
 Room::update($roomId, 'B-upd-' . mt_rand(), '2', 1, 4000.00);

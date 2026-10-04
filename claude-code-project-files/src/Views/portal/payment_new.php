@@ -4,6 +4,8 @@ ob_start();
 
 $error = $_SESSION['flash_error'] ?? null; unset($_SESSION['flash_error']);
 $success = $_SESSION['flash_success'] ?? null; unset($_SESSION['flash_success']);
+// Set by PaymentController::create() right after a receipt is submitted; shown once as a pop-up.
+$submitted = $_SESSION['payment_submitted'] ?? null; unset($_SESSION['payment_submitted']);
 
 $boarder = $boarder ?? null;
 $recentPayments = $recentPayments ?? [];
@@ -38,6 +40,12 @@ $totalDue = (float) ($balanceDetails['total_outstanding'] ?? $rentPrice);
 $rentDue = (float) ($balanceDetails['rent_due'] ?? $rentPrice);
 $penDue = (float) ($balanceDetails['penalties_due'] ?? 0.00);
 $defaultExpected = $totalDue > 0 ? $totalDue : $rentPrice;
+$credit = (float) ($balanceDetails['credit'] ?? 0);
+$unpaidMonths = $balanceDetails['unpaid_rent'] ?? [];
+$dueDates = $balanceDetails['rent_due_dates'] ?? [];
+$today = date('Y-m-d');
+$maxMb = \App\Support\Uploads::maxMb();
+$methods = \App\Models\Payment::METHODS;
 ?>
 <div class="max-w-5xl mx-auto px-5 py-5 space-y-6">
 
@@ -86,6 +94,9 @@ $defaultExpected = $totalDue > 0 ? $totalDue : $rentPrice;
                 </span>
             <?php endif; ?>
         </div>
+        <?php if ($credit > 0): ?>
+            <span class="text-emerald-700 text-xs font-semibold">Credit: ₱<?= number_format($credit, 2) ?></span>
+        <?php endif; ?>
         <div class="flex items-center gap-2">
             <span class="text-caption text-neutral-500 uppercase font-semibold">Total Balance Due:</span>
             <span class="badge badge-warning text-sm font-bold font-mono px-3 py-1">
@@ -94,12 +105,31 @@ $defaultExpected = $totalDue > 0 ? $totalDue : $rentPrice;
         </div>
     </div>
 
+    <!-- What is owed, oldest first: the order an approved payment is applied in -->
+    <?php if ($unpaidMonths): ?>
+        <div class="card" style="padding: 1.25rem 1.5rem; border-radius: 0.875rem;" data-testid="unpaid-months">
+            <h2 class="text-heading-sm font-bold text-neutral-900" style="margin-bottom: 0.75rem;">Unpaid rent, oldest first</h2>
+            <ul style="display: flex; flex-direction: column; gap: 0.5rem; font-size: 0.875rem;">
+                <?php foreach ($unpaidMonths as $period => $amount): ?>
+                    <?php $due = $dueDates[$period] ?? null; $overdue = $due !== null && $due < $today; ?>
+                    <li class="grid items-center gap-2" style="grid-template-columns: minmax(8rem, 1fr) 7rem auto;">
+                        <span class="font-semibold text-neutral-800"><?= htmlspecialchars(\App\Services\BillingService::periodLabel($period)) ?></span>
+                        <span class="font-mono text-right">₱<?= number_format((float) $amount, 2) ?></span>
+                        <span class="justify-self-end badge <?= $overdue ? 'badge-error' : 'badge-neutral' ?>">
+                            <?= $due ? ($overdue ? 'Overdue since ' : 'Due ') . date('M j, Y', strtotime($due)) : 'Due date not set' ?>
+                        </span>
+                    </li>
+                <?php endforeach; ?>
+            </ul>
+        </div>
+    <?php endif; ?>
+
     <!-- Main Grid: Form + Sidebar -->
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-5 items-start">
         
         <!-- Left: Form Card (2/3 width on lg) -->
         <div class="lg:col-span-2">
-            <form method="post" action="/portal/payments" enctype="multipart/form-data" class="form-card accent-success" style="padding: 1.5rem 1.625rem 1.75rem; border-radius: 1rem; gap: 1.125rem;">
+            <form method="post" action="/portal/payments" enctype="multipart/form-data" id="payment-form" class="form-card accent-success" style="padding: 1.5rem 1.625rem 1.75rem; border-radius: 1rem; gap: 1.125rem;">
                 <div class="flex items-center gap-2.5" style="border-bottom: 1px solid #f1f0ee; padding-bottom: 0.875rem;">
                     <span style="font-size: 1.25rem;">💳</span>
                     <div>
@@ -128,22 +158,30 @@ $defaultExpected = $totalDue > 0 ? $totalDue : $rentPrice;
                     </div>
                 </div>
 
-                <!-- Billing Period -->
+                <!-- How the resident paid -->
+                <fieldset>
+                    <legend class="block text-caption font-semibold text-neutral-700" style="margin-bottom: 0.375rem;">
+                        How did you pay? <span class="text-error-600">*</span>
+                    </legend>
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                        <?php foreach ($methods as $value => $label): ?>
+                            <label class="flex items-center gap-2 cursor-pointer" style="padding: 0.6rem 0.75rem; border: 1px solid #e6e5e2; border-radius: 0.5rem; background: #fff;">
+                                <input type="radio" name="payment_method" value="<?= $value ?>" required data-testid="method-<?= $value ?>">
+                                <span class="text-sm font-semibold text-neutral-800"><?= $label ?></span>
+                            </label>
+                        <?php endforeach; ?>
+                    </div>
+                </fieldset>
+
                 <div>
-                    <label for="billing_period" class="block text-caption font-semibold text-neutral-700" style="margin-bottom: 0.375rem;">
-                        Billing Period (YYYY-MM) <span class="text-error-600">*</span>
+                    <label for="reference_number" class="block text-caption font-semibold text-neutral-700" style="margin-bottom: 0.375rem;">
+                        Reference number <span class="text-neutral-400 font-normal">(optional)</span>
                     </label>
-                    <input id="billing_period"
-                           name="billing_period"
-                           type="month"
-                           max="<?= date('Y-m', strtotime('first day of next month')) ?>"
-                           required
-                           class="input w-full font-mono"
-                           style="padding: 0.5rem 0.75rem; border-radius: 0.5rem;"
-                           value="<?= date('Y-m') ?>">
-                    <p class="text-caption text-neutral-400" style="margin-top: 0.375rem;">
-                        Specify the calendar cycle month (e.g. <?= date('Y-m') ?>).
-                    </p>
+                    <input id="reference_number" name="reference_number" type="text" maxlength="50"
+                           pattern="[A-Za-z0-9 \-]*" autocomplete="off"
+                           placeholder="e.g. the GCash Ref. No. on your receipt"
+                           class="input w-full font-mono" style="padding: 0.5rem 0.75rem; border-radius: 0.5rem;">
+                    <p class="text-caption text-neutral-400" style="margin-top: 0.375rem;">Helps the administrator match your receipt faster.</p>
                 </div>
 
                 <!-- Expected & Claimed Amounts -->
@@ -164,6 +202,8 @@ $defaultExpected = $totalDue > 0 ? $totalDue : $rentPrice;
                                name="claimed_amount"
                                type="number"
                                step="0.01"
+                               min="0.01"
+                               max="1000000"
                                placeholder="Amount you paid"
                                required
                                class="input w-full font-mono font-bold text-emerald-700"
@@ -192,15 +232,18 @@ $defaultExpected = $totalDue > 0 ? $totalDue : $rentPrice;
                                required
                                class="w-full text-body-sm text-neutral-600 file:mr-3 file:py-1.5 file:px-3 file:rounded-md file:border-0 file:text-xs file:font-semibold file:bg-neutral-200 file:text-neutral-800 hover:file:bg-neutral-300 cursor-pointer">
                         <p class="text-caption text-neutral-400" style="margin-top: 0.5rem;">
-                            Upload a clear screenshot or photo of your GCash, Maya, or bank transfer reference receipt.
+                            A clear screenshot or photo of your GCash, Maya or bank transfer receipt (JPG, PNG or WEBP, up to <?= $maxMb ?> MB).
                         </p>
+                        <img id="proof-preview" alt="Preview of the receipt you chose" hidden
+                             style="margin-top: 0.75rem; max-height: 14rem; border-radius: 0.5rem; border: 1px solid #e6e5e2;">
+                        <p id="proof-size-error" class="text-caption" role="alert" hidden style="margin-top: 0.5rem; color: #912018;"></p>
                     </div>
                 </div>
 
                 <!-- Action Buttons -->
                 <div style="padding-top: 0.5rem; display: flex; flex-direction: column; gap: 0.625rem;">
-                    <button type="submit" class="btn btn-primary w-full text-sm font-semibold justify-center" style="padding: 0.7rem 1rem; border-radius: 0.625rem;">
-                        Submit
+                    <button type="submit" id="payment-submit" class="btn btn-primary w-full text-sm font-semibold justify-center" style="padding: 0.7rem 1rem; border-radius: 0.625rem;">
+                        Submit receipt for review
                     </button>
                     <a href="/portal/dashboard" class="btn btn-secondary w-full text-center text-xs justify-center" style="padding: 0.575rem 1rem; border-radius: 0.625rem;">
                         &larr; Cancel and return to dashboard
@@ -233,9 +276,12 @@ $defaultExpected = $totalDue > 0 ? $totalDue : $rentPrice;
                 <h3 class="text-xs font-bold flex items-center gap-2" style="color: #245a3f; margin-bottom: 0.5rem;">
                     How approval works
                 </h3>
-                <p style="font-size: 0.8125rem; color: #245a3f; line-height: 1.6;">
-                    An administrator compares your receipt with the amount you entered. Once approved, it pays your oldest unpaid month first, then any penalties.
-                </p>
+                <ul style="font-size: 0.8125rem; color: #245a3f; line-height: 1.6; display: flex; flex-direction: column; gap: 0.4rem; list-style: disc; padding-left: 1rem;">
+                    <li>Rent is due on the 5th of each month. Your first month is charged only for the days you stay, and your first payment is due 30 days after you move in.</li>
+                    <li>Pay by GCash, Maya or bank transfer, then upload the receipt here.</li>
+                    <li>Your receipt shows as <strong>Pending review</strong> until an administrator checks it. You get a notification when it is approved or rejected.</li>
+                    <li>Approved payments clear your oldest unpaid month first; anything extra becomes credit.</li>
+                </ul>
             </div>
         </div>
 
@@ -254,10 +300,11 @@ $defaultExpected = $totalDue > 0 ? $totalDue : $rentPrice;
                     <table class="w-full text-body-sm">
                         <thead>
                             <tr style="background: #f8f7f5; border-bottom: 1px solid #e6e5e2; text-align: left; color: #6b6b6b; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em;">
-                                <th style="padding: 0.75rem 1rem; font-weight: 600;">Billing Period</th>
+                                <th style="padding: 0.75rem 1rem; font-weight: 600;">Filed under</th>
+                                <th style="padding: 0.75rem 1rem; font-weight: 600;">Method</th>
                                 <th style="padding: 0.75rem 1rem; font-weight: 600;">Expected</th>
                                 <th style="padding: 0.75rem 1rem; font-weight: 600;">Amount Paid</th>
-                                <th style="padding: 0.75rem 1rem; font-weight: 600;">Verification Status</th>
+                                <th style="padding: 0.75rem 1rem; font-weight: 600;">Status</th>
                                 <th style="padding: 0.75rem 1rem; font-weight: 600;">Proof Slip</th>
                                 <th style="padding: 0.75rem 1rem; font-weight: 600; text-align: right;">Payment Date</th>
                             </tr>
@@ -268,14 +315,19 @@ $defaultExpected = $totalDue > 0 ? $totalDue : $rentPrice;
                                 $status = $p['verification_status'] ?? 'pending';
                                 $badgeClass = match($status) {
                                     'auto-matched', 'admin-approved' => 'badge-success',
-                                    'flagged'                        => 'badge-warning',
                                     'rejected'                       => 'badge-error',
-                                    default                          => 'badge-neutral',
+                                    default                          => 'badge-warning', // pending review
                                 };
                                 ?>
                                 <tr class="hover:bg-neutral-50 transition-colors">
                                     <td style="padding: 0.75rem 1rem; font-family: ui-monospace, monospace; font-weight: 600; color: #0a0a0a;">
                                         <span class="id-tag"><?= htmlspecialchars($p['billing_period']) ?></span>
+                                    </td>
+                                    <td style="padding: 0.75rem 1rem; color: #555452;">
+                                        <?= htmlspecialchars(\App\Models\Payment::methodLabel($p['payment_method'] ?? null)) ?>
+                                        <?php if (!empty($p['reference_number'])): ?>
+                                            <span class="block text-caption font-mono text-neutral-400"><?= htmlspecialchars($p['reference_number']) ?></span>
+                                        <?php endif; ?>
                                     </td>
                                     <td style="padding: 0.75rem 1rem; color: #555452; font-family: ui-monospace, monospace;">
                                         ₱<?= number_format((float) ($p['expected_amount'] ?? 0), 2) ?>
@@ -284,9 +336,12 @@ $defaultExpected = $totalDue > 0 ? $totalDue : $rentPrice;
                                         ₱<?= number_format((float) ($p['claimed_amount'] ?? 0), 2) ?>
                                     </td>
                                     <td style="padding: 0.75rem 1rem;">
-                                        <span class="badge <?= $badgeClass ?>">
-                                            <?= htmlspecialchars($status) ?>
+                                        <span class="badge <?= $badgeClass ?>" data-testid="payment-status">
+                                            <?= htmlspecialchars(\App\Models\Payment::statusLabel($status)) ?>
                                         </span>
+                                        <?php if ($status === 'rejected' && !empty($p['review_note'])): ?>
+                                            <span class="block text-caption" style="margin-top: 0.25rem; color: #912018;">Reason: <?= htmlspecialchars($p['review_note']) ?></span>
+                                        <?php endif; ?>
                                     </td>
                                     <td style="padding: 0.75rem 1rem;">
                                         <?php if (!empty($p['proof_path'])): ?>
@@ -312,6 +367,66 @@ $defaultExpected = $totalDue > 0 ? $totalDue : $rentPrice;
     <?php endif; ?>
 
 </div>
+
+<?php if ($submitted): ?>
+<!-- Shown once, right after a receipt is submitted -->
+<style>#payment-submitted-dialog::backdrop { background: rgba(10, 10, 10, .55); backdrop-filter: blur(3px); }</style>
+<dialog id="payment-submitted-dialog" data-testid="payment-submitted-dialog" aria-labelledby="payment-submitted-title"
+        style="margin: auto; inset: 0; max-width: 24rem; width: calc(100% - 2rem); height: fit-content; border: none; border-radius: 1rem; padding: 1.5rem 1.75rem; box-shadow: 0 25px 50px -12px rgba(0,0,0,.25); text-align: center;">
+    <div aria-hidden="true" style="width: 3.25rem; height: 3.25rem; margin: 0 auto 0.75rem; border-radius: 50%; display: grid; place-items: center; background: #fff7e6; color: #b45309; font-size: 1.5rem;">⏳</div>
+    <h2 id="payment-submitted-title" style="font-size: 1.125rem; font-weight: 700; color: #0a0a0a; margin: 0 0 0.25rem;">Receipt submitted</h2>
+    <p style="margin: 0 0 0.75rem;"><span class="badge badge-warning">Status: Pending review</span></p>
+    <p style="font-size: 0.875rem; color: #555452; line-height: 1.6; margin: 0 0 1.25rem;">
+        Your <?= htmlspecialchars($submitted['method']) ?> receipt for <strong>₱<?= number_format((float) $submitted['amount'], 2) ?></strong>
+        is waiting for an administrator to check it. You will get a notification as soon as it is approved or rejected.
+    </p>
+    <form method="dialog">
+        <button class="btn btn-primary" style="padding: 0.55rem 1.5rem; border-radius: 0.625rem;" autofocus>OK</button>
+    </form>
+</dialog>
+<script>
+(function () {
+    const dialog = document.getElementById('payment-submitted-dialog');
+    if (dialog && typeof dialog.showModal === 'function') { dialog.showModal(); }
+    else if (dialog) { dialog.setAttribute('open', ''); }
+})();
+</script>
+<?php endif; ?>
+
+<script>
+(function () {
+    // Receipt preview + size check before uploading (the server checks again).
+    const input = document.getElementById('proof');
+    const preview = document.getElementById('proof-preview');
+    const sizeError = document.getElementById('proof-size-error');
+    const maxBytes = <?= (int) \App\Support\Uploads::maxBytes() ?>;
+    if (input && preview) {
+        input.addEventListener('change', () => {
+            const file = input.files && input.files[0];
+            sizeError.hidden = true;
+            input.setCustomValidity('');
+            if (!file) { preview.hidden = true; return; }
+            if (file.size > maxBytes) {
+                const msg = 'This file is ' + (file.size / 1048576).toFixed(1) + ' MB. The limit is <?= $maxMb ?> MB.';
+                sizeError.textContent = msg;
+                sizeError.hidden = false;
+                input.setCustomValidity(msg);
+            }
+            preview.src = URL.createObjectURL(file);
+            preview.hidden = false;
+        });
+    }
+    // One submission per click: a double-click must not send the receipt twice.
+    const form = document.getElementById('payment-form');
+    const submit = document.getElementById('payment-submit');
+    if (form && submit) {
+        form.addEventListener('submit', () => {
+            submit.disabled = true;
+            submit.textContent = 'Submitting…';
+        });
+    }
+})();
+</script>
 
 <script>
 if (window.gsap) {

@@ -373,7 +373,7 @@ $stats = $stats ?? [];
                         🛡️
                     </div>
                     <h3 class="text-body-sm font-bold text-neutral-900">Facility Checks</h3>
-                    <p class="text-caption text-neutral-500 leading-relaxed">Daily security, curfew &amp; boardinghouse inspection</p>
+                    <p class="text-caption text-neutral-500 leading-relaxed">Daily security, CCTV &amp; boardinghouse inspection</p>
                 </div>
             </div>
 

@@ -36,6 +36,13 @@ class MaintenanceController
     /** Feature 1 — submit + score, with the fail-closed fallback from ARCHITECTURE.md §4.2. */
     public static function create(): void
     {
+        // A video over post_max_size empties the whole form, CSRF token included:
+        // say "too large" rather than "invalid session".
+        if (Uploads::requestTooLarge()) {
+            $_SESSION['flash_error'] = Uploads::tooLargeMessage();
+            header('Location: /portal/maintenance/new');
+            exit;
+        }
         if (!Csrf::verify($_POST['csrf_token'] ?? null)) {
             http_response_code(400);
             echo 'Invalid session, please retry.';
@@ -59,7 +66,7 @@ class MaintenanceController
         }
 
         $mediaPath = null;
-        if (!empty($_FILES['media']['tmp_name'])) {
+        if (isset($_FILES['media'])) { // optional; Uploads::store() returns null when none was chosen
             try {
                 $mediaPath = Uploads::store($_FILES['media'], 'maintenance');
             } catch (\RuntimeException $e) {

@@ -390,7 +390,7 @@ $tierBadges = [
                             <tr style="background: #f8f7f5; border-bottom: 1px solid #e6e5e2; text-align: left; color: #6b6b6b; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em;">
                                 <th style="padding: 0.75rem 1rem; font-weight: 600;">Period</th>
                                 <th style="padding: 0.75rem 1rem; font-weight: 600;">Paid</th>
-                                <th style="padding: 0.75rem 1rem; font-weight: 600;">Verification</th>
+                                <th style="padding: 0.75rem 1rem; font-weight: 600;">Status</th>
                                 <th style="padding: 0.75rem 1rem; font-weight: 600; text-align: right;">Date</th>
                             </tr>
                         </thead>
@@ -400,9 +400,8 @@ $tierBadges = [
                                 $status = $p['verification_status'] ?? 'pending';
                                 $badgeClass = match($status) {
                                     'auto-matched', 'admin-approved' => 'badge-success',
-                                    'flagged'                        => 'badge-warning',
                                     'rejected'                       => 'badge-error',
-                                    default                          => 'badge-neutral',
+                                    default                          => 'badge-warning', // pending review
                                 };
                                 ?>
                                 <tr class="hover:bg-neutral-50 transition-colors">
@@ -414,7 +413,7 @@ $tierBadges = [
                                     </td>
                                     <td style="padding: 0.75rem 1rem;">
                                         <span class="badge <?= $badgeClass ?>">
-                                            <?= htmlspecialchars($status) ?>
+                                            <?= htmlspecialchars(\App\Models\Payment::statusLabel($status)) ?>
                                         </span>
                                     </td>
                                     <td style="padding: 0.75rem 1rem; text-align: right; font-size: 0.75rem; font-family: ui-monospace, monospace; color: #9d9b97; white-space: nowrap;">

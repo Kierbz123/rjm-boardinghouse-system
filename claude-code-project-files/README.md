@@ -37,7 +37,7 @@ php database/migrate.php
 php database/seed.php
 
 # 4. run (index.php doubles as the router so private uploads are served through the app)
-php -S 127.0.0.1:8000 -t public public/index.php
+php -d upload_max_filesize=20M -d post_max_size=25M -S 127.0.0.1:8000 -t public public/index.php
 ```
 
 `database/migrate.php` records what it applied in a `schema_migrations` table, so it is safe to run on every start.

@@ -170,7 +170,7 @@ $totalCollected = array_sum(array_map(
                             ?>
                             <tr class="border-b border-neutral-100 payment-row hover:bg-neutral-50/80 transition-colors"
                                 data-category="<?= htmlspecialchars($filterCategory) ?>"
-                                data-search="<?= htmlspecialchars(strtolower(($p['boarder_name'] ?? '') . ' ' . ($p['billing_period'] ?? ''))) ?>">
+                                data-search="<?= htmlspecialchars(strtolower(($p['boarder_name'] ?? '') . ' ' . ($p['billing_period'] ?? '') . ' ' . ($p['payment_method'] ?? '') . ' ' . ($p['reference_number'] ?? ''))) ?>">
                                 <td class="p-3">
                                     <span class="id-tag">#<?= (int) $p['id'] ?></span>
                                 </td>
@@ -192,7 +192,13 @@ $totalCollected = array_sum(array_map(
                                     <div class="flex items-center gap-1.5">
                                         <span class="font-bold text-neutral-900">₱<?= number_format($claimedVal, 2) ?></span>
                                         <?php if ($discrepancy): ?>
-                                            <span class="text-amber-600 text-caption font-bold" title="Amount mismatch with expected rent">⚠</span>
+                                            <span class="text-amber-600 text-caption font-bold" title="Differs from the ₱<?= number_format($expectedVal, 2) ?> owed when submitted — check the receipt">⚠</span>
+                                        <?php endif; ?>
+                                    </div>
+                                    <div class="text-caption text-neutral-500">
+                                        <?= htmlspecialchars(\App\Models\Payment::methodLabel($p['payment_method'] ?? null)) ?>
+                                        <?php if (!empty($p['reference_number'])): ?>
+                                            · <span class="font-mono">Ref <?= htmlspecialchars($p['reference_number']) ?></span>
                                         <?php endif; ?>
                                     </div>
                                     <?php if (!empty($p['allocations'])): ?>
@@ -227,9 +233,12 @@ $totalCollected = array_sum(array_map(
                                     <?php endif; ?>
                                 </td>
                                 <td class="p-3">
-                                    <span class="badge <?= $badgeClass ?> capitalize">
-                                        <?= htmlspecialchars(str_replace('-', ' ', $status)) ?>
+                                    <span class="badge <?= $badgeClass ?>">
+                                        <?= htmlspecialchars(\App\Models\Payment::statusLabel($status)) ?>
                                     </span>
+                                    <?php if (!empty($p['review_note'])): ?>
+                                        <div class="text-caption text-neutral-500" style="margin-top: 0.25rem; max-width: 12rem;">“<?= htmlspecialchars($p['review_note']) ?>”</div>
+                                    <?php endif; ?>
                                 </td>
                                 <td class="p-3">
                                     <?php if (in_array($status, ['pending', 'flagged'], true)): ?>
@@ -359,8 +368,12 @@ $totalCollected = array_sum(array_map(
             ✕
         </div>
         <h3 id="payment-reject-heading" style="font-size: 1.1rem; font-weight: 700; color: #0a0a0a; letter-spacing: -0.01em; margin: 0 0 0.375rem;">Reject Payment?</h3>
-        <p id="payment-reject-subtext" style="font-size: 0.8rem; color: #6b6b6b; line-height: 1.6; margin: 0 0 1.5rem; padding: 0 0.5rem;">Are you sure you want to reject this payment? This action cannot be undone.</p>
-        <p id="payment-reject-details" style="font-size: 0.75rem; color: #9d9b97; line-height: 1.5; margin: 0 0 1.5rem; padding: 0 0.5rem; font-style: italic;"></p>
+        <p id="payment-reject-subtext" style="font-size: 0.8rem; color: #6b6b6b; line-height: 1.6; margin: 0 0 1rem; padding: 0 0.5rem;">The resident is notified with your reason so they can fix the receipt and upload it again.</p>
+        <p id="payment-reject-details" style="font-size: 0.75rem; color: #9d9b97; line-height: 1.5; margin: 0 0 1rem; padding: 0 0.5rem; font-style: italic;"></p>
+        <label for="payment-reject-reason" style="display: block; text-align: left; font-size: 0.75rem; font-weight: 600; color: #3f3f3f; margin-bottom: 0.25rem;">Reason (shown to the resident)</label>
+        <textarea id="payment-reject-reason" rows="3" maxlength="255" class="input w-full" style="font-size: 0.8rem; margin-bottom: 0.25rem;"
+                  placeholder="e.g. Amount on the receipt is ₱3,000, not ₱3,500. / Receipt is blurry."></textarea>
+        <p id="payment-reject-reason-error" role="alert" hidden style="text-align: left; font-size: 0.75rem; color: #912018; margin: 0 0 0.75rem;">Please write a short reason (at least 3 characters).</p>
         <div style="display: flex; align-items: center; justify-content: flex-end; gap: 0.75rem; padding-top: 0.25rem;">
             <button type="button" id="payment-modal-cancel-reject" style="padding: 0.5rem 1rem; border-radius: 0.75rem; font-size: 0.75rem; font-weight: 600; color: #6b6b6b; background: transparent; border: none; cursor: pointer; transition: all 150ms;">
                 Cancel
@@ -546,7 +559,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 { opacity: 1, scale: 1, y: 0, duration: 0.25, ease: 'back.out(1.7)' }
             );
         }
-        if (rejectCancelBtn) rejectCancelBtn.focus();
+        const reasonInput = document.getElementById('payment-reject-reason');
+        const reasonError = document.getElementById('payment-reject-reason-error');
+        if (reasonError) reasonError.hidden = true;
+        if (reasonInput) { reasonInput.value = ''; reasonInput.focus(); }
     }
 
     function hideRejectModal() {
@@ -573,7 +589,23 @@ document.addEventListener('DOMContentLoaded', () => {
     if (rejectConfirmBtn) {
         rejectConfirmBtn.addEventListener('click', () => {
             if (currentRejectForm) {
+                const reasonInput = document.getElementById('payment-reject-reason');
+                const reasonError = document.getElementById('payment-reject-reason-error');
+                const reason = (reasonInput ? reasonInput.value : '').trim();
+                if (reason.length < 3) {
+                    if (reasonError) reasonError.hidden = false;
+                    if (reasonInput) reasonInput.focus();
+                    return;
+                }
                 const formToSubmit = currentRejectForm;
+                let hidden = formToSubmit.querySelector('input[name="reason"]');
+                if (!hidden) {
+                    hidden = document.createElement('input');
+                    hidden.type = 'hidden';
+                    hidden.name = 'reason';
+                    formToSubmit.appendChild(hidden);
+                }
+                hidden.value = reason;
                 rejectConfirmBtn.disabled = true;
                 rejectConfirmBtn.style.opacity = '0.7';
                 rejectConfirmBtn.style.cursor = 'not-allowed';

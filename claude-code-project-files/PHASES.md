@@ -129,3 +129,20 @@ A separate, rigorous end-to-end simulation was run against this system — see *
 
 ### Bottom-up debugging pass (database → backend → auth → API → frontend → integration → performance)
 A second, differently-structured audit — see **`DEBUGGING-REPORT.md`**. This one targeted the seams *between* layers specifically, which the role-based QA pass wasn't structured to catch, and found two real bugs there: the notification bell updated its UI without checking whether the server call actually succeeded, and `/api/sos/active` existed with correct auth but had no consumer — its intended live-polling purpose was never wired up. Both fixed. Also found and fixed an N+1 query pattern and a missing index. Final status: **PASS**.
+
+### Billing rules R1: due dates, receipt review, upload limits, security text (5 Oct 2026)
+Owner rules implemented (decisions confirmed by the owner in this session):
+- **Due dates:** rent is due on the 5th; nothing is due during a resident's first 30 days. A month's due date is the later of the 5th and move-in + 30 days (`BillingService::dueDate()`, stored in `rent_charges.due_date`, migration `0025`). The first month stays prorated by days stayed.
+- **Late fees** now count from each unpaid month's own due date (`PenaltyEngine`), cover unpaid earlier months, and still never stack.
+- **Receipts:** method (GCash/Maya/bank transfer) required; optional reference number; always saved as `pending` (the `flagged` status is retired, and old flagged rows were moved to pending; a mismatch shows as ⚠ to the admin). A one-time pop-up tells the resident it is *Pending review*. Approve and reject notify the resident; reject requires a reason (`payments.review_note`). One receipt under review per resident at a time.
+- **Uploads:** one effective limit (20 MB, or lower if PHP's ini limits are lower), shown on the forms; over-size files now get a clear message instead of being silently dropped. The launcher and test runner pass `-d upload_max_filesize=20M -d post_max_size=25M`.
+- **Text:** curfew removed everywhere (landing page, assistant answers, Ollama prompt, staff and profile cards). Security says "Live CCTV covers the entire boardinghouse." The CCTV/people-counter feature is a plan only: `CCTV-PEOPLE-COUNTER-PLAN.md`.
+
+Assumptions:
+- The move-out month stays prorated as before; the 30-day rule only delays due dates and never changes amounts.
+- A receipt is filed under the resident's oldest unpaid month (or the current month if nothing is owed), because that is the month an approval settles first.
+
+Verified (real output):
+- `php tests/run.php`: **6/6 test files passed**, including new checks for due dates, the 30-day grace, late fees on earlier months, the method requirement, the pop-up shown once, reject-needs-reason, the approve/reject notifications, and 21 MB / 26 MB uploads refused with "The limit is 20 MB".
+- Browser walkthrough (headless Chromium, demo DB): resident moved in 20 Aug sees August ₱1,354.84 and September both overdue since Sep 19, and October due Oct 5. A ₱5,000 GCash receipt gave the pending pop-up; admin approval notified "August 2026 rent ₱1,354.84, September 2026 rent ₱3,500.00, October 2026 rent ₱145.16". A Maya receipt rejected with a reason showed the reason to the resident. A ₱3,400 bank transfer left ₱45.16 credit. The landing page has no curfew and shows the CCTV line. No JavaScript errors.
+- Migration `0025` applied to a fresh database and re-applied over an old `flagged` row: converted to `pending`, no errors.

@@ -6,9 +6,6 @@ use App\Database;
 
 class LandingController
 {
-    /** Shown on the landing page and quoted by the assistant, so the two cannot disagree. */
-    public const CURFEW_HOURS = '10:00 PM Daily (Smart QR Gate Pass Access)';
-
     /**
      * Renders the cinematic animated motion landing page for RJM Boardinghouse.
      */
@@ -37,7 +34,7 @@ class LandingController
             'address_line1'  => 'Zone 3, Purok Sanctuary',
             'address_line2'  => 'Tupi, South Cotabato, 9505 Philippines',
             'office_hours'   => 'Mon – Sat: 8:00 AM – 6:00 PM | Sun: 1:00 PM – 5:00 PM',
-            'curfew_hours'   => self::CURFEW_HOURS,
+            'security'       => 'Live CCTV · no curfew',
             'emergency_line' => '24/7 Security Alarm Dispatch'
         ];
 
