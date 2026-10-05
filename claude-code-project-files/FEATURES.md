@@ -51,6 +51,7 @@ Read the section(s) relevant to the phase you're on (see `PHASES.md`). Not prelo
 ## 9. Penalty and Fee Automation
 - Configurable rules (e.g. "X/day late after due date," "flat damage fee for category Y") stored in `penalty_rules` so admins can adjust amounts without a code change.
 - A late fee starts the day after a month's own due date (§7), so never during a new resident's first 30 days. Each unpaid month has at most one fee per rule, growing with the days late until that month is paid; re-running the check never stacks fees. Months that fell due before these rules went live (migration `0025`) are never given a new backdated fee.
+- **Owner decision (Oct 2026): fair default + admin override.** Late days stop counting on the day a receipt is **submitted**, for the months that receipt pays (oldest first), so admin review time is never charged; a receipt sent on or before the due date means no fee. If the receipt is rejected, those months count as late again from their due date. When approving, the admin sees the late fee and may **waive** it with a required reason; the waiver records who and why (`penalties.waived_by`, `waive_reason`, migration `0027`) and the resident's notification says so.
 - A triggered check (on admin login and/or a manual "run penalty check" button — no cron guarantee on localhost) applies rules and logs the resulting penalty.
 
 ## 10. Status Life System

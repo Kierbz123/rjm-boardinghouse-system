@@ -167,6 +167,57 @@ check($fees($arrears, $lastPeriod), 0.0, 'last month was due before the start da
 check($fees($arrears, $thisPeriod), $perDay * 7, 'this month (due after the start date) is charged normally');
 $setRulesStart('2000-01-01');
 
+echo "== Late days stop when the receipt is submitted, not when it is approved ==\n";
+// A resident whose rent is all unpaid sends a receipt for everything owed, dated $on.
+$receiptOn = function (int $boarder, string $on, ?float $amount = null) use ($pdo): int {
+    $owed = BillingService::calculateBalance($boarder)['total_outstanding'];
+    $id = Payment::create($boarder, date('Y-m'), $owed, $amount ?? $owed, null, 'gcash');
+    $pdo->prepare('UPDATE payments SET created_at = ? WHERE id = ?')->execute([$on . ' 10:00:00', $id]);
+    return $id;
+};
+$day12 = new DateTimeImmutable(date('Y-m-12'));
+
+$onTime = $newResident($twoMonthsAgo->format('Y-m-d'));
+$receiptOn($onTime, date('Y-m-03'));
+PenaltyEngine::runCheck($day12);
+check($fees($onTime, $thisPeriod), 0.0, 'receipt sent on the 3rd, still waiting on the 12th: no fee for this month');
+
+$lateSender = $newResident($twoMonthsAgo->format('Y-m-d'));
+$late8 = $receiptOn($lateSender, date('Y-m-08'));
+PenaltyEngine::runCheck($day12);
+check($fees($lateSender, $thisPeriod), $perDay * 3, 'receipt sent on the 8th: fee for the 6th–8th only, not up to the 12th');
+
+check(Payment::setVerification($late8, 'rejected', $adminId, 'blurry'), true, 'that receipt is rejected');
+PenaltyEngine::runCheck($day12);
+check($fees($lateSender, $thisPeriod), $perDay * 7, 'after rejection the month counts as late again (6th–12th)');
+
+$partial = $newResident($twoMonthsAgo->format('Y-m-d'));
+$owedBefore = BillingService::calculateBalance($partial);
+$receiptOn($partial, date('Y-m-08'), round($owedBefore['total_outstanding'] - $owedBefore['unpaid_rent'][$thisPeriod] / 2, 2));
+PenaltyEngine::runCheck($day12);
+check($fees($partial, $thisPeriod), $perDay * 7, 'a receipt that does not cover this month does not stop its fee');
+
+echo "== The admin decides on the late fee when approving ==\n";
+$charged = $newResident($twoMonthsAgo->format('Y-m-d'));
+$pc = $receiptOn($charged, date('Y-m-08'));
+$preview = App\Services\PaymentReviewService::lateFeePreview(Payment::find($pc), $day12);
+check($preview['total'] > 0 && str_contains($preview['text'], BillingService::periodLabel($thisPeriod) . ': 3 day(s) late'), true,
+    'the approve dialog previews this month\'s fee as 3 days: ' . $preview['text']);
+$r = App\Services\PaymentReviewService::approve($pc, $adminId, (float) Payment::find($pc)['claimed_amount'], null, $day12);
+check($r['ok'], true, 'approved without waiving');
+check($fees($charged, $thisPeriod), $perDay * 3, 'the fee charged is for the 6th–8th (submission date), though approved on the 12th');
+
+$forgiven = $newResident($twoMonthsAgo->format('Y-m-d'));
+$pf = $receiptOn($forgiven, date('Y-m-08'));
+$r = App\Services\PaymentReviewService::approve($pf, $adminId, (float) Payment::find($pf)['claimed_amount'], 'GCash was down on the 5th', $day12);
+$waivedFee = $pdo->query("SELECT status, paid_payment_id, waived_by, waive_reason FROM penalties
+    WHERE boarder_id = {$forgiven} AND billing_period = '{$thisPeriod}' LIMIT 1")->fetch();
+check($r['ok'] && count($r['waived']) >= 1, true, 'approved with a waiver');
+check([$waivedFee['status'], $waivedFee['paid_payment_id'], (int) $waivedFee['waived_by'], $waivedFee['waive_reason']],
+    ['paid', null, $adminId, 'GCash was down on the 5th'], 'the waiver records who and why');
+check(BillingService::calculateBalance($forgiven)['penalties_due'], 0.0, 'nothing owed for the waived fee');
+check(App\Services\PaymentReviewService::approve($pf, $adminId, 1.0, null, $day12)['ok'], false, 'approving the same receipt again is refused');
+
 echo "== Past months keep the price they were billed at ==\n";
 Room::update($roomId, 'B-upd-' . mt_rand(), '2', 1, 4000.00);
 BillingService::calculateBalance($boarderId);

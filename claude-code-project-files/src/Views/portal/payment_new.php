@@ -281,6 +281,7 @@ $methods = \App\Models\Payment::METHODS;
                     <li>Pay by GCash, Maya or bank transfer, then upload the receipt here.</li>
                     <li>Your receipt shows as <strong>Pending review</strong> until an administrator checks it. You get a notification when it is approved or rejected.</li>
                     <li>Approved payments clear your oldest unpaid month first; anything extra becomes credit.</li>
+                    <li>A late fee counts only until the day you submit the receipt, not until it is approved. If the receipt is rejected, the month counts as late again. The administrator can waive a late fee for a good reason.</li>
                 </ul>
             </div>
         </div>

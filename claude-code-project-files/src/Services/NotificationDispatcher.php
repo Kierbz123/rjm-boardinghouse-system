@@ -206,7 +206,7 @@ class NotificationDispatcher
      * @param array $allocations this payment's rows from PaymentAllocationService
      * @param array $balance     BillingService::calculateBalance() after approval
      */
-    public static function paymentApproved(int $boarderId, array $payment, array $allocations, array $balance): void
+    public static function paymentApproved(int $boarderId, array $payment, array $allocations, array $balance, array $waived = [], string $waiveReason = ''): void
     {
         $paid = (float) ($payment['approved_amount'] ?? $payment['claimed_amount']);
         $parts = [];
@@ -217,7 +217,13 @@ class NotificationDispatcher
                 ? BillingService::periodLabel($al['reference_id']) . ' rent'
                 : 'late fee') . ' ₱' . number_format((float) $al['amount'], 2);
         }
-        $message = 'Your ' . self::describePayment(['claimed_amount' => $paid] + $payment) . ' payment was approved.';
+        // Most important first: the 255-character notification may cut the end of a long list.
+        $message = 'Your ' . self::describePayment(['claimed_amount' => $paid] + $payment) . ' payment was approved. Balance now: ₱'
+            . number_format((float) $balance['total_outstanding'], 2) . '.';
+        if ($waived) {
+            $message .= ' Late fee waived (' . implode(', ', array_map(
+                fn ($w) => BillingService::periodLabel($w['period']) . ' ₱' . number_format($w['amount'], 2), $waived)) . '): ' . $waiveReason . '.';
+        }
         if (abs($paid - (float) $payment['claimed_amount']) > 0.004) {
             $message .= ' (You entered ₱' . number_format((float) $payment['claimed_amount'], 2) . '; the receipt shows ₱' . number_format($paid, 2) . '.)';
         }
@@ -228,7 +234,6 @@ class NotificationDispatcher
         if ($extra > 0) {
             $message .= ' ₱' . number_format($extra, 2) . ' was kept as credit for your next bill.';
         }
-        $message .= ' Balance now: ₱' . number_format((float) $balance['total_outstanding'], 2) . '.';
 
         Notification::create($boarderId, 'payment_approved', $message, '/portal/payments/new');
     }

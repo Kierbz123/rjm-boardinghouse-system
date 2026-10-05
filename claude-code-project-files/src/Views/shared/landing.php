@@ -66,7 +66,7 @@ $amenities = [
             'Pay by GCash, Maya or bank transfer, then upload the receipt in the resident portal.',
             'An administrator checks every receipt. Until then it shows as Pending review, and you are notified as soon as it is approved or rejected.',
             'Approved payments clear your oldest unpaid month first; anything extra becomes credit.',
-            'A small daily late fee applies after a month\'s due date while its rent is unpaid.',
+            'A small daily late fee applies after a month\'s due date while its rent is unpaid. It stops on the day you upload a receipt that is approved, so review time is never charged, and an administrator can waive it for a good reason.',
         ],
     ],
 ];

@@ -6,6 +6,7 @@ use App\Models\Payment;
 use App\Models\Room;
 use App\Services\BillingService;
 use App\Services\PaymentAllocationService;
+use App\Services\PaymentReviewService;
 use App\Services\NotificationDispatcher;
 use App\Support\Csrf;
 use App\Support\Uploads;
@@ -143,6 +144,9 @@ class PaymentController
         }
         foreach ($payments as &$p) {
             $p['allocations'] = $allocations[(int) $p['id']] ?? [];
+            $p['late_fee_preview'] = in_array($p['verification_status'], ['pending', 'flagged'], true)
+                ? PaymentReviewService::lateFeePreview($p)
+                : ['total' => 0.0, 'text' => ''];
             $key = $p['payment_method'] . '|' . strtoupper(preg_replace('/[\s\-]+/', '', (string) $p['reference_number']));
             $p['reference_also_on'] = empty($p['reference_number'])
                 ? []
@@ -179,8 +183,20 @@ class PaymentController
             exit;
         }
 
-        if (!Payment::setVerification($paymentId, 'admin-approved', (int) $_SESSION['user_id'], null, $approved)) {
-            $_SESSION['flash_error'] = "Payment #{$paymentId} is already approved.";
+        // Waiving the late fee on the months this receipt pays is the admin's call, with a reason.
+        $waiveReason = null;
+        if (($_POST['waive_late_fee'] ?? '') === '1') {
+            $waiveReason = trim((string) ($_POST['waive_reason'] ?? ''));
+            if (mb_strlen($waiveReason) < 3 || mb_strlen($waiveReason) > 160) {
+                $_SESSION['flash_error'] = 'To waive the late fee, give a reason (3 to 160 characters).';
+                header('Location: /admin/payments');
+                exit;
+            }
+        }
+
+        $result = PaymentReviewService::approve($paymentId, (int) $_SESSION['user_id'], $approved, $waiveReason);
+        if (!$result['ok']) {
+            $_SESSION['flash_error'] = $result['error'];
             header('Location: /admin/payments');
             exit;
         }
@@ -191,7 +207,9 @@ class PaymentController
             $boarderId,
             ['approved_amount' => $approved] + $payment,
             PaymentAllocationService::getAllocationsForPayment($paymentId),
-            $balance
+            $balance,
+            $result['waived'],
+            (string) $waiveReason
         );
         $remainingBalance = (float) $balance['total_outstanding'];
 

@@ -110,7 +110,11 @@ class Penalty
      * @param int|null $markedBy
      * @return array{ok: bool, error?: string, boarder_id?: int, rule_name?: string, amount?: float}
      */
-    public static function markPaid(int $penaltyId, ?int $markedBy = null): array
+    /**
+     * Settles a penalty without a payment (a waiver). $markedBy and $reason are kept on
+     * the row, so every waiver shows who granted it and why.
+     */
+    public static function markPaid(int $penaltyId, ?int $markedBy = null, ?string $reason = null): array
     {
         $pdo = Database::getConnection();
         $inTx = $pdo->inTransaction();
@@ -146,10 +150,10 @@ class Penalty
             // Mark paid with manual override (paid_payment_id remains NULL)
             $stmt = $pdo->prepare('
                 UPDATE penalties
-                SET status = "paid", paid_at = NOW(), paid_payment_id = NULL
+                SET status = "paid", paid_at = NOW(), paid_payment_id = NULL, waived_by = ?, waive_reason = ?
                 WHERE id = ?
             ');
-            $stmt->execute([$penaltyId]);
+            $stmt->execute([$markedBy ?: null, $reason, $penaltyId]);
 
             // Synchronize balance atomically
             BillingService::syncBalance($boarderId, $pdo);

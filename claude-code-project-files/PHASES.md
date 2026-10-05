@@ -157,6 +157,9 @@ Verified (real output):
 
 Left as is: S3 (integer values interpolated in test SQL, not exploitable; matches the existing tests).
 
-**Open question for the owner (S4):** late fees currently keep growing while a receipt is pending review, until an admin approves it. If a receipt submitted before the due date should stop the fee, that is a rule change to decide.
+**S4 decided by the owner (5 Oct 2026): fair default + admin override.** Late days stop counting on the day a receipt is *submitted*, for the months it pays (oldest first): a receipt sent on or before the due date means no fee, and review time is never charged. A rejected receipt makes those months late again. When approving, the admin sees the fee and may waive it with a required reason (`PaymentReviewService`, `PenaltyEngine::stopDates()`, migration `0027` adds `waived_by` / `waive_reason`).
+- Verified: `php tests/run.php` 6/6, with new checks for an on-time receipt (no fee), a receipt on the 8th approved on the 12th (fee for the 6th–8th only), rejection (counts to the 12th again), a partial receipt (keeps counting), the dialog preview, approval with and without a waiver, and waiver without a reason refused. Browser: dialog shows "August 2026: 16 day(s) late (Sep 20–Oct 5) ₱80.00", blocks a waiver without a reason, and records and notifies the waiver.
+- Assumption: a pending receipt only pauses the months its *claimed* amount would fully cover; at approval the *confirmed* amount decides.
+- The `security-reviewer` agent wasn't available this time. A manual check of the change found: approve and waive stay admin-only behind CSRF; all SQL is prepared, with `IN (?, …)` placeholders; the reason is escaped where shown; and a double approval is refused by `setVerification`'s lock (fee and waiver steps are idempotent).
 
 Re-verified after the fixes: `php tests/run.php` 6/6, browser walkthrough 24/24.

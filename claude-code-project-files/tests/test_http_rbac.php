@@ -191,6 +191,8 @@ http('POST', "/admin/payments/{$pay['id']}/approve", $jars['admin'], ['csrf_toke
 check($pdo->query("SELECT verification_status FROM payments WHERE id = {$pay['id']}")->fetchColumn() === 'pending', 'approving without confirming the receipt amount is refused');
 http('POST', "/admin/payments/{$pay['id']}/approve", $jars['admin'], ['csrf_token' => $token, 'approved_amount' => '2.00']);
 check($pdo->query("SELECT verification_status FROM payments WHERE id = {$pay['id']}")->fetchColumn() === 'pending', 'confirming more than the resident claimed is refused');
+http('POST', "/admin/payments/{$pay['id']}/approve", $jars['admin'], ['csrf_token' => $token, 'approved_amount' => '1.00', 'waive_late_fee' => '1', 'waive_reason' => '']);
+check($pdo->query("SELECT verification_status FROM payments WHERE id = {$pay['id']}")->fetchColumn() === 'pending', 'waiving a late fee without a reason is refused');
 http('POST', "/admin/payments/{$pay['id']}/approve", $jars['admin'], ['csrf_token' => $token, 'approved_amount' => '1.00']);
 check($pdo->query("SELECT verification_status FROM payments WHERE id = {$pay['id']}")->fetchColumn() === 'admin-approved', 'admin approval works');
 $note = $pdo->query("SELECT message FROM notifications WHERE user_id = 3 AND type = 'payment_approved' ORDER BY id DESC LIMIT 1")->fetchColumn();

@@ -251,7 +251,7 @@ $totalCollected = array_sum(array_map(
                                 <td class="p-3">
                                     <?php if (in_array($status, ['pending', 'flagged'], true)): ?>
                                         <div class="action-cluster" style="display:flex;align-items:center;gap:0.375rem;">
-                                            <form method="post" action="/admin/payments/<?= (int) $p['id'] ?>/approve" class="inline payment-approve-form" data-payment-id="<?= (int) $p['id'] ?>" data-boarder-name="<?= htmlspecialchars($p['boarder_name']) ?>" data-claimed="<?= number_format($claimedVal, 2, '.', '') ?>" data-expected="<?= number_format($expectedVal, 2, '.', '') ?>">
+                                            <form method="post" action="/admin/payments/<?= (int) $p['id'] ?>/approve" class="inline payment-approve-form" data-payment-id="<?= (int) $p['id'] ?>" data-boarder-name="<?= htmlspecialchars($p['boarder_name']) ?>" data-claimed="<?= number_format($claimedVal, 2, '.', '') ?>" data-expected="<?= number_format($expectedVal, 2, '.', '') ?>" data-late-fee="<?= number_format((float) ($p['late_fee_preview']['total'] ?? 0), 2, '.', '') ?>" data-late-fee-text="<?= htmlspecialchars($p['late_fee_preview']['text'] ?? '') ?>">
                                                 <?= \App\Support\Csrf::field() ?>
                                                 <button type="button"
                                                         class="btn btn-primary !py-1 !px-2.5 !text-xs cursor-pointer shadow-xs payment-approve-btn"
@@ -364,6 +364,17 @@ $totalCollected = array_sum(array_map(
         <label for="payment-approve-amount" style="display: block; text-align: left; font-size: 0.75rem; font-weight: 600; color: #3f3f3f; margin-bottom: 0.25rem;">Amount shown on the receipt (₱)</label>
         <input id="payment-approve-amount" type="number" step="0.01" min="0.01" class="input w-full" style="font-size: 0.85rem; margin-bottom: 0.25rem;">
         <p id="payment-approve-amount-error" role="alert" hidden style="text-align: left; font-size: 0.75rem; color: #912018; margin: 0 0 0.75rem;"></p>
+        <div id="payment-approve-late" hidden style="text-align: left; background: #f8f7f5; border: 1px solid #e6e5e2; border-radius: 0.625rem; padding: 0.625rem 0.75rem; margin: 0 0 0.75rem;">
+            <p style="font-size: 0.75rem; font-weight: 600; color: #3f3f3f; margin: 0 0 0.25rem;">Late fee this approval will charge</p>
+            <p id="payment-approve-late-text" style="font-size: 0.75rem; color: #555452; margin: 0 0 0.25rem; white-space: pre-line;"></p>
+            <p style="font-size: 0.6875rem; color: #9d9b97; margin: 0 0 0.5rem;">Counted only up to the day the receipt was submitted, not today.</p>
+            <label style="display: flex; align-items: center; gap: 0.4rem; font-size: 0.75rem; font-weight: 600; color: #3f3f3f; cursor: pointer;">
+                <input type="checkbox" id="payment-approve-waive"> Waive this late fee
+            </label>
+            <textarea id="payment-approve-waive-reason" rows="2" maxlength="160" hidden class="input w-full" style="font-size: 0.8rem; margin-top: 0.4rem;"
+                      placeholder="Reason, e.g. GCash was down on the 5th."></textarea>
+            <p id="payment-approve-waive-error" role="alert" hidden style="font-size: 0.75rem; color: #912018; margin: 0.25rem 0 0;">Please write a short reason (at least 3 characters).</p>
+        </div>
         <div style="display: flex; align-items: center; justify-content: flex-end; gap: 0.75rem; padding-top: 0.25rem;">
             <button type="button" id="payment-modal-cancel" style="padding: 0.5rem 1rem; border-radius: 0.75rem; font-size: 0.75rem; font-weight: 600; color: #6b6b6b; background: transparent; border: none; cursor: pointer; transition: all 150ms;">
                 Cancel
@@ -512,6 +523,15 @@ document.addEventListener('DOMContentLoaded', () => {
         amountInput.value = claimed.toFixed(2);
         amountInput.max = claimed.toFixed(2);
         document.getElementById('payment-approve-amount-error').hidden = true;
+        const lateFee = parseFloat(form.getAttribute('data-late-fee') || '0');
+        document.getElementById('payment-approve-late').hidden = !(lateFee > 0);
+        document.getElementById('payment-approve-late-text').textContent = form.getAttribute('data-late-fee-text') || '';
+        const waive = document.getElementById('payment-approve-waive');
+        const waiveReason = document.getElementById('payment-approve-waive-reason');
+        waive.checked = false;
+        waiveReason.value = '';
+        waiveReason.hidden = true;
+        document.getElementById('payment-approve-waive-error').hidden = true;
         if (approveConfirmBtn) {
             approveConfirmBtn.disabled = false;
             approveConfirmBtn.style.opacity = '';
@@ -560,7 +580,28 @@ document.addEventListener('DOMContentLoaded', () => {
                     amountInput.focus();
                     return;
                 }
+                const waive = document.getElementById('payment-approve-waive');
+                const waiveReason = document.getElementById('payment-approve-waive-reason');
+                const lateFee = parseFloat(currentApproveForm.getAttribute('data-late-fee') || '0');
+                const waiving = lateFee > 0 && waive.checked;
+                if (waiving && waiveReason.value.trim().length < 3) {
+                    document.getElementById('payment-approve-waive-error').hidden = false;
+                    waiveReason.focus();
+                    return;
+                }
                 const formToSubmit = currentApproveForm;
+                const setField = (name, value) => {
+                    let input = formToSubmit.querySelector(`input[name="${name}"]`);
+                    if (!input) {
+                        input = document.createElement('input');
+                        input.type = 'hidden';
+                        input.name = name;
+                        formToSubmit.appendChild(input);
+                    }
+                    input.value = value;
+                };
+                setField('waive_late_fee', waiving ? '1' : '0');
+                setField('waive_reason', waiving ? waiveReason.value.trim() : '');
                 let hiddenAmount = formToSubmit.querySelector('input[name="approved_amount"]');
                 if (!hiddenAmount) {
                     hiddenAmount = document.createElement('input');
@@ -575,6 +616,22 @@ document.addEventListener('DOMContentLoaded', () => {
                 hideApproveModal();
                 formToSubmit.submit();
             }
+        });
+    }
+
+    // Show the reason box only when the admin chooses to waive.
+    const waiveBox = document.getElementById('payment-approve-waive');
+    const waiveReasonBox = document.getElementById('payment-approve-waive-reason');
+    if (waiveReasonBox) {
+        waiveReasonBox.addEventListener('input', () => {
+            document.getElementById('payment-approve-waive-error').hidden = true;
+        });
+    }
+    if (waiveBox) {
+        waiveBox.addEventListener('change', () => {
+            const reason = document.getElementById('payment-approve-waive-reason');
+            reason.hidden = !waiveBox.checked;
+            if (waiveBox.checked) reason.focus();
         });
     }
 

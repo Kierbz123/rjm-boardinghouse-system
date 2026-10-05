@@ -17,13 +17,14 @@ These suggestions add to the fixes already made in batches B0–B7 (see `FINAL-R
   - Rejected: the admin's reason, which is now required.
 - **Approved payments clear the oldest unpaid month first; anything extra becomes credit** for the next bill.
 - **Late fees** start the day after each month's own due date (so never in a resident's first 30 days). Unpaid earlier months keep their own fee, and re-running the check never stacks fees.
+- **Late fees are fair to the resident, and the admin has the final say** (owner decision): late days stop on the day a receipt is **submitted**, not when it is approved, so review time is never charged. A receipt sent on or before the due date means no fee; a rejected receipt makes the month late again. When approving, the admin sees the fee ("August 2026: 16 day(s) late (Sep 20–Oct 5) ₱80.00") and can **waive** it with a required reason, which is recorded and shown to the resident.
 - **Uploads:** up to **20 MB per file**, on receipts and repair photos/videos alike. That fits any phone photo, or about 10–20 seconds of 1080p phone video. Gigabyte uploads are not practical for this localhost PHP app. Too-large files now get a clear message instead of being silently dropped. `start-system.bat` passes PHP the matching limits.
 
 ---
 
 ## Two database changes that improve several features at once
 
-1. **Rent charges with due dates.** **Done**, plus due dates **Done now**. `rent_charges` holds one row per boarder per month (`period`, `monthly_rate`, `amount`, `due_date`). `payment_allocations` records which months each approved payment cleared. The rent amount comes from the system, never from the boarder's form (BE-01). Late fees are one per month per rule (BE-03). Unpaid months stay visible as arrears. **Done now:** one receipt under review per resident, checked under a row lock (6 simultaneous submissions → 1 accepted). **To do:** decide whether late fees should pause while a receipt waits for review (see `PHASES.md`, R1 open question).
+1. **Rent charges with due dates.** **Done**, plus due dates **Done now**. `rent_charges` holds one row per boarder per month (`period`, `monthly_rate`, `amount`, `due_date`). `payment_allocations` records which months each approved payment cleared. The rent amount comes from the system, never from the boarder's form (BE-01). Late fees are one per month per rule (BE-03). Unpaid months stay visible as arrears. **Done now:** one receipt under review per resident, checked under a row lock (6 simultaneous submissions → 1 accepted). **Done now:** late days stop at the receipt's submission date; the admin can waive with a reason.
 2. **A `bed_assignments` history table.** **To do.** Who was in which bed, from when to when (`boarder_id, bed_id, start_date, end_date`; the open row is the current bed; one open row per boarder and per bed). The occupancy trend can then be calculated from move-in/move-out history instead of daily snapshots (DB-12), and each resident gets a move history. Bed moves are already all-or-nothing (B4).
 
 ## Per feature and page
@@ -63,9 +64,9 @@ These suggestions add to the fixes already made in batches B0–B7 (see `FINAL-R
 - **Database:** **Done now:** `payment_method`, `reference_number`, `reviewed_at`, `review_note`; older "flagged" receipts moved to "pending".
 
 ### Penalty Rules
-- **Front-end:** **To do:** a "preview" of who would be charged, and how much, before running the check; a waive action that requires a reason.
+- **Front-end:** **Done now:** the approve dialog previews the late fee for the months a receipt pays and has a "Waive this late fee" box that requires a reason. **To do:** a preview of who the penalty check would charge, before running it.
 - **Back-end:** **Done now:** late fees follow each month's own due date, cover unpaid earlier months, and never stack. **To do:** move the due day (5) and the 30-day first-payment period into a settings screen; today they are constants in `BillingService`.
-- **Database:** **To do:** a `settings` table; a `penalty_adjustments` table for waivers, so the original penalty row is never edited.
+- **Database:** **Done now:** waivers record who and why (`penalties.waived_by`, `waive_reason`). **To do:** a `settings` table.
 
 ### Expenses
 - **Front-end:** **To do:** an expense date field, receipt upload, and monthly totals per category.
@@ -123,5 +124,5 @@ These suggestions add to the fixes already made in batches B0–B7 (see `FINAL-R
 3. Make the dashboard actionable: clickable cards, "Needs attention", collected vs expected.
 4. Maintenance and SOS improvements: score explanation, rescore, assign, convert to incident.
 5. CCTV phase C1 (counts only, no faces) once the owner has made decisions D1–D5.
-6. Settings screen (due day, first-payment period, late fee), penalty preview and waivers.
+6. Settings screen (due day, first-payment period, late fee) and a preview of the penalty check.
 7. Finish with shared validation, accessibility and moving inline scripts into files.
