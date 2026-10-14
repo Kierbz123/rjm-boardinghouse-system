@@ -15,9 +15,9 @@ echo "=== Testing Boarder Incidents Access & Flow ===\n";
 $allUsers = Database::getConnection()->query('SELECT id, email, role, name, password_hash FROM users')->fetchAll();
 echo "Found " . count($allUsers) . " users in DB:\n";
 foreach ($allUsers as $u) {
-    $hasBoarderPass = password_verify('BoarderPass123!', $u['password_hash']) ? 'BoarderPass123! [MATCH]' : '';
-    $hasStaffPass = password_verify('StaffPass123!', $u['password_hash']) ? 'StaffPass123! [MATCH]' : '';
-    $hasAdminPass = password_verify('AdminPass123!', $u['password_hash']) ? 'AdminPass123! [MATCH]' : '';
+    $hasBoarderPass = password_verify(getenv('TEST_BOARDER_PASSWORD'), $u['password_hash']) ? 'boarder seed password [MATCH]' : '';
+    $hasStaffPass = password_verify(getenv('TEST_STAFF_PASSWORD'), $u['password_hash']) ? 'staff seed password [MATCH]' : '';
+    $hasAdminPass = password_verify(getenv('TEST_ADMIN_PASSWORD'), $u['password_hash']) ? 'admin seed password [MATCH]' : '';
     $match = $hasBoarderPass ?: ($hasStaffPass ?: ($hasAdminPass ?: 'Custom password'));
     echo " - [{$u['id']}] {$u['role']}: {$u['email']} ({$u['name']}) -> Pass: {$match}\n";
 }

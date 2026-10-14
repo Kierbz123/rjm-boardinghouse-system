@@ -13,9 +13,10 @@ use App\Models\Bed;
 use App\Models\BoarderProfile;
 use App\Models\PenaltyRule;
 
-$adminId = User::create('admin', 'Admin User', 'admin@rjm.test', 'AdminPass123!');
-$staffId = User::create('staff', 'Staff User', 'staff@rjm.test', 'StaffPass123!');
-$boarderId = User::create('boarder', 'Boarder User', 'boarder@rjm.test', 'BoarderPass123!');
+// SEED_*_PASSWORD lets the test runner (and an installer) choose the passwords.
+$adminId = User::create('admin', 'Admin User', 'admin@rjm.test', getenv('SEED_ADMIN_PASSWORD') ?: 'AdminPass123!');
+$staffId = User::create('staff', 'Staff User', 'staff@rjm.test', getenv('SEED_STAFF_PASSWORD') ?: 'StaffPass123!');
+$boarderId = User::create('boarder', 'Boarder User', 'boarder@rjm.test', getenv('SEED_BOARDER_PASSWORD') ?: 'BoarderPass123!');
 
 $roomId = Room::create('101', '1', 2, 3500.00);
 $bedAId = Bed::create($roomId, 'Bed A');

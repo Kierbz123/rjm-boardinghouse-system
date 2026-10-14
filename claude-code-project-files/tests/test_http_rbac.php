@@ -64,9 +64,9 @@ function hasPhpError(string $body): bool
 }
 
 $jars = [
-    'admin' => loginAs('admin@rjm.test', 'AdminPass123!'),
-    'staff' => loginAs('staff@rjm.test', 'StaffPass123!'),
-    'boarder' => loginAs('boarder@rjm.test', 'BoarderPass123!'),
+    'admin' => loginAs('admin@rjm.test', getenv('TEST_ADMIN_PASSWORD')),
+    'staff' => loginAs('staff@rjm.test', getenv('TEST_STAFF_PASSWORD')),
+    'boarder' => loginAs('boarder@rjm.test', getenv('TEST_BOARDER_PASSWORD')),
 ];
 $boarderId = 3; // seed.php creates admin=1, staff=2, boarder=3
 
@@ -361,7 +361,7 @@ check((int) $q('SELECT COUNT(*) FROM payments WHERE boarder_id = 3') === $paymen
 check($q('SELECT status FROM boarder_profiles WHERE user_id = 3') === 'moved_out' && $q('SELECT bed_id FROM boarder_profiles WHERE user_id = 3') === null, 'archived boarder is moved out with no bed');
 check(!str_contains(http('GET', '/admin/boarders', $jars['admin'])['body'], 'boarder@rjm.test'), 'hidden from the resident list');
 check(str_contains(http('GET', '/admin/boarders?archived=1', $jars['admin'])['body'], 'boarder@rjm.test'), 'listed under Show archived');
-check(http('GET', '/portal/dashboard', loginAs('boarder@rjm.test', 'BoarderPass123!'))['code'] === 302, 'archived boarder cannot log in');
+check(http('GET', '/portal/dashboard', loginAs('boarder@rjm.test', getenv('TEST_BOARDER_PASSWORD')))['code'] === 302, 'archived boarder cannot log in');
 http('POST', '/admin/boarders/3/restore', $jars['admin'], ['csrf_token' => $token]);
 check($q('SELECT status FROM users WHERE id = 3') === 'active', 'restore re-enables the account');
 
@@ -414,7 +414,7 @@ check($q('SELECT status FROM users WHERE id = 1') === 'active', 'cannot deactiva
 echo "== Receipts are private (M12) ==\n";
 $receiptPath = (string) $q("SELECT proof_path FROM payments WHERE boarder_id = 3 AND proof_path IS NOT NULL ORDER BY id DESC LIMIT 1");
 check(str_starts_with($receiptPath, '/uploads/receipts/') && !is_file(__DIR__ . '/../public' . $receiptPath), 'receipt stored outside the web root');
-$ownerJar = loginAs('boarder@rjm.test', 'BoarderPass123!');
+$ownerJar = loginAs('boarder@rjm.test', getenv('TEST_BOARDER_PASSWORD'));
 check(http('GET', $receiptPath, $ownerJar)['code'] === 200, 'the boarder who paid can view it');
 check(http('GET', $receiptPath, $jars['admin'])['code'] === 200, 'admins can view it');
 check(http('GET', $receiptPath, $jars['staff'])['code'] === 404, 'staff cannot view receipts');
@@ -478,10 +478,10 @@ check(http('POST', '/api/assistant/ask', null, [])['code'] === 302, 'ask require
 check(str_contains(http('GET', '/portal/dashboard', $jars['boarder'])['body'], 'href="/portal/payments/new"'), 'sidebar still links Pay Rent for boarders');
 
 echo "== Password change ends the user's other sessions ==\n";
-$a = loginAs('boarder@rjm.test', 'BoarderPass123!');
-$b = loginAs('boarder@rjm.test', 'BoarderPass123!');
+$a = loginAs('boarder@rjm.test', getenv('TEST_BOARDER_PASSWORD'));
+$b = loginAs('boarder@rjm.test', getenv('TEST_BOARDER_PASSWORD'));
 $token = csrfFrom(http('GET', '/profile', $a)['body']);
-http('POST', '/profile/password', $a, ['csrf_token' => $token, 'current_password' => 'BoarderPass123!',
+http('POST', '/profile/password', $a, ['csrf_token' => $token, 'current_password' => getenv('TEST_BOARDER_PASSWORD'),
     'new_password' => 'NewBoarderPass1!', 'confirm_password' => 'NewBoarderPass1!']);
 check(http('GET', '/portal/dashboard', $a)['code'] === 200, 'session that changed the password stays in');
 check(http('GET', '/portal/dashboard', $b)['code'] === 302, 'other session is logged out');

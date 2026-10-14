@@ -27,6 +27,17 @@ $pdo = null;
 // Children (CLI scripts and the server) inherit this.
 putenv("DB_NAME={$testDb}");
 putenv("TEST_BASE_URL=http://127.0.0.1:{$port}");
+// A second server on the same database: concurrency tests send requests to both at once.
+// (PHP_CLI_SERVER_WORKERS is not available on Windows, so two processes stand in for workers.)
+$port2 = $port - 1;
+putenv("TEST_BASE_URL_2=http://127.0.0.1:{$port2}");
+
+// No fixed credentials anywhere: the seeded accounts get fresh random passwords every run.
+foreach (['admin', 'staff', 'boarder'] as $role) {
+    $password = bin2hex(random_bytes(6)) . 'Aa1!';
+    putenv('SEED_' . strtoupper($role) . "_PASSWORD={$password}");
+    putenv('TEST_' . strtoupper($role) . "_PASSWORD={$password}");
+}
 
 foreach (['database/migrate.php', 'database/seed.php'] as $script) {
     exec(escapeshellarg($php) . ' ' . escapeshellarg("{$root}/{$script}") . ' 2>&1', $out, $code);
@@ -38,20 +49,30 @@ foreach (['database/migrate.php', 'database/seed.php'] as $script) {
 
 // Same upload limits as start-system.bat, so upload tests match real use.
 $devNull = PHP_OS_FAMILY === 'Windows' ? 'NUL' : '/dev/null';
-$server = proc_open(
-    [$php, '-d', 'upload_max_filesize=20M', '-d', 'post_max_size=25M',
-        '-S', "127.0.0.1:{$port}", '-t', "{$root}/public", "{$root}/public/index.php"],
-    [1 => ['file', $devNull, 'w'], 2 => ['file', $devNull, 'w']],
-    $pipes,
-    $root
-);
-for ($i = 0; $i < 50 && !@fsockopen('127.0.0.1', $port); $i++) {
-    usleep(100000);
+$servers = [];
+foreach ([$port, $port2] as $p) {
+    $servers[] = proc_open(
+        [$php, '-d', 'upload_max_filesize=20M', '-d', 'post_max_size=25M',
+            '-S', "127.0.0.1:{$p}", '-t', "{$root}/public", "{$root}/public/index.php"],
+        [1 => ['file', $devNull, 'w'], 2 => ['file', $devNull, 'w']],
+        $pipes,
+        $root
+    );
+}
+foreach ([$port, $port2] as $p) {
+    for ($i = 0; $i < 50 && !@fsockopen('127.0.0.1', $p); $i++) {
+        usleep(100000);
+    }
 }
 
 $tests = glob(__DIR__ . '/test_*.php');
 if (!in_array('--with-ai', $argv, true)) {
     $tests = array_filter($tests, fn ($t) => basename($t) !== 'test_ai_assistant.php');
+}
+// `php tests/run.php wp02` runs only the files whose name contains "wp02".
+$only = array_values(array_filter(array_slice($argv, 1), fn ($a) => !str_starts_with($a, '--')));
+if ($only) {
+    $tests = array_filter($tests, fn ($t) => (bool) array_filter($only, fn ($o) => str_contains(basename($t), $o)));
 }
 
 // Uploads from test requests land in the real storage/uploads; remove them afterwards.
@@ -66,7 +87,9 @@ foreach ($tests as $test) {
     }
 }
 
-proc_terminate($server);
+foreach ($servers as $server) {
+    proc_terminate($server);
+}
 array_map('unlink', array_diff(glob("{$root}/storage/uploads/*/*"), $uploadsBefore));
 
 echo "\n" . str_repeat('=', 50) . "\n";

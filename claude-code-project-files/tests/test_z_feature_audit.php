@@ -89,9 +89,9 @@ $newPassword = fn () => 'T' . bin2hex(random_bytes(6)) . '!a';
 
 // ---------------------------------------------------------------------------------
 echo "== Fixtures, created through the admin screens ==\n";
-[$admin, $adminT] = loginAs('admin@rjm.test', 'AdminPass123!');
+[$admin, $adminT] = loginAs('admin@rjm.test', getenv('TEST_ADMIN_PASSWORD'));
 check($adminT !== '', 'admin signs in');
-[$staff, $staffT] = loginAs('staff@rjm.test', 'StaffPass123!');
+[$staff, $staffT] = loginAs('staff@rjm.test', getenv('TEST_STAFF_PASSWORD'));
 check($staffT !== '', 'staff signs in');
 
 http('POST', '/admin/rooms', $admin, ['csrf_token' => $adminT, 'room_number' => "A{$tag}", 'floor' => '2', 'capacity' => 3, 'base_price' => '1500']);
@@ -298,7 +298,7 @@ http('POST', "/admin/boarders/{$r1}/password", $admin, ['csrf_token' => $adminT,
 http('POST', "/admin/boarders/{$r1}/password", $admin, ['csrf_token' => $adminT, 'new_password' => str_repeat('Ab1!', 19)]);
 check(one('SELECT password_hash FROM users WHERE id = ?', [$r1]) === $hashBefore, 'a password under 8 or over 72 characters is refused');
 check(App\Services\PasswordResetService::byAdmin(['id' => 1, 'role' => 'admin', 'email' => 'admin@rjm.test'], $newPassword(), 1) !== null
-    && password_verify('AdminPass123!', (string) one('SELECT password_hash FROM users WHERE id = 1')), 'the reset service itself refuses an admin account');
+    && password_verify(getenv('TEST_ADMIN_PASSWORD'), (string) one('SELECT password_hash FROM users WHERE id = 1')), 'the reset service itself refuses an admin account');
 check(http('POST', "/admin/boarders/{$r1}/password", $staff, ['csrf_token' => $staffT, 'new_password' => $newPassword()])['code'] === 403, 'staff cannot reset a resident password');
 check(http('POST', "/admin/boarders/{$r1}/password", $res, ['csrf_token' => $resT, 'new_password' => $newPassword()])['code'] === 403, 'a resident cannot reset a password');
 check(http('POST', "/admin/boarders/{$r1}/password", $admin, ['new_password' => $newPassword()])['code'] === 400, 'reset without the session token is refused');
@@ -314,7 +314,7 @@ check(loginAs($email1, $pw1)[1] === '', 'the old password no longer works');
 check($resT !== '', 'the new password works at once (the lockout was lifted)');
 check((int) one('SELECT COUNT(*) FROM notifications WHERE user_id = ? AND message LIKE "An administrator set a new password%"', [$r1]) === 1, 'the resident is told inside the system');
 http('POST', '/admin/boarders/1/password', $admin, ['csrf_token' => $adminT, 'new_password' => $newPassword()]);
-check(password_verify('AdminPass123!', (string) one('SELECT password_hash FROM users WHERE id = 1')), 'the resident route cannot be used on an admin account');
+check(password_verify(getenv('TEST_ADMIN_PASSWORD'), (string) one('SELECT password_hash FROM users WHERE id = 1')), 'the resident route cannot be used on an admin account');
 $staffPw = $newPassword();
 http('POST', '/admin/staff', $admin, ['csrf_token' => $adminT, 'name' => 'Audit Staff', 'email' => "audit.staff.{$tag}@rjm.test", 'password' => $newPassword()]);
 $s1 = (int) one('SELECT id FROM users WHERE email = ?', ["audit.staff.{$tag}@rjm.test"]);

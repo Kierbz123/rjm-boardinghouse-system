@@ -45,7 +45,7 @@ function assertTrue($condition, string $label) {
 // Ensure Admin user
 $admin = $pdo->query("SELECT * FROM users WHERE role = 'admin' LIMIT 1")->fetch();
 if (!$admin) {
-    $adminId = User::create('admin', 'Admin Test', 'admin_test_prof@rjm.test', 'AdminPass123!');
+    $adminId = User::create('admin', 'Admin Test', 'admin_test_prof@rjm.test', getenv('TEST_ADMIN_PASSWORD'));
     $admin = $pdo->query("SELECT * FROM users WHERE id = {$adminId}")->fetch();
 }
 $adminId = (int) $admin['id'];
@@ -53,7 +53,7 @@ $adminId = (int) $admin['id'];
 // Ensure Staff user
 $staff = $pdo->query("SELECT * FROM users WHERE role = 'staff' LIMIT 1")->fetch();
 if (!$staff) {
-    $staffId = User::create('staff', 'Staff Test', 'staff_test_prof@rjm.test', 'StaffPass123!');
+    $staffId = User::create('staff', 'Staff Test', 'staff_test_prof@rjm.test', getenv('TEST_STAFF_PASSWORD'));
     $staff = $pdo->query("SELECT * FROM users WHERE id = {$staffId}")->fetch();
 }
 $staffId = (int) $staff['id'];
