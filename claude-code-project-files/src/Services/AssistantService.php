@@ -323,7 +323,7 @@ class AssistantService
 
     private static function balance(string $lang, int $userId): array
     {
-        $b = BillingService::calculateBalance($userId);
+        $b = BillingService::calculateBalance($userId, null, true);
         if ($b['total_outstanding'] > 0) {
             $months = implode('; ', array_map([BillingService::class, 'periodLabel'], array_keys($b['unpaid_rent'])));
             $reply = self::t($lang, 'You owe %s in total. Rent: %s%s. Electricity: %s. Penalties: %s.',
@@ -497,7 +497,7 @@ class AssistantService
         // Fine for one house; read the cached boarder_profiles.outstanding_balance if this ever gets slow.
         $owing = [];
         foreach (BoarderProfile::all() as $b) {
-            $due = BillingService::calculateBalance((int) $b['user_id'])['total_outstanding'];
+            $due = BillingService::calculateBalance((int) $b['user_id'], null, true)['total_outstanding'];
             if ($due > 0) {
                 $owing[] = ['id' => (int) $b['user_id'], 'name' => $b['name'], 'due' => $due];
             }
@@ -552,7 +552,7 @@ class AssistantService
             if (!$parts || !NavRegistry::score($message, $parts)) {
                 continue;
             }
-            $due = BillingService::calculateBalance((int) $b['user_id'])['total_outstanding'];
+            $due = BillingService::calculateBalance((int) $b['user_id'], null, true)['total_outstanding'];
             return [
                 'reply' => self::t($lang, '%s: Room %s, %s, %s. Owes %s.', '%s: Room %s, %s, %s. Utang: %s.',
                     $b['name'], $b['room_number'] ?? '-', self::bed($b['bed_label']), str_replace('_', ' ', $b['status']), self::peso($due)),

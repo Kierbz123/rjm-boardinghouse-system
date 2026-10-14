@@ -61,31 +61,36 @@ class BillingService
      *   unpaid_electricity:list<array{id:int, label:string, amount:float, due_date:string}>,
      *   next_due_date:?string, unpaid_penalties:array}
      */
-    public static function calculateBalance(int $boarderId, ?\PDO $pdo = null): array
+    /**
+     * $readOnly = true works the same figures out in memory and writes NOTHING (no rent rows, allocations,
+     * penalty statuses or cached balance, no row lock): every page that only shows a balance must use it,
+     * so that opening a page never changes the books. Anything that changes money uses the default.
+     */
+    public static function calculateBalance(int $boarderId, ?\PDO $pdo = null, bool $readOnly = false): array
     {
         $pdo = $pdo ?? Database::getConnection();
-        $ownTx = !$pdo->inTransaction();
+        $ownTx = !$readOnly && !$pdo->inTransaction();
         if ($ownTx) {
             $pdo->beginTransaction();
         }
 
         try {
-            // Serialises concurrent recalculations for the same boarder.
+            // Serialises concurrent recalculations for the same boarder (a read-only view takes no lock).
             $stmt = $pdo->prepare('
                 SELECT bp.move_in_date, bp.move_out_date, r.base_price
                 FROM boarder_profiles bp
                 LEFT JOIN rooms r ON r.id = bp.room_id
-                WHERE bp.user_id = ?
-                FOR UPDATE
+                WHERE bp.user_id = ?' . ($readOnly ? '' : '
+                FOR UPDATE') . '
             ');
             $stmt->execute([$boarderId]);
             $profile = $stmt->fetch() ?: null;
 
-            self::syncRentCharges($boarderId, $profile, $pdo);
-            $result = self::allocate($boarderId, $pdo);
+            $charges = self::syncRentCharges($boarderId, $profile, $pdo, $readOnly);
+            $result = self::allocate($boarderId, $pdo, $charges, $readOnly);
             $result['base_price'] = (float) ($profile['base_price'] ?? 0);
 
-            if ($profile) {
+            if ($profile && !$readOnly) {
                 $pdo->prepare('UPDATE boarder_profiles SET outstanding_balance = ? WHERE user_id = ?')
                     ->execute([$result['total_outstanding'], $boarderId]);
             }
@@ -171,7 +176,7 @@ class BillingService
         $debtors = [];
         foreach ($residents as $r) {
             try {
-                $b = self::calculateBalance((int) $r['user_id'], $pdo);
+                $b = self::calculateBalance((int) $r['user_id'], $pdo, true);
             } catch (\RuntimeException $e) { // one resident with a bad date must not take the dashboard down
                 \App\Support\Logger::error("Balance of resident {$r['user_id']} skipped: " . $e->getMessage());
                 continue;
@@ -232,13 +237,15 @@ class BillingService
      * cycles keep the rate they were billed at. A cycle cut short by a move-out is
      * charged by the day (rate × days stayed ÷ 30).
      */
-    private static function syncRentCharges(int $boarderId, ?array $profile, \PDO $pdo): void
+    /** @return list<array{period:string, amount:float, due_date:string}> the rent cycles this resident owes, oldest first */
+    private static function syncRentCharges(int $boarderId, ?array $profile, \PDO $pdo, bool $readOnly = false): array
     {
         $existing = $pdo->prepare('SELECT period, monthly_rate FROM rent_charges WHERE boarder_id = ?');
         $existing->execute([$boarderId]);
         $billedRates = $existing->fetchAll(\PDO::FETCH_KEY_PAIR);
 
         $periods = [];
+        $charges = [];
         if ($profile && $profile['move_in_date']) {
             $today = new \DateTimeImmutable('today');
             $moveOut = $profile['move_out_date'] ? new \DateTimeImmutable($profile['move_out_date']) : null;
@@ -262,10 +269,14 @@ class BillingService
                     : (float) ($profile['base_price'] ?? 0);
                 $amount = round($rate * $days / self::CYCLE_DAYS, 2);
 
-                $pdo->prepare('
-                    INSERT INTO rent_charges (boarder_id, period, monthly_rate, amount, due_date) VALUES (?, ?, ?, ?, ?)
-                    ON DUPLICATE KEY UPDATE monthly_rate = VALUES(monthly_rate), amount = VALUES(amount), due_date = VALUES(due_date)
-                ')->execute([$boarderId, $period, $rate, $amount, self::dueDate($period)->format('Y-m-d')]);
+                $dueDate = self::dueDate($period)->format('Y-m-d');
+                if (!$readOnly) {
+                    $pdo->prepare('
+                        INSERT INTO rent_charges (boarder_id, period, monthly_rate, amount, due_date) VALUES (?, ?, ?, ?, ?)
+                        ON DUPLICATE KEY UPDATE monthly_rate = VALUES(monthly_rate), amount = VALUES(amount), due_date = VALUES(due_date)
+                    ')->execute([$boarderId, $period, $rate, $amount, $dueDate]);
+                }
+                $charges[] = ['period' => $period, 'amount' => $amount, 'due_date' => $dueDate];
                 $periods[] = $period;
             }
         }
@@ -274,22 +285,24 @@ class BillingService
         // and neither does an unpaid automatic late fee for one. Cycle keys follow the move-in
         // date, so correcting that date would otherwise strand its fees. Month-keyed fees from
         // before cycles (7 characters) are left alone.
-        $placeholders = $periods ? implode(',', array_fill(0, count($periods), '?')) : "''";
-        $pdo->prepare("DELETE FROM rent_charges WHERE boarder_id = ? AND period NOT IN ({$placeholders})")
-            ->execute(array_merge([$boarderId], $periods));
-        $pdo->prepare("DELETE FROM penalties WHERE boarder_id = ? AND status = 'unpaid'
-                       AND CHAR_LENGTH(billing_period) = 10 AND billing_period NOT IN ({$placeholders})")
-            ->execute(array_merge([$boarderId], $periods));
+        if (!$readOnly) {
+            $placeholders = $periods ? implode(',', array_fill(0, count($periods), '?')) : "''";
+            $pdo->prepare("DELETE FROM rent_charges WHERE boarder_id = ? AND period NOT IN ({$placeholders})")
+                ->execute(array_merge([$boarderId], $periods));
+            $pdo->prepare("DELETE FROM penalties WHERE boarder_id = ? AND status = 'unpaid'
+                           AND CHAR_LENGTH(billing_period) = 10 AND billing_period NOT IN ({$placeholders})")
+                ->execute(array_merge([$boarderId], $periods));
+        }
+        return $charges;
     }
 
     /** Applies approved payments oldest-first to rent cycles, then electricity shares, then penalties. */
-    private static function allocate(int $boarderId, \PDO $pdo): array
+    /** @param list<array{period:string, amount:float, due_date:string}> $charges */
+    private static function allocate(int $boarderId, \PDO $pdo, array $charges, bool $readOnly = false): array
     {
         $obligations = [];
 
-        $stmt = $pdo->prepare('SELECT period, amount, due_date FROM rent_charges WHERE boarder_id = ? ORDER BY period');
-        $stmt->execute([$boarderId]);
-        foreach ($stmt->fetchAll() as $c) {
+        foreach ($charges as $c) {
             $obligations[] = ['type' => 'rent', 'ref' => $c['period'], 'due' => (float) $c['amount'], 'paid' => 0.0, 'by' => null,
                 'due_date' => $c['due_date']];
         }
@@ -318,11 +331,18 @@ class BillingService
             ORDER BY COALESCE(p.due_date, DATE(p.applied_at)), p.id
         ');
         $stmt->execute([$boarderId]);
+        $cyclePeriods = array_column($charges, 'period');
         foreach ($stmt->fetchAll() as $p) {
+            // An unpaid automatic late fee for a cycle that no longer exists is not owed (it is deleted when the books are next written).
+            if ($p['status'] === 'unpaid' && $p['billing_period'] !== null && strlen((string) $p['billing_period']) === 10 && !in_array($p['billing_period'], $cyclePeriods, true)) {
+                continue;
+            }
             $obligations[] = ['type' => 'penalty', 'ref' => (string) $p['id'], 'due' => (float) $p['amount'], 'paid' => 0.0, 'by' => null, 'row' => $p];
         }
 
-        $pdo->prepare('DELETE FROM payment_allocations WHERE boarder_id = ?')->execute([$boarderId]);
+        if (!$readOnly) {
+            $pdo->prepare('DELETE FROM payment_allocations WHERE boarder_id = ?')->execute([$boarderId]);
+        }
         $insert = $pdo->prepare('
             INSERT INTO payment_allocations (payment_id, boarder_id, allocation_type, reference_id, amount)
             VALUES (?, ?, ?, ?, ?)
@@ -342,7 +362,9 @@ class BillingService
                 $o = &$obligations[$i];
                 $take = round(min($left, $o['due'] - $o['paid']), 2);
                 if ($take > 0) {
-                    $insert->execute([$payment['id'], $boarderId, $o['type'], $o['ref'], $take]);
+                    if (!$readOnly) {
+                        $insert->execute([$payment['id'], $boarderId, $o['type'], $o['ref'], $take]);
+                    }
                     $o['paid'] = round($o['paid'] + $take, 2);
                     $left = round($left - $take, 2);
                 }
@@ -383,9 +405,13 @@ class BillingService
                 continue;
             }
             if ($o['by'] !== null) {
-                $markPaid->execute([$o['by'], $o['ref']]);
+                if (!$readOnly) {
+                    $markPaid->execute([$o['by'], $o['ref']]);
+                }
             } else {
-                $markUnpaid->execute([$o['ref']]);
+                if (!$readOnly) {
+                    $markUnpaid->execute([$o['ref']]);
+                }
                 $unpaidPenalties[] = array_merge($o['row'], ['remaining_amount' => $remaining, 'allocated_amount' => $o['paid'], 'status' => 'unpaid']);
                 $penaltiesDue += $remaining;
             }

@@ -67,13 +67,20 @@ class Payment
     public static function setVerification(int $id, string $status, ?int $verifiedBy = null, ?string $note = null, ?float $approvedAmount = null): bool
     {
         $pdo = Database::getConnection();
-        $pdo->beginTransaction();
+        // Joins the caller's transaction when there is one (PaymentReviewService::approve runs the late fees,
+        // the waiver and this status change as ONE all-or-nothing unit); the caller then commits or rolls back.
+        $ownTx = !$pdo->inTransaction();
+        if ($ownTx) {
+            $pdo->beginTransaction();
+        }
         try {
             $stmt = $pdo->prepare('SELECT boarder_id, verification_status FROM payments WHERE id = ? FOR UPDATE');
             $stmt->execute([$id]);
             $payment = $stmt->fetch();
             if (!$payment || !in_array($payment['verification_status'], self::ALLOWED_FROM[$status] ?? [], true)) {
-                $pdo->rollBack();
+                if ($ownTx) {
+                    $pdo->rollBack();
+                }
                 return false;
             }
 
@@ -81,10 +88,14 @@ class Payment
                 ->execute([$status, $verifiedBy, $note, $status === 'admin-approved' ? $approvedAmount : null, $id]);
             \App\Services\BillingService::calculateBalance((int) $payment['boarder_id'], $pdo);
 
-            $pdo->commit();
+            if ($ownTx) {
+                $pdo->commit();
+            }
             return true;
         } catch (\Throwable $e) {
-            $pdo->rollBack();
+            if ($ownTx && $pdo->inTransaction()) {
+                $pdo->rollBack();
+            }
             throw $e;
         }
     }

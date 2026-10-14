@@ -335,7 +335,7 @@ class BoarderController
         $isShowingAllPayments = ($paymentLimit > 12);
 
         try {
-            $balanceDetails = BillingService::calculateBalance($id);
+            $balanceDetails = BillingService::calculateBalance($id, null, true);
         } catch (\RuntimeException $e) {
             $_SESSION['flash_error'] = "Rent cannot be worked out for {$boarder['name']}: " . $e->getMessage();
             header('Location: /admin/boarders');

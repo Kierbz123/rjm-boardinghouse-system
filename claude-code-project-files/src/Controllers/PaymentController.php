@@ -33,7 +33,7 @@ class PaymentController
         $recentPayments = $stmt->fetchAll();
 
         // Canonical balance details for the boarder
-        $balanceDetails = BillingService::calculateBalance($userId, $pdo);
+        $balanceDetails = BillingService::calculateBalance($userId, $pdo, true);
 
         require __DIR__ . '/../Views/portal/payment_new.php';
     }
@@ -194,7 +194,11 @@ class PaymentController
             }
         }
 
-        $result = PaymentReviewService::approve($paymentId, (int) $_SESSION['user_id'], $approved, $waiveReason);
+        try {
+            $result = PaymentReviewService::approve($paymentId, (int) $_SESSION['user_id'], $approved, $waiveReason);
+        } catch (\Throwable $e) { // everything was rolled back: nothing changed
+            $result = ['ok' => false, 'error' => \App\Support\Flash::error($e, 'The payment could not be approved and nothing was changed. Please try again.')];
+        }
         if (!$result['ok']) {
             $_SESSION['flash_error'] = $result['error'];
             header('Location: /admin/payments');

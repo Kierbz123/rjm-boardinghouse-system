@@ -105,7 +105,7 @@ class DashboardController
         $stmt->execute([$userId]);
         $maintenanceRequests = $stmt->fetchAll();
 
-        $balanceDetails = \App\Services\BillingService::calculateBalance($userId, $pdo);
+        $balanceDetails = \App\Services\BillingService::calculateBalance($userId, $pdo, true);
 
         require __DIR__ . '/../Views/portal/dashboard.php';
     }

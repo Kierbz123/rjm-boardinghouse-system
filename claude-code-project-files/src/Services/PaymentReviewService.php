@@ -27,7 +27,7 @@ class PaymentReviewService
     {
         $today = $today ?? new \DateTimeImmutable('today');
         $boarderId = (int) $payment['boarder_id'];
-        $balance = BillingService::calculateBalance($boarderId);
+        $balance = BillingService::calculateBalance($boarderId, null, true); // a preview must not write
         $stops = PenaltyEngine::stopDates($balance, (float) $payment['claimed_amount'], self::submittedOn($payment));
         $fees = PenaltyEngine::feesFor($balance, $today, $stops, array_keys($stops));
 
@@ -55,10 +55,38 @@ class PaymentReviewService
     public static function approve(int $paymentId, int $adminId, float $approvedAmount, ?string $waiveReason = null, ?\DateTimeImmutable $today = null): array
     {
         $today = $today ?? new \DateTimeImmutable('today');
-        $payment = Payment::find($paymentId);
-        if (!$payment || !in_array($payment['verification_status'], ['pending', 'flagged'], true)) {
-            return ['ok' => false, 'error' => "Payment #{$paymentId} has already been reviewed."];
+        $pdo = Database::getConnection();
+
+        // One transaction for the whole approval: the late fees, the waiver, the status change and the
+        // notifications written along the way all commit together or not at all. The payment row is locked
+        // FIRST, so two admins approving the same receipt take turns and the second finds it already reviewed.
+        $pdo->beginTransaction();
+        try {
+            $lock = $pdo->prepare('SELECT * FROM payments WHERE id = ? FOR UPDATE');
+            $lock->execute([$paymentId]);
+            $payment = $lock->fetch();
+            if (!$payment || !in_array($payment['verification_status'], ['pending', 'flagged'], true)) {
+                $pdo->rollBack();
+                return ['ok' => false, 'error' => "Payment #{$paymentId} has already been reviewed."];
+            }
+            $result = self::approveLocked($payment, $paymentId, $adminId, $approvedAmount, $waiveReason, $today);
+            if (!$result['ok']) {
+                $pdo->rollBack();
+                return $result;
+            }
+            $pdo->commit();
+            return $result;
+        } catch (\Throwable $e) {
+            if ($pdo->inTransaction()) {
+                $pdo->rollBack();
+            }
+            throw $e;
         }
+    }
+
+    /** The body of approve(), run inside its transaction with the payment row already locked. */
+    private static function approveLocked(array $payment, int $paymentId, int $adminId, float $approvedAmount, ?string $waiveReason, \DateTimeImmutable $today): array
+    {
         $boarderId = (int) $payment['boarder_id'];
 
         // 1. Late fees on the months this receipt pays, counted only up to its submission date.

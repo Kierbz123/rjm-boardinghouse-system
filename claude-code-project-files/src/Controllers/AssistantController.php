@@ -344,7 +344,7 @@ class AssistantController
             $stmt->execute([$userId]);
             $recentRequests = $stmt->fetchAll();
             // Balance and penalty details for boarder
-            $balance = \App\Services\BillingService::calculateBalance($userId, $pdo);
+            $balance = \App\Services\BillingService::calculateBalance($userId, $pdo, true);
             $context['outstanding_balance'] = '₱' . number_format((float) $balance['total_outstanding'], 2);
             $context['rent_due'] = '₱' . number_format((float) $balance['rent_due'], 2);
             $context['electricity_due'] = '₱' . number_format((float) $balance['electricity_due'], 2);

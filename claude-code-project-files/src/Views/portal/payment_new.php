@@ -33,7 +33,7 @@ if ($boarder === null && !empty($_SESSION['user_id'])) {
 
 $balanceDetails = $balanceDetails ?? null;
 if ($balanceDetails === null && !empty($_SESSION['user_id'])) {
-    $balanceDetails = \App\Services\BillingService::calculateBalance((int) $_SESSION['user_id']);
+    $balanceDetails = \App\Services\BillingService::calculateBalance((int) $_SESSION['user_id'], null, true);
 }
 $rentPrice = !empty($boarder['base_price']) ? (float) $boarder['base_price'] : 3500.00;
 $totalDue = (float) ($balanceDetails['total_outstanding'] ?? $rentPrice);
