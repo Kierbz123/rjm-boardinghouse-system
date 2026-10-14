@@ -269,7 +269,12 @@ class PenaltyController
         $sent = 0;
         foreach ($active as $b) {
             $boarderId = (int) $b['user_id'];
-            $balance = BillingService::calculateBalance($boarderId, $pdo);
+            try {
+                $balance = BillingService::calculateBalance($boarderId, $pdo);
+            } catch (\RuntimeException $e) {
+                \App\Support\Logger::error("Rent reminder skipped resident {$boarderId}: " . $e->getMessage());
+                continue;
+            }
             // Remind about the oldest unpaid rent cycle, with its own due date.
             $period = array_key_first($balance['unpaid_rent']);
             if ($period !== null) {

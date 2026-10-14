@@ -673,6 +673,14 @@ input[type="date"].profile-input {
                 </div>
             </div>
 
+            <?php if (!empty($boarder['move_out_date']) && $boarder['move_out_date'] > date('Y-m-d') && ($boarder['status'] ?? '') !== 'moved_out'): ?>
+            <form method="post" action="/admin/boarders/<?= $id ?>/move-out/cancel" class="profile-notice-box profile-notice-amber flex items-center justify-between gap-3" id="scheduled-move-out">
+                <?= \App\Support\Csrf::field() ?>
+                <span><strong>Move-out scheduled for <?= htmlspecialchars(date('M j, Y', strtotime($boarder['move_out_date']))) ?>.</strong> Until then the resident stays active in their bed.</span>
+                <button type="submit" class="profile-btn profile-btn-secondary !py-1 !px-2.5 !text-xs font-semibold">Cancel move-out</button>
+            </form>
+            <?php endif; ?>
+
             <!-- Move Dates Form -->
             <form method="post" action="/admin/boarders/<?= $id ?>/dates" class="profile-sub-section space-y-4 flex-1 flex flex-col">
                 <?= \App\Support\Csrf::field() ?>
@@ -686,17 +694,17 @@ input[type="date"].profile-input {
                 <div class="profile-form-grid-2">
                     <div class="profile-field">
                         <label class="profile-label">Move-In Date</label>
-                        <input type="date" name="move_in_date" value="<?= htmlspecialchars($boarder['move_in_date'] ?? '') ?>" class="profile-input">
+                        <input type="date" name="move_in_date" min="<?= htmlspecialchars($dateBounds['min']) ?>" max="<?= htmlspecialchars($dateBounds['max']) ?>" value="<?= htmlspecialchars($boarder['move_in_date'] ?? '') ?>" class="profile-input">
                     </div>
                     <div class="profile-field">
                         <label class="profile-label">Move-Out Date</label>
-                        <input type="date" name="move_out_date" value="<?= htmlspecialchars($boarder['move_out_date'] ?? '') ?>" class="profile-input">
+                        <input type="date" name="move_out_date" min="<?= htmlspecialchars($boarder['move_in_date'] ?? $dateBounds['min']) ?>" max="<?= htmlspecialchars($dateBounds['maxOut']) ?>" value="<?= htmlspecialchars($boarder['move_out_date'] ?? '') ?>" class="profile-input">
                     </div>
                 </div>
 
                 <div class="profile-notice-box profile-notice-amber">
                     <span class="text-base leading-none">ℹ</span>
-                    <span>Specifying a <strong>Move-Out Date</strong> automatically marks the resident as <em>Moved Out</em>, frees the assigned bed immediately, and logs the change.</span>
+                    <span>A <strong>Move-Out Date</strong> of today or earlier marks the resident <em>Moved Out</em> at once, frees the bed and logs it. A <strong>later</strong> date is only <em>scheduled</em>: the resident stays active in their bed until that day, and you can cancel it.</span>
                 </div>
 
                 <div class="profile-card-footer">

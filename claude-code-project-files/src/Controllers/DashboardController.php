@@ -15,6 +15,7 @@ class DashboardController
     /** Feature 3 — Cross-Module Command Center. Optimized with single consolidated query. */
     public static function admin(): void
     {
+        \App\Services\HousekeepingService::applyDueMoveOuts(); // move-outs whose day has come
         // Optimize: Get all KPI data in single database transaction
         $pdo = Database::getConnection();
         

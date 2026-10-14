@@ -130,6 +130,10 @@ $router->add('POST', '/admin/boarders/{id}/dates', function ($id) {
     AuthMiddleware::require(); RoleMiddleware::require(['admin']);
     BoarderController::updateDates($id);
 });
+$router->add('POST', '/admin/boarders/{id}/move-out/cancel', function ($id) {
+    AuthMiddleware::require(); RoleMiddleware::require(['admin']);
+    BoarderController::cancelMoveOut($id);
+});
 $router->add('POST', '/admin/boarders/{id}/notes', function ($id) {
     AuthMiddleware::require(); RoleMiddleware::require(['admin']);
     BoarderController::updateNotes($id);

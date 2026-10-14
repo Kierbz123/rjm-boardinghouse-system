@@ -146,7 +146,7 @@ assertEqual($profileAfterShort['notes'], "Short test note", "Short notes saved c
 
 echo "\nStep 6: Test Migration Backfill Covers on_notice Residents\n";
 // Temporarily set test boarder to on_notice with NULL move_in_date
-$pdo->exec("UPDATE boarder_profiles SET status = 'on_notice', move_in_date = NULL WHERE user_id = {$testBoarderId}");
+$pdo->exec("UPDATE boarder_profiles SET status = 'on_notice', move_in_date = NULL, move_out_date = NULL WHERE user_id = {$testBoarderId}");
 $checkNull = $pdo->query("SELECT move_in_date, status FROM boarder_profiles WHERE user_id = {$testBoarderId}")->fetch();
 assertEqual($checkNull['move_in_date'], null, "move_in_date is NULL before backfill");
 

@@ -163,7 +163,7 @@ class BoarderProfile
         $pdo = Database::getConnection();
         $pdo->beginTransaction();
         try {
-            $current = $pdo->prepare('SELECT status, bed_id FROM boarder_profiles WHERE user_id = ? FOR UPDATE');
+            $current = $pdo->prepare('SELECT status, bed_id, move_out_date FROM boarder_profiles WHERE user_id = ? FOR UPDATE');
             $current->execute([$boarderId]);
             $row = $current->fetch();
             if ($row === false) {
@@ -173,7 +173,9 @@ class BoarderProfile
             $stmt = $pdo->prepare('UPDATE boarder_profiles SET move_in_date = ?, move_out_date = ? WHERE user_id = ?');
             $stmt->execute([$moveIn, $moveOut, $boarderId]);
 
-            if ($moveOut !== null && $row['status'] !== 'moved_out') {
+            // A move-out date today or earlier takes effect now. A LATER date is only scheduled: the resident
+            // stays active in their bed until that day (HousekeepingService::applyDueMoveOuts moves them out).
+            if ($moveOut !== null && $moveOut <= date('Y-m-d') && $row['status'] !== 'moved_out') {
                 $oldStatus = $row['status'];
                 $newStatus = 'moved_out';
                 $reason = 'Move-out date set to ' . $moveOut;
@@ -188,11 +190,45 @@ class BoarderProfile
 
                 Bed::vacateHeldBy($boarderId);
                 $pdo->prepare('UPDATE boarder_profiles SET bed_id = NULL WHERE user_id = ?')->execute([$boarderId]);
+            } elseif ($moveOut !== null && $row['status'] !== 'moved_out' && $moveOut !== $row['move_out_date']) {
+                \App\Services\AuditLog::record($changedBy, 'move_out_scheduled', 'boarder', $boarderId, ['move_out_date' => $moveOut]);
+            } elseif ($moveOut === null && $row['move_out_date'] !== null && $row['status'] !== 'moved_out') {
+                \App\Services\AuditLog::record($changedBy, 'move_out_cancelled', 'boarder', $boarderId, ['was' => $row['move_out_date']]);
             }
 
             // Move dates decide which months are charged.
             \App\Services\BillingService::calculateBalance($boarderId, $pdo);
             $pdo->commit();
+        } catch (\Throwable $e) {
+            if ($pdo->inTransaction()) {
+                $pdo->rollBack();
+            }
+            throw $e;
+        }
+    }
+
+    /**
+     * Cancels a move-out that is still only scheduled. The resident stays exactly as they are.
+     *
+     * @return bool false when nothing was scheduled (no date, or they have already moved out)
+     */
+    public static function cancelMoveOut(int $boarderId, ?int $changedBy): bool
+    {
+        $pdo = Database::getConnection();
+        $pdo->beginTransaction();
+        try {
+            $stmt = $pdo->prepare('SELECT status, move_out_date FROM boarder_profiles WHERE user_id = ? FOR UPDATE');
+            $stmt->execute([$boarderId]);
+            $row = $stmt->fetch();
+            if ($row === false || $row['move_out_date'] === null || $row['status'] === 'moved_out') {
+                $pdo->rollBack();
+                return false;
+            }
+            $pdo->prepare('UPDATE boarder_profiles SET move_out_date = NULL WHERE user_id = ?')->execute([$boarderId]);
+            \App\Services\AuditLog::record($changedBy, 'move_out_cancelled', 'boarder', $boarderId, ['was' => $row['move_out_date']]);
+            \App\Services\BillingService::calculateBalance($boarderId, $pdo);
+            $pdo->commit();
+            return true;
         } catch (\Throwable $e) {
             if ($pdo->inTransaction()) {
                 $pdo->rollBack();

@@ -29,6 +29,9 @@ class BillingService
     /** Rent is charged, and falls due, every this many days counted from the move-in date. */
     public const CYCLE_DAYS = 30;
 
+    /** More rent cycles than this for one resident means a wrong move-in date, never a real stay (10 years). */
+    public const MAX_CYCLES = 120;
+
     /** The migration that brought in the current due-date rules (see rulesStartDate()). */
     public const RULES_MIGRATION = '0028_add_rent_cycles_and_electricity.sql';
 
@@ -167,7 +170,12 @@ class BillingService
 
         $debtors = [];
         foreach ($residents as $r) {
-            $b = self::calculateBalance((int) $r['user_id'], $pdo);
+            try {
+                $b = self::calculateBalance((int) $r['user_id'], $pdo);
+            } catch (\RuntimeException $e) { // one resident with a bad date must not take the dashboard down
+                \App\Support\Logger::error("Balance of resident {$r['user_id']} skipped: " . $e->getMessage());
+                continue;
+            }
             if ($b['total_outstanding'] <= 0) {
                 continue;
             }
@@ -236,6 +244,13 @@ class BillingService
             $moveOut = $profile['move_out_date'] ? new \DateTimeImmutable($profile['move_out_date']) : null;
             $last = $moveOut ? min($moveOut, $today) : $today;
             $step = '+' . self::CYCLE_DAYS . ' days';
+
+            // Refuse before writing anything: a move-in date far in the past once produced 24,000+ rent rows.
+            $days = (int) (new \DateTimeImmutable($profile['move_in_date']))->diff($last)->format('%r%a');
+            if ($days >= 0 && intdiv($days, self::CYCLE_DAYS) + 1 > self::MAX_CYCLES) {
+                throw new \RuntimeException('This resident would owe more than ' . self::MAX_CYCLES . ' rent cycles, so the move-in date '
+                    . $profile['move_in_date'] . ' must be wrong. Correct it first.');
+            }
 
             for ($start = new \DateTimeImmutable($profile['move_in_date']); $start <= $last; $start = $start->modify($step)) {
                 $end = $start->modify('+' . (self::CYCLE_DAYS - 1) . ' days');

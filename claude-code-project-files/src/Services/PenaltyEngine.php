@@ -45,7 +45,12 @@ class PenaltyEngine
         $applied = [];
         foreach ($boarderIds as $boarderId) {
             $boarderId = (int) $boarderId;
-            $balance = BillingService::calculateBalance($boarderId, $pdo);
+            try {
+                $balance = BillingService::calculateBalance($boarderId, $pdo);
+            } catch (\RuntimeException $e) { // a resident with a bad move-in date is skipped, not fatal for everyone else
+                \App\Support\Logger::error("Late-fee check skipped resident {$boarderId}: " . $e->getMessage());
+                continue;
+            }
             $pending->execute([$boarderId]);
             $receipt = $pending->fetch();
             $stops = $receipt

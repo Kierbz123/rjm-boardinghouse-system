@@ -206,7 +206,9 @@ check($badLinks === [], 'every link opens' . ($badLinks ? ': ' . implode('; ', $
 // State-changing routes that are called by script (fetch) or kept as an alias, not by a plain form.
 $scripted = ['POST /api/sos', 'POST /api/maintenance/score-preview', 'POST /api/notifications/{id}/read', 'POST /api/assistant/ask',
     'POST /api/assistant/suggest-description', 'POST /api/assistant/suggest-category', 'POST /api/assistant/analyze-ticket',
-    'POST /api/assistant/summarize-queue', 'POST /portal/incidents', 'POST /notifications/{id}/read'];
+    'POST /api/assistant/summarize-queue', 'POST /portal/incidents', 'POST /notifications/{id}/read',
+    // Only on screen while a move-out is scheduled; clicked through in test_wp03_dates.php.
+    'POST /admin/boarders/{id}/move-out/cancel'];
 $unreachable = [];
 foreach ($routes as [$rm, $pattern]) {
     if ($rm === 'POST' && empty($reached["POST {$pattern}"]) && !in_array("POST {$pattern}", $scripted, true)) {

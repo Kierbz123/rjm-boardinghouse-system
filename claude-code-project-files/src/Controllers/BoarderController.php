@@ -22,6 +22,7 @@ class BoarderController
 {
     public static function index(): void
     {
+        \App\Services\HousekeepingService::applyDueMoveOuts(); // move-outs whose day has come
         $showArchived = ($_GET['archived'] ?? '') === '1';
         $boarders = BoarderProfile::all($showArchived);
         $rooms = Room::all();
@@ -337,7 +338,14 @@ class BoarderController
         $paymentLimit = ($_GET['payments'] ?? '') === 'all' ? 500 : 12;
         $isShowingAllPayments = ($paymentLimit > 12);
 
-        $balanceDetails = BillingService::calculateBalance($id);
+        try {
+            $balanceDetails = BillingService::calculateBalance($id);
+        } catch (\RuntimeException $e) {
+            $_SESSION['flash_error'] = "Rent cannot be worked out for {$boarder['name']}: " . $e->getMessage();
+            header('Location: /admin/boarders');
+            exit;
+        }
+        $dateBounds     = ['min' => \App\Services\DateRules::openingDate(), 'max' => \App\Services\DateRules::latestMoveIn(), 'maxOut' => \App\Services\DateRules::latestMoveOut()];
         $penalties      = Penalty::allForBoarder($id);
         $payments       = Payment::allForBoarder($id, $paymentLimit);
         $paymentSummary = Payment::summaryForBoarder($id);
@@ -375,6 +383,15 @@ class BoarderController
             exit;
         }
 
+        // The same limits the date picker shows and the database trigger enforces (src/Services/DateRules.php).
+        $problem = ($moveIn !== '' ? \App\Services\DateRules::moveInProblem($moveIn) : null)
+            ?? ($moveOut !== '' ? \App\Services\DateRules::moveOutProblem($moveOut, $moveIn !== '' ? $moveIn : null) : null);
+        if ($problem !== null) {
+            $_SESSION['flash_error'] = $problem;
+            header("Location: /admin/boarders/{$id}");
+            exit;
+        }
+
         try {
             $adminId = !empty($_SESSION['user_id']) ? (int) $_SESSION['user_id'] : null;
             BoarderProfile::updateDatesAndStatus(
@@ -383,11 +400,33 @@ class BoarderController
                 $moveOut !== '' ? $moveOut : null,
                 $adminId
             );
-            $_SESSION['flash_success'] = "Move-in/move-out dates updated for {$boarder['name']}.";
+            $_SESSION['flash_success'] = $moveOut !== '' && $moveOut > date('Y-m-d')
+                ? "Move-out scheduled for {$moveOut}. {$boarder['name']} stays active in their bed until then; use Cancel move-out to undo it."
+                : "Move-in/move-out dates updated for {$boarder['name']}.";
         } catch (\Throwable $e) {
             $_SESSION['flash_error'] = self::messageFor($e, 'The dates could not be updated. Please try again.');
         }
 
+        header("Location: /admin/boarders/{$id}");
+        exit;
+    }
+
+    /** Takes back a move-out that was only scheduled: the resident carries on as before. */
+    public static function cancelMoveOut(string $userId): void
+    {
+        $boarder = self::resolveBoarderOrRedirect($userId, '/admin/boarders', true);
+        $id = (int) $boarder['user_id'];
+
+        try {
+            $cancelled = BoarderProfile::cancelMoveOut($id, !empty($_SESSION['user_id']) ? (int) $_SESSION['user_id'] : null);
+            if ($cancelled) {
+                $_SESSION['flash_success'] = "The scheduled move-out of {$boarder['name']} is cancelled.";
+            } else {
+                $_SESSION['flash_error'] = "There is no scheduled move-out to cancel for {$boarder['name']}.";
+            }
+        } catch (\Throwable $e) {
+            $_SESSION['flash_error'] = self::messageFor($e, 'The move-out could not be cancelled. Please try again.');
+        }
         header("Location: /admin/boarders/{$id}");
         exit;
     }
