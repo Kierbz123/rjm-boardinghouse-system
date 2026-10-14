@@ -1234,7 +1234,7 @@ input[type="date"].profile-input {
 
         <div class="profile-danger-content text-xs">
             <div class="text-neutral-600 max-w-xl leading-relaxed">
-                Removes <strong><?= htmlspecialchars($boarder['name']) ?></strong>: frees their bed and disables login. Residents with payment or penalty records are <strong>archived</strong> (records kept, restorable from the resident list); others are deleted.
+                Removes <strong><?= htmlspecialchars($boarder['name']) ?></strong>: frees their bed and disables login. The resident is <strong>archived</strong>: every record is kept and they can be restored from the resident list (Show archived).
             </div>
             <button type="button" id="delete-boarder-trigger-btn" class="btn-danger !py-2.5 !px-4 !text-xs font-semibold self-start sm:self-auto cursor-pointer">
                 Remove Resident
@@ -1251,7 +1251,7 @@ input[type="date"].profile-input {
             <span style="font-size:1.75rem;">⚠️</span>
             <div>
                 <h3 class="text-heading-sm font-bold text-neutral-900">Confirm Removal</h3>
-                <p class="text-caption text-error-700">Archived residents can be restored; deleted ones cannot</p>
+                <p class="text-caption text-error-700">Nothing is erased: the resident is archived with all their records, and can be restored</p>
             </div>
         </div>
 
@@ -1262,6 +1262,10 @@ input[type="date"].profile-input {
 
         <form method="post" action="/admin/boarders/<?= $id ?>/delete" class="space-y-4">
             <?= \App\Support\Csrf::field() ?>
+            <div class="profile-field">
+                <label class="profile-label" for="archive-reason">Reason (optional, kept with the record)</label>
+                <input type="text" id="archive-reason" name="reason" maxlength="255" class="profile-input" placeholder="e.g. Moved to another city">
+            </div>
             <div class="flex items-center justify-end gap-3 pt-3 border-t border-neutral-100">
                 <button type="button" id="cancel-delete-btn" class="profile-btn profile-btn-secondary">
                     Cancel

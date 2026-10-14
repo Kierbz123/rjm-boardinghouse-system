@@ -957,7 +957,7 @@ $totalBalancesOwed  = array_sum(array_column($boarders, 'outstanding_balance'));
                                 <span>🔄</span>
                                 <span>Automated Bed Synchronization</span>
                             </div>
-                            When a resident is deleted or marked as <em>moved out</em>, their assigned bed is automatically released back to the vacant inventory.
+                            When a resident is archived or marked as <em>moved out</em>, their assigned bed is automatically released back to the vacant inventory.
                         </div>
                         <div class="guide-item-box">
                             <div class="guide-item-title">
@@ -1084,6 +1084,11 @@ $totalBalancesOwed  = array_sum(array_column($boarders, 'outstanding_balance'));
                                         📞 <?= htmlspecialchars($b['contact_number']) ?>
                                     </div>
                                 <?php endif; ?>
+                                <?php if (($b['account_status'] ?? '') === 'archived'): ?>
+                                    <div class="text-[11px] text-neutral-500 mt-0.5 archived-note">
+                                        Archived <?= !empty($b['archived_at']) ? htmlspecialchars(date('M j, Y', strtotime($b['archived_at']))) : '(date not recorded)' ?><?= !empty($b['archived_by_name']) ? ' by ' . htmlspecialchars($b['archived_by_name']) : '' ?><?= !empty($b['archive_reason']) ? ' — ' . htmlspecialchars($b['archive_reason']) : '' ?>
+                                    </div>
+                                <?php endif; ?>
                             </td>
                             <td class="td-bed">
                                 <?php if (!empty($b['bed_id'])): ?>
@@ -1131,7 +1136,7 @@ $totalBalancesOwed  = array_sum(array_column($boarders, 'outstanding_balance'));
                                             class="tbl-btn tbl-btn-delete delete-trigger-btn cursor-pointer"
                                             data-id="<?= (int) $b['user_id'] ?>"
                                             data-name="<?= htmlspecialchars($b['name']) ?>"
-                                            title="Archive resident (or delete if they have no payment history)">
+                                            title="Archive resident (all records are kept; can be restored)">
                                         Remove
                                     </button>
                                     <!-- Hidden delete form for confirmation submit -->
@@ -1444,7 +1449,7 @@ $totalBalancesOwed  = array_sum(array_column($boarders, 'outstanding_balance'));
                 showConfirmModal({
                     type: 'delete',
                     title: 'Remove Resident?',
-                    desc:  "Remove " + name + "? Their bed is freed and their login disabled. If they have any payment or penalty records they are archived (records kept, can be restored); otherwise the account is deleted.",
+                    desc:  "Remove " + name + "? Their bed is freed and their login disabled. They are archived, not erased: every payment, penalty, repair, incident and SOS record is kept, and you can restore them under Show archived.",
                     confirmLabel: 'Remove',
                     onConfirm: function() { if (form) form.submit(); }
                 });

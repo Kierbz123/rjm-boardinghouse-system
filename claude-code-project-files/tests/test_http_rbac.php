@@ -351,7 +351,7 @@ http('POST', '/admin/beds', $jars['admin'], ['csrf_token' => $token, 'room_id' =
 check((int) $q("SELECT COUNT(*) FROM beds WHERE room_id = {$roomId}") === 2, 'cannot add beds beyond room capacity');
 
 http('POST', "/admin/boarders/{$mistake}/delete", $jars['admin'], ['csrf_token' => $token]);
-check($q("SELECT COUNT(*) FROM users WHERE id = {$mistake}") == 0, 'boarder without payment history is deleted');
+check($q("SELECT status FROM users WHERE id = {$mistake}") === 'archived', 'boarder without payment history is archived, not erased');
 check($q("SELECT status FROM beds WHERE id = {$bedB}") === 'vacant', 'their bed is freed');
 
 $paymentsBefore = (int) $q('SELECT COUNT(*) FROM payments WHERE boarder_id = 3');

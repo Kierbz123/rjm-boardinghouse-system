@@ -245,13 +245,9 @@ class BoarderController
         // only those added by mistake, with no financial history, are erased.
         $id = (int) $userId;
         try {
-            if (BoarderProfile::hasFinancialHistory($id)) {
-                BoarderProfile::archive($id, (int) $_SESSION['user_id']);
-                $_SESSION['flash_success'] = 'Resident archived: moved out, login disabled, payment history kept. See "Show archived" to restore.';
-            } else {
-                BoarderProfile::delete($id);
-                $_SESSION['flash_success'] = 'Resident deleted (no payment or penalty history existed).';
-            }
+            // Nobody is ever erased: repairs, incidents, SOS, payments and penalties all stay.
+            BoarderProfile::archive($id, (int) $_SESSION['user_id'], (string) ($_POST['reason'] ?? ''));
+            $_SESSION['flash_success'] = 'Resident archived: moved out, login disabled, all their records kept. Use "Show archived" to restore them.';
         } catch (\Throwable $e) {
             $_SESSION['flash_error'] = self::messageFor($e, 'The resident could not be removed. Please try again.');
         }
@@ -267,7 +263,7 @@ class BoarderController
             echo 'Invalid session, please retry.';
             return;
         }
-        if (BoarderProfile::restore((int) $userId)) {
+        if (BoarderProfile::restore((int) $userId, (int) $_SESSION['user_id'])) {
             $_SESSION['flash_success'] = 'Resident restored. They can log in again; assign a bed and set them active to resume rent.';
         } else {
             $_SESSION['flash_error'] = 'No archived resident with that number was found.';

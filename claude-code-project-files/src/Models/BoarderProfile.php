@@ -21,9 +21,11 @@ class BoarderProfile
     public static function all(bool $archived = false): array
     {
         $sql = 'SELECT boarder_profiles.*, users.name, users.email, users.status AS account_status,
+                       users.archived_at, users.archive_reason, archiver.name AS archived_by_name,
                        rooms.room_number, beds.label AS bed_label
                 FROM boarder_profiles
                 JOIN users ON users.id = boarder_profiles.user_id
+                LEFT JOIN users archiver ON archiver.id = users.archived_by
                 LEFT JOIN rooms ON rooms.id = boarder_profiles.room_id
                 LEFT JOIN beds ON beds.id = boarder_profiles.bed_id
                 WHERE users.status ' . ($archived ? '=' : '<>') . ' "archived"
@@ -31,41 +33,46 @@ class BoarderProfile
         return Database::getConnection()->query($sql)->fetchAll();
     }
 
-    /** Payments, penalties or electricity shares on record — such a boarder is archived, never erased. */
-    public static function hasFinancialHistory(int $userId): bool
-    {
-        $stmt = Database::getConnection()->prepare(
-            'SELECT (SELECT COUNT(*) FROM payments WHERE boarder_id = ?) + (SELECT COUNT(*) FROM penalties WHERE boarder_id = ?)
-                  + (SELECT COUNT(*) FROM electricity_charges WHERE boarder_id = ?)'
-        );
-        $stmt->execute([$userId, $userId, $userId]);
-        return (int) $stmt->fetchColumn() > 0;
-    }
-
     /**
-     * Retires a boarder while keeping every record: moves them out today (frees the
-     * bed, stops rent) unless already moved out, blocks login, hides them from lists.
+     * Retires a resident while keeping every record. Nobody is ever erased: payments, penalties, repairs,
+     * incidents and SOS history all stay. They are moved out today (frees the bed, stops rent) unless
+     * already moved out, can no longer log in, and drop out of the current list. Restorable.
      */
-    public static function archive(int $userId, ?int $changedBy): void
+    public static function archive(int $userId, ?int $changedBy, ?string $reason = null): void
     {
         $profile = self::find($userId);
         if ($profile === null) {
             throw new \RuntimeException('Boarder not found.');
         }
-        if ($profile['status'] !== 'moved_out') {
-            self::updateDatesAndStatus($userId, $profile['move_in_date'], $profile['move_out_date'] ?? date('Y-m-d'), $changedBy);
+        $reason = $reason !== null && trim($reason) !== '' ? trim($reason) : null;
+        if ($reason !== null && mb_strlen($reason) > 255) {
+            throw new \RuntimeException('The reason must be 255 characters or fewer.');
         }
-        Database::getConnection()->prepare('UPDATE users SET status = "archived" WHERE id = ? AND role = "boarder"')->execute([$userId]);
+        // A scheduled (future) move-out is brought forward to today: an archived resident is gone now.
+        $today = date('Y-m-d');
+        $moveOut = $profile['move_out_date'] !== null && $profile['move_out_date'] <= $today ? $profile['move_out_date'] : $today;
+        if ($profile['status'] !== 'moved_out') {
+            self::updateDatesAndStatus($userId, $profile['move_in_date'], $moveOut, $changedBy);
+        }
+        $pdo = Database::getConnection();
+        $stmt = $pdo->prepare('UPDATE users SET status = "archived", archived_at = NOW(), archived_by = ?, archive_reason = ? WHERE id = ? AND role = "boarder"');
+        $stmt->execute([$changedBy, $reason, $userId]);
+        \App\Services\AuditLog::record($changedBy, 'resident_archived', 'boarder', $userId, ['reason' => $reason]);
     }
 
     /** @return bool false when there was no archived boarder with that id */
-    public static function restore(int $userId): bool
+    public static function restore(int $userId, ?int $changedBy = null): bool
     {
-        $stmt = Database::getConnection()->prepare('UPDATE users SET status = "active" WHERE id = ? AND role = "boarder" AND status = "archived"');
+        $stmt = Database::getConnection()->prepare(
+            'UPDATE users SET status = "active", archived_at = NULL, archived_by = NULL, archive_reason = NULL WHERE id = ? AND role = "boarder" AND status = "archived"'
+        );
         $stmt->execute([$userId]);
-        return $stmt->rowCount() > 0;
+        $restored = $stmt->rowCount() > 0;
+        if ($restored) {
+            \App\Services\AuditLog::record($changedBy, 'resident_restored', 'boarder', $userId);
+        }
+        return $restored;
     }
-
     public static function create(int $userId, ?int $roomId, ?int $bedId): void
     {
         $stmt = Database::getConnection()->prepare(
@@ -259,52 +266,5 @@ class BoarderProfile
             'UPDATE boarder_profiles SET contact_number = ?, emergency_contact_number = ? WHERE user_id = ?'
         );
         $stmt->execute([$contactNumber, $emergencyContactNumber, $userId]);
-    }
-
-    /**
-     * Fully deletes a boarder who was added by mistake: vacates their bed, deletes
-     * relational records, profile, and the user account inside a single transaction.
-     * Refused when payments or penalties exist — financial records are never erased; archive() instead.
-     */
-    public static function delete(int $userId): void
-    {
-        if (self::hasFinancialHistory($userId)) {
-            throw new \RuntimeException('This boarder has payment or penalty records and can only be archived.');
-        }
-
-        $pdo = Database::getConnection();
-        $pdo->beginTransaction();
-        try {
-            $user = User::findById($userId);
-            if ($user === null || $user['role'] !== 'boarder') {
-                throw new \RuntimeException('Boarder not found.');
-            }
-
-            Bed::vacateHeldBy($userId);
-
-            // Clear relational logs & child rows
-            $tables = [
-                'boarder_status_log' => 'boarder_id',
-                'notifications' => 'user_id',
-                'sos_alerts' => 'boarder_id',
-                'maintenance_requests' => 'boarder_id',
-                'rent_charges' => 'boarder_id',
-                'incidents' => 'reported_by',
-                'boarder_profiles' => 'user_id',
-            ];
-            foreach ($tables as $tbl => $col) {
-                $del = $pdo->prepare("DELETE FROM {$tbl} WHERE {$col} = ?");
-                $del->execute([$userId]);
-            }
-
-            // Remove the user account
-            $delUser = $pdo->prepare('DELETE FROM users WHERE id = ?');
-            $delUser->execute([$userId]);
-
-            $pdo->commit();
-        } catch (\Throwable $e) {
-            $pdo->rollBack();
-            throw $e;
-        }
     }
 }

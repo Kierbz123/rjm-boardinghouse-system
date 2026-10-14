@@ -284,7 +284,13 @@ check(ElectricityBill::delete($bill['id']), true, 'a bill entered by mistake can
 check(BillingService::calculateBalance($r1)['electricity_due'], 83.33, 'what was paid toward it moves to the next charge (333.33 − 250)');
 check(BillingService::calculateBalance($r2)['electricity_due'], 333.33, 'the other resident owes only the remaining bill');
 check(ElectricityBill::delete($bill['id']), false, 'removing it twice finds nothing');
-check(BoarderProfile::hasFinancialHistory($r3), true, 'a resident with an electricity share is archived, never erased');
+$erased = true;
+try {
+    $pdo->exec("DELETE FROM users WHERE id = {$r3}");
+} catch (PDOException $e) {
+    $erased = false;
+}
+check($erased, false, 'a resident with an electricity share cannot be erased: the database refuses');
 try {
     Room::delete($elecRoom);
     $deleted = 'deleted';
