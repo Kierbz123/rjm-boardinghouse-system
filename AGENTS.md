@@ -10,7 +10,7 @@ Standing instructions for any agent working in this repo. Code lives in
 - **Database**: MariaDB/MySQL. Schema in `database/migrations/*.sql`, applied and tracked by `php database/migrate.php` (never edit an applied migration; add a new numbered file).
 - **Frontend**: server-rendered PHP views, Tailwind CSS + GSAP served locally from `public/assets/`. Node is only needed to recompile `app.css`.
 - **No Python service** — repair scoring (`src/Services/ScoringClient.php`) and payment checks are PHP. Optional local Ollama powers the AI helper buttons.
-- Non-negotiable: **localhost only**, no outbound calls from the running app.
+- Non-negotiable: **localhost by default**, no outbound calls from the running app. The only permitted exposure is the temporary tunnel the user starts by hand with `start-online.bat` (see README "Going online for a demo"); never start it unasked.
 
 ## Run it
 

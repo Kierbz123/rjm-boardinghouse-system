@@ -20,6 +20,12 @@ class LoginAttempt
         }
     }
 
+    /** Lifts an email's lockout at once; used when an administrator resets that account's password. */
+    public static function clearFailures(string $email): void
+    {
+        Database::getConnection()->prepare('DELETE FROM login_attempts WHERE email = ? AND successful = 0')->execute([$email]);
+    }
+
     public static function recentFailedCountByIp(string $ipAddress, int $windowMinutes): int
     {
         $stmt = Database::getConnection()->prepare(

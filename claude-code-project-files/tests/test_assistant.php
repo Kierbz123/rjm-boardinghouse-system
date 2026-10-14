@@ -100,6 +100,14 @@ check($card !== null && array_column($card['actions'], 'href') === ['/staff/main
 check(AssistantService::answer('what is the meaning of life', 'boarder', 'en') === null, 'no match returns null (caller falls back to chat)');
 check(AssistantService::answer('payments', 'nobody', 'en') === null, 'unknown role gets nothing');
 
+echo "== A greeting is answered with who is signed in, not a question about it ==\n";
+$card = AssistantService::answer('Hello!', 'admin', 'en', 1); // seed.php: admin=1
+check($card !== null && str_contains($card['reply'], 'signed in as an administrator') && str_contains($card['reply'], App\Models\User::findById(1)['name']),
+    'an admin who says hello is greeted by name, as an administrator');
+check(str_contains(AssistantService::answer('kumusta po', 'boarder', 'tl', 3)['reply'] ?? '', 'bilang residente'), 'a Tagalog greeting is answered in Tagalog');
+check(str_contains(AssistantService::answer('hi, where do I pay rent?', 'boarder', 'en', 3)['reply'] ?? '', 'receipt'), 'a greeting followed by a question still gets the answer');
+check(AssistantService::answer('hello', 'nobody', 'en') === null, 'an unknown role is not greeted');
+
 echo "== Lookups answer with real figures (plan A2) ==\n";
 $boarderId = 3; // seed.php: admin=1, staff=2, boarder=3 in Room 101, Bed A
 $ask = fn (string $role, string $text, string $lang = 'en', int $uid = 0) => AssistantService::answer($text, $role, $lang, $uid);
@@ -173,9 +181,18 @@ echo "== Help answers come from the system's own rules (plan A3) ==\n";
 $perDay = array_sum(array_column(array_filter(PenaltyRule::allActive(), fn ($r) => $r['condition_type'] === 'late_per_day'), 'amount'));
 $feeText = $perDay > 0 ? number_format($perDay, 2) . ' per day' : 'no late fee is set';
 $card = $ask('boarder', 'when is rent due?', 'en', $boarderId);
-check($card['source'] === 'help' && str_contains($card['reply'], '5th') && str_contains($card['reply'], $feeText) && $hrefsOf($card) === ['/portal/payments/new'],
-    "due date and the current late fee ({$feeText})");
-check(str_contains($ask('boarder', 'kailan ang bayad?', 'tl', $boarderId)['reply'], 'ika-5'), 'due date in Tagalog');
+check($card['source'] === 'help' && str_contains($card['reply'], 'every 30 days, counted from the day you moved in') && str_contains($card['reply'], $feeText) && $hrefsOf($card) === ['/portal/payments/new'],
+    "due every 30 days from move-in, and the current late fee ({$feeText})");
+check(str_contains($ask('boarder', 'kailan ang bayad?', 'tl', $boarderId)['reply'], 'kada 30 araw'), 'due date in Tagalog');
+$card = $ask('boarder', 'how is the electricity bill computed?', 'en', $boarderId);
+check($card['source'] === 'help' && str_contains($card['reply'], 'divided equally among the people staying in the room') && $hrefsOf($card) === ['/portal/payments/new'],
+    'electricity: the room bill divided by the people in the room, due with the rent');
+check($hrefsOf($ask('admin', 'where do I enter the electricity bill?', 'en', 1)) === ['/admin/rooms'], 'admin electricity help links Rooms & Beds');
+$card = $ask('boarder', 'is the water free?', 'en', $boarderId);
+check($card['source'] === 'help' && str_contains($card['reply'], 'Water is free') && str_contains($card['reply'], 'solar power back-up') && str_contains($card['reply'], 'ask the caretakers'),
+    'water is free, solar back-up, laundry through the caretakers: ' . $card['reply']);
+check(str_contains($ask('staff', 'may laundry ba?', 'tl', 2)['reply'], 'May laundry service'), 'laundry in Tagalog, for staff too');
+check(isset($ask('boarder', 'water is leaking from the ceiling', 'en', $boarderId)['actions'][0]['prefill']), 'a leak is still a repair report, not the water answer');
 check($ask('boarder', 'magkano ang multa?', 'tl', $boarderId)['source'] === 'help', 'a how-it-works question beats a figure on a tie');
 $card = $ask('boarder', 'How do I pay my rent?', 'en', $boarderId);
 check($card['source'] === 'help' && str_contains($card['reply'], 'receipt') && $hrefsOf($card) === ['/portal/payments/new'], 'how to pay explains the receipt and approval');
@@ -183,6 +200,16 @@ $card = $ask('boarder', 'what time is the curfew?', 'en', $boarderId);
 check($card['source'] === 'help' && str_contains($card['reply'], 'There is no curfew.') && str_contains($card['reply'], 'not written in the system') && $card['actions'] === [],
     'no curfew, as on the landing page; other house rules are not invented: ' . $card['reply']);
 check($ask('admin', 'how do I log out?', 'en', 1)['actions'] === [], 'log out is explained without a button');
+$card = $ask('staff', 'what is the current date', 'en', 1);
+check($card['source'] === 'help' && str_contains($card['reply'], date('j F Y')), "the date comes from the server's clock, not the model: " . $card['reply']);
+check($ask('boarder', 'what day is my rent due?', 'en', $boarderId)['actions'] !== [], 'a rent due-date question is still answered as rent, not as the clock');
+$card = $ask('staff', 'how many hours till tomorrow?', 'en', 1);
+check($card['source'] === 'data' && preg_match('/^(\d+ \w+, )*\d+ seconds? until 12:00 AM, ' . date('l j F', strtotime('tomorrow')) . '\.$/', $card['reply']) === 1,
+    'time left is counted by PHP, down to the second: ' . $card['reply']);
+$card = $ask('staff', 'how many minutes until 11:59pm tomorrow?', 'en', 1);
+check(str_contains($card['reply'] ?? '', '1 day, ') && str_contains($card['reply'], 'until 11:59 PM, ' . date('l j F', strtotime('tomorrow'))),
+    '"11:59pm tomorrow" keeps both the time and the day: ' . ($card['reply'] ?? ''));
+check(($ask('boarder', 'how many days until my rent due date?', 'en', $boarderId)['source'] ?? '') === 'help', '"until my rent due date" names no clock time, so it stays a rent question');
 check($hrefsOf($ask('admin', 'late fees', 'en', 1)) === ['/admin/penalty-rules'], 'admin late-fee help links Penalties');
 check($hrefsOf($ask('staff', 'I forgot my password', 'en', 2)) === ['/profile'], 'password help links Profile');
 check($hrefsOf($ask('staff', 'what does critical mean?', 'en', 2)) === ['/staff/maintenance'], 'priority help links the queue for staff');

@@ -231,6 +231,20 @@ $token = csrfFrom(http('GET', '/admin/payments', $jars['admin'])['body']);
 http('POST', "/admin/payments/{$typed}/reject", $jars['admin'], ['csrf_token' => $token, 'reason' => str_repeat('x', 161)]);
 check($pdo->query("SELECT verification_status FROM payments WHERE id = {$typed}")->fetchColumn() === 'admin-approved', 'a reason longer than 160 characters is refused (review S1)');
 
+echo "== Electricity bills: admin only, and the resident sees their share ==\n";
+check(http('POST', '/admin/electricity', $jars['admin'], ['room_id' => 1, 'label' => 'X', 'amount' => 100])['code'] === 400, 'POST /admin/electricity without token rejected');
+check(http('POST', '/admin/electricity', $jars['staff'], ['room_id' => 1, 'label' => 'X', 'amount' => 100])['code'] === 403, 'staff cannot enter an electricity bill');
+// A share larger than any credit the earlier checks left, so it shows as unpaid.
+$pdo->exec("INSERT INTO electricity_bills (room_id, label, amount) SELECT room_id, 'Test month', 100000 FROM boarder_profiles WHERE user_id = 3");
+$billId = (int) $pdo->lastInsertId();
+$pdo->exec("INSERT INTO electricity_charges (bill_id, boarder_id, amount, due_date) VALUES ({$billId}, 3, 50000, CURDATE())");
+$page = http('GET', '/portal/payments/new', $jars['boarder'])['body'];
+check(str_contains($page, 'Electricity share, Test month') && !hasPhpError($page), 'the resident sees their electricity share on Pay Rent');
+$roomsPage = http('GET', '/admin/rooms', $jars['admin'])['body'];
+check(str_contains($roomsPage, 'Test month') && !hasPhpError($roomsPage), 'the bill is listed on Rooms & Beds');
+http('POST', "/admin/electricity/{$billId}/delete", $jars['admin'], ['csrf_token' => csrfFrom($roomsPage)]);
+check(!str_contains(http('GET', '/portal/payments/new', $jars['boarder'])['body'], 'Electricity share, Test month'), 'removing the bill removes the share');
+
 echo "== Upload size limit is explained, not silently dropped ==\n";
 $big = tempnam(sys_get_temp_dir(), 'rjmbig');
 file_put_contents($big, "\xFF\xD8\xFF\xE0" . str_repeat("\0", 21 * 1024 * 1024));
@@ -262,6 +276,41 @@ http('POST', '/staff/penalties/issue', $jars['staff'], ['csrf_token' => $token, 
 $issued = $pdo->query("SELECT amount FROM penalties WHERE reason = 'staff-amount-test'")->fetchColumn();
 check($issued !== false && abs((float) $issued - (float) $rule['amount']) < 0.01, 'staff cannot set a custom amount');
 
+echo "== Admin penalty page: the four action cards ==\n";
+$token = csrfFrom(http('GET', '/admin/penalty-rules', $jars['admin'])['body']);
+$penaltyPage = fn () => http('GET', '/admin/penalty-rules', $jars['admin'])['body'];
+// Owed minus credit: a new charge moves this by its full amount even when credit absorbs part of it.
+$balanceOf3 = function () {
+    $b = App\Services\BillingService::calculateBalance(3);
+    return $b['total_outstanding'] - $b['credit'];
+};
+
+http('POST', '/admin/penalty-rules', $jars['admin'], ['csrf_token' => $token, 'name' => 'Card Test Rule',
+    'condition_type' => 'flat_damage', 'amount' => '75']);
+$cardRule = (int) $pdo->query("SELECT id FROM penalty_rules WHERE name = 'Card Test Rule' AND amount = 75 AND active = 1")->fetchColumn();
+check($cardRule > 0 && str_contains($penaltyPage(), 'Card Test Rule'), 'Add Penalty Rule: rule saved and listed');
+
+$balanceBefore = $balanceOf3();
+http('POST', '/admin/penalties/issue', $jars['admin'], ['csrf_token' => $token, 'boarder_id' => 3, 'rule_id' => $cardRule,
+    'amount' => '123.45', 'due_date' => date('Y-m-d', strtotime('+30 days')), 'reason' => 'admin-card-test']);
+$issued = $pdo->query("SELECT amount FROM penalties WHERE reason = 'admin-card-test' AND status = 'unpaid'")->fetchColumn();
+check($issued !== false && abs((float) $issued - 123.45) < 0.01, "Issue Penalty: charged at the admin's amount");
+check(abs($balanceOf3() - $balanceBefore - 123.45) < 0.01, 'Issue Penalty: balance goes up by exactly that amount');
+check($pdo->query("SELECT COUNT(*) FROM notifications WHERE user_id = 3 AND type = 'penalty' AND message LIKE '%admin-card-test%'")->fetchColumn() == 1,
+    'Issue Penalty: the boarder is notified once');
+
+$r = http('POST', '/admin/penalties/run-check', $jars['admin'], ['csrf_token' => $token]);
+$body = $penaltyPage();
+check($r['location'] === '/admin/penalty-rules' && preg_match('/late fee\(s\)|No late fees due/', $body) && !hasPhpError($body),
+    'Run Penalty Check: completes and reports its result');
+
+$reminders = fn () => (int) $pdo->query("SELECT COUNT(*) FROM notifications WHERE type = 'rent_due'")->fetchColumn();
+$remindersBefore = $reminders();
+http('POST', '/admin/notifications/rent-due', $jars['admin'], ['csrf_token' => $token]);
+preg_match('/Rent-due reminder sent to (\d+) boarder/', $penaltyPage(), $m);
+check(isset($m[1]) && (int) $m[1] > 0 && $reminders() - $remindersBefore === (int) $m[1],
+    'Rent-Due Reminders: one notice per boarder with unpaid rent');
+
 echo "== Data integrity (B4) ==\n";
 $q = fn (string $sql) => $pdo->query($sql)->fetchColumn();
 $bedA = (int) $q("SELECT id FROM beds WHERE label = 'Bed A' LIMIT 1");
@@ -288,7 +337,8 @@ http('POST', '/admin/beds/assign', $jars['admin'], ['csrf_token' => $token, 'boa
 check((int) $q("SELECT bed_id FROM boarder_profiles WHERE user_id = {$mistake}") === $bedB
     && $q("SELECT status FROM beds WHERE id = {$bedB}") === 'occupied', 'moving to an occupied bed keeps the boarder in their old bed');
 
-http('POST', "/admin/boarders/{$mistake}/status", $jars['admin'], ['csrf_token' => $token, 'status' => 'bogus']);
+http('POST', "/admin/boarders/{$mistake}/info", $jars['admin'], ['csrf_token' => $token, 'name' => 'Mistake',
+    'email' => $q("SELECT email FROM users WHERE id = {$mistake}"), 'status' => 'bogus']);
 check($q("SELECT status FROM boarder_profiles WHERE user_id = {$mistake}") === 'pending', 'invalid status rejected');
 try {
     $pdo->exec("UPDATE boarder_profiles SET status = 'bogus' WHERE user_id = {$mistake}");

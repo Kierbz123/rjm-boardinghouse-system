@@ -182,7 +182,7 @@ $totalCollected = array_sum(array_map(
                                 </td>
                                 <td class="p-3">
                                     <span class="badge badge-neutral font-mono font-medium">
-                                        <?= htmlspecialchars($p['billing_period'] ?? '—') ?>
+                                        <?= htmlspecialchars(\App\Services\BillingService::periodLabel($p['billing_period'] ?? '—')) ?>
                                     </span>
                                 </td>
                                 <td class="p-3">
@@ -213,8 +213,12 @@ $totalCollected = array_sum(array_map(
                                         <div class="mt-1 flex flex-wrap gap-1">
                                             <?php foreach ($p['allocations'] as $al): ?>
                                                 <?php if ($al['allocation_type'] === 'rent'): ?>
-                                                    <span class="badge badge-neutral !text-[10px] !py-0 !px-1.5" title="Rent applied for <?= htmlspecialchars($al['reference_id']) ?>">
+                                                    <span class="badge badge-neutral !text-[10px] !py-0 !px-1.5" title="Rent applied for <?= htmlspecialchars(\App\Services\BillingService::periodLabel($al['reference_id'])) ?>">
                                                         Rent: ₱<?= number_format((float)$al['amount'], 2) ?>
+                                                    </span>
+                                                <?php elseif ($al['allocation_type'] === 'electricity'): ?>
+                                                    <span class="badge badge-neutral !text-[10px] !py-0 !px-1.5" title="Electricity share: <?= htmlspecialchars($al['electricity_label'] ?? '') ?>">
+                                                        Elec: ₱<?= number_format((float)$al['amount'], 2) ?>
                                                     </span>
                                                 <?php elseif ($al['allocation_type'] === 'penalty'): ?>
                                                     <span class="badge badge-warning !text-[10px] !py-0 !px-1.5" title="Penalty #<?= $al['reference_id'] ?>: <?= htmlspecialchars($al['penalty_rule_name'] ?? '') ?>">
@@ -465,27 +469,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // GSAP reveal animation matching dashboard and boarders
-    if (window.gsap && window.ScrollTrigger) {
-        let mm = gsap.matchMedia();
-        mm.add({
-            animate: "(prefers-reduced-motion: no-preference)",
-            reduce: "(prefers-reduced-motion: reduce)",
-        }, (context) => {
-            if (context.conditions.animate) {
-                gsap.from(".reveal-card", {
-                    y: 16,
-                    opacity: 0,
-                    duration: 0.45,
-                    stagger: 0.08,
-                    ease: "power2.out",
-                    scrollTrigger: { trigger: ".reveal-card", start: "top 90%", once: true },
-                });
-            } else {
-                gsap.set(".reveal-card", { opacity: 1, y: 0 });
-            }
-        });
-    }
+
 
     // Payment Confirmation Modals
     const approveButtons = document.querySelectorAll('.payment-approve-btn');
@@ -539,8 +523,8 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         if (window.gsap && approveCard) {
             gsap.fromTo(approveCard,
-                { opacity: 0, scale: 0.9, y: 12 },
-                { opacity: 1, scale: 1, y: 0, duration: 0.25, ease: 'back.out(1.7)' }
+                { opacity: 0, scale: 0.96, y: 8 },
+                { opacity: 1, scale: 1, y: 0, duration: 0.3, ease: 'power3.out' }
             );
         }
         if (approveCancelBtn) approveCancelBtn.focus();
@@ -655,8 +639,8 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         if (window.gsap && rejectCard) {
             gsap.fromTo(rejectCard,
-                { opacity: 0, scale: 0.9, y: 12 },
-                { opacity: 1, scale: 1, y: 0, duration: 0.25, ease: 'back.out(1.7)' }
+                { opacity: 0, scale: 0.96, y: 8 },
+                { opacity: 1, scale: 1, y: 0, duration: 0.3, ease: 'power3.out' }
             );
         }
         const reasonInput = document.getElementById('payment-reject-reason');

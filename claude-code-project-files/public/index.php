@@ -9,17 +9,22 @@
 // server send real files in public/ (CSS, JS, images) itself. Everything else, including
 // /uploads/... (kept outside public/), goes through the routes below.
 if (PHP_SAPI === 'cli-server') {
-    $static = realpath(__DIR__ . rawurldecode((string) parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH)));
+    $path = rawurldecode((string) parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH));
+    // realpath() throws on a NUL byte (/%00), before the error handler below exists.
+    $static = str_contains($path, "\0") ? false : realpath(__DIR__ . $path);
     if ($static !== false && is_file($static) && str_starts_with($static, __DIR__ . DIRECTORY_SEPARATOR) && !str_ends_with($static, '.php')) {
         return false;
     }
 }
 
+require_once __DIR__ . '/../src/autoload.php';
+
 ini_set('session.use_strict_mode', '1'); // reject session IDs this server didn't issue
 session_set_cookie_params([
     'httponly' => true,
     'samesite' => 'Strict',
-    'secure' => !empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off',
+    // Also true behind the online-demo tunnel, which serves https in front of this http server.
+    'secure' => \App\Support\TrustedProxy::isHttps($_SERVER),
 ]);
 session_start();
 
@@ -34,8 +39,6 @@ header("Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-i
     . "style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data: blob:; media-src 'self'; "
     . "frame-src https://maps.google.com https://www.google.com; connect-src 'self'; "
     . "frame-ancestors 'none'; base-uri 'self'; form-action 'self'");
-
-require_once __DIR__ . '/../src/autoload.php';
 
 use App\Support\Logger;
 
@@ -103,10 +106,6 @@ $router->add('POST', '/admin/boarders', function () {
     AuthMiddleware::require(); RoleMiddleware::require(['admin']);
     BoarderController::create();
 });
-$router->add('POST', '/admin/boarders/{id}/status', function ($id) {
-    AuthMiddleware::require(); RoleMiddleware::require(['admin']);
-    BoarderController::updateStatus($id);
-});
 $router->add('POST', '/admin/boarders/{id}/info', function ($id) {
     AuthMiddleware::require(); RoleMiddleware::require(['admin']);
     BoarderController::updateInfo($id);
@@ -131,6 +130,10 @@ $router->add('POST', '/admin/boarders/{id}/notes', function ($id) {
     AuthMiddleware::require(); RoleMiddleware::require(['admin']);
     BoarderController::updateNotes($id);
 });
+$router->add('POST', '/admin/boarders/{id}/password', function ($id) {
+    AuthMiddleware::require(); RoleMiddleware::require(['admin']);
+    BoarderController::resetPassword($id);
+});
 $router->add('GET', '/admin/staff', function () {
     AuthMiddleware::require(); RoleMiddleware::require(['admin']);
     StaffController::index();
@@ -142,6 +145,10 @@ $router->add('POST', '/admin/staff', function () {
 $router->add('POST', '/admin/staff/{id}/status', function ($id) {
     AuthMiddleware::require(); RoleMiddleware::require(['admin']);
     StaffController::setStatus($id);
+});
+$router->add('POST', '/admin/staff/{id}/password', function ($id) {
+    AuthMiddleware::require(); RoleMiddleware::require(['admin']);
+    StaffController::resetPassword($id);
 });
 $router->add('GET', '/admin/rooms', function () {
     AuthMiddleware::require(); RoleMiddleware::require(['admin']);
@@ -174,6 +181,14 @@ $router->add('POST', '/admin/beds/{id}/delete', function ($id) {
 $router->add('POST', '/admin/beds/assign', function () {
     AuthMiddleware::require(); RoleMiddleware::require(['admin']);
     BoarderController::assignBed();
+});
+$router->add('POST', '/admin/electricity', function () {
+    AuthMiddleware::require(); RoleMiddleware::require(['admin']);
+    RoomController::createElectricityBill();
+});
+$router->add('POST', '/admin/electricity/{id}/delete', function ($id) {
+    AuthMiddleware::require(); RoleMiddleware::require(['admin']);
+    RoomController::deleteElectricityBill($id);
 });
 $router->add('GET', '/admin/payments', function () {
     AuthMiddleware::require(); RoleMiddleware::require(['admin']);

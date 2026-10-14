@@ -68,8 +68,8 @@ class IncidentController
             return;
         }
         $notes = trim((string) ($_POST['resolution_notes'] ?? ''));
-        if ($notes === '') {
-            $_SESSION['flash_error'] = 'Resolution notes are required.';
+        if ($notes === '' || mb_strlen($notes) > 5000) {
+            $_SESSION['flash_error'] = 'Resolution notes are required (5,000 characters max).';
             header('Location: /staff/incidents');
             exit;
         }

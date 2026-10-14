@@ -75,6 +75,194 @@ $occupancyRate = $totalBeds > 0 ? round(($occupiedBeds / $totalBeds) * 100) : 0;
         </div>
     </div>
 
+    <!-- Management Forms Section -->
+    <div>
+        <div class="section-header">
+            <h2>Management Actions</h2>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+
+            <!-- Card 1: Add Room Form -->
+            <form method="post" action="/admin/rooms" class="form-card">
+                <div class="flex items-center gap-2 pb-2 border-b border-neutral-100">
+                    <span style="font-size:1.1rem; line-height:1;">🏠</span>
+                    <h3 class="text-body font-semibold text-neutral-900">Add Room</h3>
+                </div>
+                <?= \App\Support\Csrf::field() ?>
+                <div>
+                    <label class="block text-caption font-semibold text-neutral-600 mb-1">Room Number</label>
+                    <input name="room_number" placeholder="e.g. 101" required class="input">
+                </div>
+                <div>
+                    <label class="block text-caption font-semibold text-neutral-600 mb-1">Floor <span class="font-normal text-neutral-400">(optional)</span></label>
+                    <input name="floor" placeholder="e.g. 1" class="input">
+                </div>
+                <div>
+                    <label class="block text-caption font-semibold text-neutral-600 mb-1">Capacity</label>
+                    <input name="capacity" type="number" min="1" value="2" required class="input">
+                </div>
+                <div>
+                    <label class="block text-caption font-semibold text-neutral-600 mb-1">Monthly Base Price (₱)</label>
+                    <input name="base_price" type="number" step="0.01" value="3500" required class="input font-mono font-semibold">
+                </div>
+                <button class="btn btn-primary w-full !py-2 !text-xs font-semibold">
+                    Create Room Unit
+                </button>
+            </form>
+
+            <!-- Card 2: Add Bed Form -->
+            <form method="post" action="/admin/beds" class="form-card accent-success">
+                <div class="flex items-center gap-2 pb-2 border-b border-neutral-100">
+                    <span style="font-size:1.1rem; line-height:1;">🛏️</span>
+                    <h3 class="text-body font-semibold text-neutral-900">Add Bed</h3>
+                </div>
+                <?= \App\Support\Csrf::field() ?>
+                <div>
+                    <label class="block text-caption font-semibold text-neutral-600 mb-1">Select Room</label>
+                    <select name="room_id" id="add-bed-room" required class="input">
+                        <option value="">— Choose Room —</option>
+                        <?php foreach ($rooms as $r): ?>
+                            <option value="<?= (int) $r['id'] ?>">Room <?= htmlspecialchars($r['room_number']) ?></option>
+                        <?php endforeach; ?>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-caption font-semibold text-neutral-600 mb-1">Number of Beds</label>
+                    <input type="number" name="count" id="add-bed-count" min="1" max="50" value="1" required class="input font-mono" placeholder="1">
+                </div>
+                <div>
+                    <label class="block text-caption font-semibold text-neutral-600 mb-1">Bed Label / Prefix</label>
+                    <input name="label" id="add-bed-label" placeholder="e.g. Bed A, Bed 1, or Bed" required class="input">
+                    <p class="text-[11px] text-neutral-400 mt-0.5">Numbers or letters sequence automatically for batches.</p>
+                </div>
+                <div id="add-bed-preview" class="hidden text-caption text-neutral-600 bg-neutral-50 rounded-md p-2.5 border border-neutral-200">
+                    <span class="font-semibold text-neutral-700">Preview:</span> <span id="add-bed-preview-text" class="font-mono text-emerald-700 font-semibold"></span>
+                </div>
+                <button class="btn btn-primary w-full !py-2 !text-xs font-semibold" id="add-bed-submit">
+                    Add Bed
+                </button>
+            </form>
+
+            <!-- Card 3: Assign Boarder to Bed Form -->
+            <form method="post" action="/admin/beds/assign" class="form-card accent-neutral">
+                <div class="flex items-center gap-2 pb-2 border-b border-neutral-100">
+                    <span style="font-size:1.1rem; line-height:1;">🔗</span>
+                    <h3 class="text-body font-semibold text-neutral-900">Assign Boarder</h3>
+                </div>
+                <?= \App\Support\Csrf::field() ?>
+                <div>
+                    <label class="block text-caption font-semibold text-neutral-600 mb-1">Boarder User ID</label>
+                    <input name="boarder_id" type="number" placeholder="Enter user ID" required class="input">
+                    <p class="text-caption text-neutral-400 mt-1">
+                        Find IDs in the <a href="/admin/boarders" class="text-primary-600 font-medium hover:underline">Boarders Directory</a>.
+                    </p>
+                </div>
+                <div>
+                    <label class="block text-caption font-semibold text-neutral-600 mb-1">Select Vacant Bed</label>
+                    <select name="bed_id" required class="input">
+                        <option value="">— Choose Vacant Bed —</option>
+                        <?php foreach ($beds as $b): if ($b['status'] === 'vacant'): ?>
+                            <option value="<?= (int) $b['id'] ?>"><?= htmlspecialchars($b['room_number'] . ' / ' . $b['label']) ?></option>
+                        <?php endif; endforeach; ?>
+                    </select>
+                </div>
+                <div class="text-caption text-neutral-500 bg-neutral-50 rounded-md p-2.5 border border-neutral-100 mt-auto">
+                    Reassigning an active resident will safely relocate them and free their previous bed.
+                </div>
+                <button class="btn btn-secondary w-full !py-2 !text-xs font-semibold">
+                    Assign Bed Slot
+                </button>
+            </form>
+
+        </div>
+    </div>
+
+    <!-- Electricity: a room's bill, split equally among the residents staying in it -->
+    <div id="electricity">
+        <div class="section-header">
+            <h2>Electricity Bills</h2>
+            <span class="text-caption text-neutral-500 font-medium bg-neutral-100 px-3 py-1 rounded-full">
+                Split equally among the residents in the room
+            </span>
+        </div>
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-5 items-start">
+            <form method="post" action="/admin/electricity" class="form-card" data-testid="electricity-form">
+                <div class="flex items-center gap-2 pb-2 border-b border-neutral-100">
+                    <span style="font-size:1.1rem; line-height:1;">⚡</span>
+                    <h3 class="text-body font-semibold text-neutral-900">Enter a Room's Bill</h3>
+                </div>
+                <?= \App\Support\Csrf::field() ?>
+                <div>
+                    <label for="electricity-room" class="block text-caption font-semibold text-neutral-600 mb-1">Room</label>
+                    <select name="room_id" id="electricity-room" required class="input">
+                        <option value="">— Choose Room —</option>
+                        <?php foreach ($rooms as $r): $n = $residentsPerRoom[(int) $r['id']] ?? 0; ?>
+                            <option value="<?= (int) $r['id'] ?>" data-residents="<?= $n ?>" <?= $n === 0 ? 'disabled' : '' ?>>
+                                Room <?= htmlspecialchars($r['room_number']) ?> (<?= $n ?> resident<?= $n === 1 ? '' : 's' ?>)
+                            </option>
+                        <?php endforeach; ?>
+                    </select>
+                </div>
+                <div>
+                    <label for="electricity-label" class="block text-caption font-semibold text-neutral-600 mb-1">Bill for</label>
+                    <input name="label" id="electricity-label" maxlength="60" required class="input" placeholder="e.g. September 2026">
+                </div>
+                <div>
+                    <label for="electricity-amount" class="block text-caption font-semibold text-neutral-600 mb-1">Room's Bill (₱)</label>
+                    <input name="amount" id="electricity-amount" type="number" step="0.01" min="1" max="1000000" required class="input font-mono font-semibold">
+                </div>
+                <p id="electricity-share" class="text-caption text-neutral-600 bg-neutral-50 rounded-md p-2.5 border border-neutral-200" aria-live="polite">
+                    Each resident's share appears here.
+                </p>
+                <button class="btn btn-primary w-full !py-2 !text-xs font-semibold">
+                    Split and Bill the Residents
+                </button>
+            </form>
+
+            <div class="card overflow-hidden lg:col-span-2">
+                <?php if (empty($electricityBills)): ?>
+                    <div class="empty-state" style="padding:2.5rem 0;">
+                        <span class="text-sm font-semibold text-neutral-800">No electricity bills entered yet</span>
+                        <span class="text-xs text-neutral-500 mt-1">Each share is due together with that resident's next rent.</span>
+                    </div>
+                <?php else: ?>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-body-sm" data-testid="electricity-bills">
+                            <thead>
+                                <tr>
+                                    <th>Room</th>
+                                    <th>Bill for</th>
+                                    <th>Room's Bill</th>
+                                    <th>Each Resident</th>
+                                    <th>Entered</th>
+                                    <th style="text-align: right;">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <?php foreach ($electricityBills as $bill): ?>
+                                    <tr>
+                                        <td class="font-bold text-neutral-900">Room <?= htmlspecialchars($bill['room_number']) ?></td>
+                                        <td><?= htmlspecialchars($bill['label']) ?></td>
+                                        <td class="font-mono">₱<?= number_format((float) $bill['amount'], 2) ?></td>
+                                        <td class="font-mono">₱<?= number_format((float) $bill['share'], 2) ?> × <?= (int) $bill['residents'] ?></td>
+                                        <td class="text-neutral-500"><?= date('M j, Y', strtotime($bill['created_at'])) ?></td>
+                                        <td>
+                                            <form method="post" action="/admin/electricity/<?= (int) $bill['id'] ?>/delete" class="action-cluster" style="justify-content: flex-end;"
+                                                  onsubmit="return confirm('Remove this electricity bill? Every resident\'s share of it is removed and their balance recalculated.');">
+                                                <?= \App\Support\Csrf::field() ?>
+                                                <button class="btn-danger !py-1 !px-3 !text-xs" title="Remove a bill entered by mistake">Remove</button>
+                                            </form>
+                                        </td>
+                                    </tr>
+                                <?php endforeach; ?>
+                            </tbody>
+                        </table>
+                    </div>
+                <?php endif; ?>
+            </div>
+        </div>
+    </div>
+
     <!-- Room Configurations Section -->
     <div>
         <div class="section-header">
@@ -89,7 +277,7 @@ $occupancyRate = $totalBeds > 0 ? round(($occupiedBeds / $totalBeds) * 100) : 0;
             <div class="empty-state" style="padding:3.5rem 0;">
                 <span style="font-size:2.5rem; margin-bottom: 0.5rem;">🏠</span>
                 <span class="text-sm font-semibold text-neutral-800">No rooms configured yet</span>
-                <span class="text-xs text-neutral-500 mt-1">Use the "Add Room" form below to configure your first room.</span>
+                <span class="text-xs text-neutral-500 mt-1">Use the "Add Room" form above to configure your first room.</span>
             </div>
             <?php else: ?>
             <div class="overflow-x-auto">
@@ -258,7 +446,13 @@ $occupancyRate = $totalBeds > 0 ? round(($occupiedBeds / $totalBeds) * 100) : 0;
                                                 <?php foreach ($roomBeds as $b): ?>
                                                 <tr>
                                                     <td style="padding:0.5rem 0.75rem;" class="font-semibold text-neutral-800">
-                                                        <?= htmlspecialchars($b['label']) ?>
+                                                        <form method="post" action="/admin/beds/<?= (int) $b['id'] ?>/update" class="inline-flex items-center gap-1.5">
+                                                            <?= \App\Support\Csrf::field() ?>
+                                                            <label class="sr-only" for="bed-label-<?= (int) $b['id'] ?>">Bed label</label>
+                                                            <input id="bed-label-<?= (int) $b['id'] ?>" name="label" value="<?= htmlspecialchars($b['label']) ?>"
+                                                                   required maxlength="20" class="input input-sm !py-1 text-xs" style="width: 8rem;">
+                                                            <button class="btn btn-secondary !py-0.5 !px-2.5 !text-xs" title="Save the new bed label">Rename</button>
+                                                        </form>
                                                     </td>
                                                     <td style="padding:0.5rem 0.75rem;">
                                                         <span class="badge <?= $b['status'] === 'occupied' ? 'badge-warning' : 'badge-success' ?>">
@@ -284,7 +478,7 @@ $occupancyRate = $totalBeds > 0 ? round(($occupiedBeds / $totalBeds) * 100) : 0;
                                                 <?php if (empty($roomBeds)): ?>
                                                 <tr>
                                                     <td colspan="4" class="p-4 text-center text-neutral-400 text-xs italic">
-                                                        No beds configured in this room yet. Use the "Add Bed" form below.
+                                                        No beds configured in this room yet. Use the "Add Bed" form above.
                                                     </td>
                                                 </tr>
                                                 <?php endif; ?>
@@ -300,111 +494,26 @@ $occupancyRate = $totalBeds > 0 ? round(($occupiedBeds / $totalBeds) * 100) : 0;
             </div>
         </div>
     </div>
-
-    <!-- Management Forms Section -->
-    <div>
-        <div class="section-header">
-            <h2>Management Actions</h2>
-        </div>
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-
-            <!-- Card 1: Add Room Form -->
-            <form method="post" action="/admin/rooms" class="form-card">
-                <div class="flex items-center gap-2 pb-2 border-b border-neutral-100">
-                    <span style="font-size:1.1rem; line-height:1;">🏠</span>
-                    <h3 class="text-body font-semibold text-neutral-900">Add Room</h3>
-                </div>
-                <?= \App\Support\Csrf::field() ?>
-                <div>
-                    <label class="block text-caption font-semibold text-neutral-600 mb-1">Room Number</label>
-                    <input name="room_number" placeholder="e.g. 101" required class="input">
-                </div>
-                <div>
-                    <label class="block text-caption font-semibold text-neutral-600 mb-1">Floor <span class="font-normal text-neutral-400">(optional)</span></label>
-                    <input name="floor" placeholder="e.g. 1" class="input">
-                </div>
-                <div>
-                    <label class="block text-caption font-semibold text-neutral-600 mb-1">Capacity</label>
-                    <input name="capacity" type="number" min="1" value="2" required class="input">
-                </div>
-                <div>
-                    <label class="block text-caption font-semibold text-neutral-600 mb-1">Monthly Base Price (₱)</label>
-                    <input name="base_price" type="number" step="0.01" value="3500" required class="input font-mono font-semibold">
-                </div>
-                <button class="btn btn-primary w-full !py-2 !text-xs font-semibold">
-                    Create Room Unit
-                </button>
-            </form>
-
-            <!-- Card 2: Add Bed Form -->
-            <form method="post" action="/admin/beds" class="form-card accent-success">
-                <div class="flex items-center gap-2 pb-2 border-b border-neutral-100">
-                    <span style="font-size:1.1rem; line-height:1;">🛏️</span>
-                    <h3 class="text-body font-semibold text-neutral-900">Add Bed</h3>
-                </div>
-                <?= \App\Support\Csrf::field() ?>
-                <div>
-                    <label class="block text-caption font-semibold text-neutral-600 mb-1">Select Room</label>
-                    <select name="room_id" id="add-bed-room" required class="input">
-                        <option value="">— Choose Room —</option>
-                        <?php foreach ($rooms as $r): ?>
-                            <option value="<?= (int) $r['id'] ?>">Room <?= htmlspecialchars($r['room_number']) ?></option>
-                        <?php endforeach; ?>
-                    </select>
-                </div>
-                <div>
-                    <label class="block text-caption font-semibold text-neutral-600 mb-1">Number of Beds</label>
-                    <input type="number" name="count" id="add-bed-count" min="1" max="50" value="1" required class="input font-mono" placeholder="1">
-                </div>
-                <div>
-                    <label class="block text-caption font-semibold text-neutral-600 mb-1">Bed Label / Prefix</label>
-                    <input name="label" id="add-bed-label" placeholder="e.g. Bed A, Bed 1, or Bed" required class="input">
-                    <p class="text-[11px] text-neutral-400 mt-0.5">Numbers or letters sequence automatically for batches.</p>
-                </div>
-                <div id="add-bed-preview" class="hidden text-caption text-neutral-600 bg-neutral-50 rounded-md p-2.5 border border-neutral-200">
-                    <span class="font-semibold text-neutral-700">Preview:</span> <span id="add-bed-preview-text" class="font-mono text-emerald-700 font-semibold"></span>
-                </div>
-                <button class="btn btn-primary w-full !py-2 !text-xs font-semibold" id="add-bed-submit">
-                    Add Bed
-                </button>
-            </form>
-
-            <!-- Card 3: Assign Boarder to Bed Form -->
-            <form method="post" action="/admin/beds/assign" class="form-card accent-neutral">
-                <div class="flex items-center gap-2 pb-2 border-b border-neutral-100">
-                    <span style="font-size:1.1rem; line-height:1;">🔗</span>
-                    <h3 class="text-body font-semibold text-neutral-900">Assign Boarder</h3>
-                </div>
-                <?= \App\Support\Csrf::field() ?>
-                <div>
-                    <label class="block text-caption font-semibold text-neutral-600 mb-1">Boarder User ID</label>
-                    <input name="boarder_id" type="number" placeholder="Enter user ID" required class="input">
-                    <p class="text-caption text-neutral-400 mt-1">
-                        Find IDs in the <a href="/admin/boarders" class="text-primary-600 font-medium hover:underline">Boarders Directory</a>.
-                    </p>
-                </div>
-                <div>
-                    <label class="block text-caption font-semibold text-neutral-600 mb-1">Select Vacant Bed</label>
-                    <select name="bed_id" required class="input">
-                        <option value="">— Choose Vacant Bed —</option>
-                        <?php foreach ($beds as $b): if ($b['status'] === 'vacant'): ?>
-                            <option value="<?= (int) $b['id'] ?>"><?= htmlspecialchars($b['room_number'] . ' / ' . $b['label']) ?></option>
-                        <?php endif; endforeach; ?>
-                    </select>
-                </div>
-                <div class="text-caption text-neutral-500 bg-neutral-50 rounded-md p-2.5 border border-neutral-100 mt-auto">
-                    Reassigning an active resident will safely relocate them and free their previous bed.
-                </div>
-                <button class="btn btn-secondary w-full !py-2 !text-xs font-semibold">
-                    Assign Bed Slot
-                </button>
-            </form>
-
-        </div>
-    </div>
 </div>
 
 <script>
+/* ── Electricity: show each resident's share before the bill is entered ── */
+(function () {
+    const room = document.getElementById('electricity-room');
+    const amount = document.getElementById('electricity-amount');
+    const out = document.getElementById('electricity-share');
+    if (!room || !amount || !out) return;
+    function update() {
+        const n = parseInt((room.selectedOptions[0] || {dataset: {}}).dataset.residents || '0', 10);
+        const total = parseFloat(amount.value);
+        out.textContent = n > 0 && total > 0
+            ? '₱' + (total / n).toFixed(2) + ' each for ' + n + ' resident' + (n === 1 ? '' : 's') + ', due with their next rent.'
+            : "Each resident's share appears here.";
+    }
+    room.addEventListener('change', update);
+    amount.addEventListener('input', update);
+})();
+
 /* ── Batch Bed Label Live Preview ── */
 (function () {
     const countInput = document.getElementById('add-bed-count');
@@ -523,22 +632,6 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 });
 
-if (window.gsap && window.ScrollTrigger) {
-    let mm = gsap.matchMedia();
-    mm.add({
-        animate: "(prefers-reduced-motion: no-preference)",
-        reduce:  "(prefers-reduced-motion: reduce)",
-    }, (context) => {
-        if (context.conditions.animate) {
-            gsap.from(".reveal-card", {
-                y: 20, opacity: 0, duration: 0.5, stagger: 0.07, ease: "power2.out",
-                scrollTrigger: { trigger: ".reveal-card", start: "top 92%", once: true },
-            });
-        } else {
-            gsap.set(".reveal-card", { opacity: 1, y: 0 });
-        }
-    });
-}
 </script>
 <?php
 $content = ob_get_clean();

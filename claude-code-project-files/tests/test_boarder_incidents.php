@@ -7,6 +7,8 @@ use App\Models\Incident;
 use App\Models\Notification;
 use App\Models\User;
 
+str_ends_with((string) getenv('DB_NAME'), '_test') || exit("Run through tests/run.php\n");
+
 echo "=== Testing Boarder Incidents Access & Flow ===\n";
 
 // 1. Check boarder user exists

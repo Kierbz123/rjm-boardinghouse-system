@@ -6,6 +6,7 @@ use App\Models\User;
 use App\Models\LoginAttempt;
 use App\Support\Csrf;
 use App\Support\Logger;
+use App\Support\TrustedProxy;
 
 class AuthController
 {
@@ -24,7 +25,8 @@ class AuthController
         $error = $_SESSION['flash_error'] ?? null;
         unset($_SESSION['flash_error']);
 
-        $defaultMobileUrl = self::loginPageUrl();
+        $defaultMobileUrl = self::publicBaseUrl() . '/'; // the QR code opens the landing page
+        $isOnline = str_starts_with($defaultMobileUrl, 'https://'); // only the online-demo address is https
 
         require __DIR__ . '/../Views/shared/login.php';
     }
@@ -68,7 +70,7 @@ class AuthController
     /** @return array{ok: true, user: array}|array{ok: false, error: string} */
     private static function verifyCredentials(string $email, string $password): array
     {
-        $ip = $_SERVER['REMOTE_ADDR'] ?? null;
+        $ip = TrustedProxy::clientIp($_SERVER);
         $masked = Logger::maskEmail($email);
         if (
             LoginAttempt::recentFailedCount($email, self::LOCKOUT_WINDOW_MINUTES) >= self::MAX_FAILED_ATTEMPTS
@@ -112,13 +114,14 @@ class AuthController
         return $destinations[$role] ?? '/login';
     }
 
-    private static function loginPageUrl(): string
-    {
-        return self::publicBaseUrl() . '/login';
-    }
-
     private static function publicBaseUrl(): string
     {
+        // start-online.bat sets this to the tunnel's public address for that run only.
+        $online = rtrim((string) getenv('APP_BASE_URL'), '/') ?: self::runningOnlineAddress();
+        if (preg_match('#^https://[a-z0-9.-]+\z#i', $online)) {
+            return $online;
+        }
+
         $httpHost = (string) ($_SERVER['HTTP_HOST'] ?? '127.0.0.1:8000');
         $hostOnly = $httpHost;
         $port = 8000;
@@ -132,9 +135,10 @@ class AuthController
             $port = (int) $_SERVER['SERVER_PORT'];
         }
 
-        $lan = self::detectLanIpv4();
-        $host = $lan ?? $hostOnly;
-        if ($host === '' || $host === 'localhost') {
+        // Offline, show the address this page was opened on: it is the one address known to
+        // answer. The server listens on 127.0.0.1 only, so the Wi-Fi address would be a dead link.
+        $host = $hostOnly;
+        if ($host === 'localhost' || !preg_match('/^[a-z0-9.-]+\z/i', $host)) {
             $host = '127.0.0.1';
         }
 
@@ -142,33 +146,18 @@ class AuthController
         return 'http://' . $host . $portSuffix;
     }
 
-    private static function detectLanIpv4(): ?string
+    /**
+     * Public address of an online launcher running in another window, so the normal
+     * server's login page shows the same QR code. The launcher rewrites
+     * logs/online-address.log every 2 seconds while it runs, so a file that has not been
+     * touched for a while means the launcher has stopped, however it was closed.
+     */
+    private static function runningOnlineAddress(): string
     {
-        $candidates = [];
-        $hostname = gethostname();
-        if (is_string($hostname) && $hostname !== '') {
-            $resolved = gethostbynamel($hostname);
-            if (is_array($resolved)) {
-                $candidates = array_merge($candidates, $resolved);
-            }
-            $single = gethostbyname($hostname);
-            if (is_string($single)) {
-                $candidates[] = $single;
-            }
+        $file = __DIR__ . '/../../logs/online-address.log';
+        if (!is_file($file) || time() - (int) filemtime($file) > 15) {
+            return '';
         }
-        if (!empty($_SERVER['SERVER_ADDR'])) {
-            $candidates[] = (string) $_SERVER['SERVER_ADDR'];
-        }
-
-        foreach ($candidates as $ip) {
-            if (!filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_IPV4)) {
-                continue;
-            }
-            if (str_starts_with($ip, '127.') || $ip === '0.0.0.0') {
-                continue;
-            }
-            return $ip;
-        }
-        return null;
+        return rtrim(trim((string) strtok((string) file_get_contents($file), "\r\n")), '/');
     }
 }

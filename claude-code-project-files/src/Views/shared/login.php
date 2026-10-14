@@ -5,6 +5,7 @@ $error = $error ?? null;
 $lastEmail = $_SESSION['flash_email'] ?? '';
 unset($_SESSION['flash_email']);
 $defaultMobileUrl = $defaultMobileUrl ?? 'http://127.0.0.1:8000/login';
+$isOnline = $isOnline ?? false;
 
 ob_start();
 ?>
@@ -117,37 +118,6 @@ ob_start();
     box-shadow: 0 4px 25px rgba(10, 10, 10, 0.08);
 }
 
-/* Outline Social/Role Login Buttons matching reference */
-.social-outline-btn {
-    width: 100%;
-    height: 2.625rem;
-    border: 1px solid #e6e5e2;
-    border-radius: 0.5rem;
-    background: #ffffff;
-    color: #3b3a38;
-    font-size: 0.8125rem;
-    font-weight: 500;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 0.625rem;
-    cursor: pointer;
-    transition: all 140ms ease;
-    text-decoration: none;
-}
-
-.social-outline-btn:hover {
-    background: #f8f7f5;
-    border-color: #d4d2ce;
-    color: #0a0a0a;
-    transform: translateY(-1px);
-    box-shadow: 0 2px 4px rgba(10, 10, 10, 0.04);
-}
-
-.social-outline-btn:active {
-    transform: translateY(0);
-}
-
 /* Blue Primary Button matching reference */
 .btn-ref-primary {
     width: 100%;
@@ -233,26 +203,6 @@ ob_start();
     color: #555452;
 }
 
-.login-or-divider {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 100%;
-    padding: 1rem 0;
-}
-
-.login-or-divider .or-line {
-    flex: 1 1 0%;
-    border-top: 1px solid #e5e5e5;
-}
-
-.login-or-divider > span {
-    flex: 0 0 auto;
-    margin-left: 0.75rem;
-    margin-right: 0.75rem;
-    text-align: center;
-}
-
 #copy-feedback {
     opacity: 0;
     min-height: 1rem;
@@ -295,13 +245,18 @@ ob_start();
                 <div class="p-8 sm:p-10 lg:p-11 flex flex-col justify-between" id="form-column">
                     <div>
                         <!-- Branding Accent Tag -->
-                        <div class="flex items-center gap-2 mb-3">
-                            <span class="w-6 h-6 rounded-md bg-amber-100 text-amber-700 flex items-center justify-center text-xs font-bold shadow-xs">
-                                ▲
-                            </span>
-                            <span class="text-xs font-bold tracking-tight text-neutral-800 uppercase">
-                                RJM Boardinghouse
-                            </span>
+                        <div class="flex items-center justify-between mb-3">
+                            <div class="flex items-center gap-2">
+                                <span class="w-6 h-6 rounded-md bg-amber-100 text-amber-700 flex items-center justify-center text-xs font-bold shadow-xs">
+                                    ▲
+                                </span>
+                                <span class="text-xs font-bold tracking-tight text-neutral-800 uppercase">
+                                    RJM Boardinghouse
+                                </span>
+                            </div>
+                            <a href="/" id="back-home-link" class="text-xs font-semibold text-neutral-500 hover:text-neutral-900 transition-colors">
+                                ← Back to home
+                            </a>
                         </div>
 
                         <!-- Main Heading & Subtitle (Matches Reference Image) -->
@@ -370,43 +325,6 @@ ob_start();
                                 Log in
                             </button>
                         </form>
-
-                        <!-- "or" Divider (Matches Reference Image) -->
-                        <div class="login-or-divider">
-                            <div class="or-line"></div>
-                            <span class="flex-shrink mx-3 text-xs text-neutral-400 font-medium">or</span>
-                            <div class="or-line"></div>
-                        </div>
-
-                        <!-- 3 Quick Access Buttons (Matching Google/Facebook/Github style in reference) -->
-                        <div class="space-y-2.5">
-                            <button type="button"
-                                    class="social-outline-btn quick-account-chip"
-                                    data-email="admin@rjm.test"
-                                    data-pass="AdminPass123!"
-                                    title="Quick fill Admin test credentials">
-                                <span class="text-sm">👑</span>
-                                <span>Log in with Admin Account</span>
-                            </button>
-
-                            <button type="button"
-                                    class="social-outline-btn quick-account-chip"
-                                    data-email="staff@rjm.test"
-                                    data-pass="StaffPass123!"
-                                    title="Quick fill Staff test credentials">
-                                <span class="text-sm">🔧</span>
-                                <span>Log in with Staff Account</span>
-                            </button>
-
-                            <button type="button"
-                                    class="social-outline-btn quick-account-chip"
-                                    data-email="boarder@rjm.test"
-                                    data-pass="BoarderPass123!"
-                                    title="Quick fill Resident Boarder test credentials">
-                                <span class="text-sm">🏠</span>
-                                <span>Log in with Boarder Account</span>
-                            </button>
-                        </div>
                     </div>
 
                     <!-- Footers matching reference -->
@@ -427,6 +345,7 @@ ob_start();
                 <!-- ======================================================= -->
                 <div class="p-8 sm:p-10 lg:p-11 flex flex-col items-center justify-center text-center bg-white border-t md:border-t-0 md:border-l border-neutral-200" id="qr-column">
                     <div class="w-full max-w-xs flex flex-col items-center">
+                        <?php if ($isOnline): ?>
 
                         <!-- Prominent QR Code Box (Matches Reference Image) -->
                         <div class="p-4 bg-white rounded-2xl border border-neutral-200/80 shadow-xs inline-block transition-transform hover:scale-102" id="qr-box-wrapper" title="Scan with your phone to open RJM Boardinghouse">
@@ -440,10 +359,10 @@ ob_start();
 
                         <!-- Title & Subtitle (Matches Reference Image) -->
                         <h2 class="text-2xl font-bold text-neutral-900 tracking-tight mt-6 mb-1.5" style="font-size: 1.5rem;">
-                            Log in with QR code
+                            Open on your phone
                         </h2>
                         <p class="text-neutral-500 text-sm max-w-xs leading-relaxed mb-4">
-                            Scan this with our App to log in instantly
+                            Scan with your phone's camera to open RJM Boardinghouse there
                         </p>
 
                         <!-- Local Network Address Pill with Copy Tool -->
@@ -466,13 +385,29 @@ ob_start();
                         <div class="mt-4 flex items-center justify-center gap-3 text-[11px] text-neutral-400">
                             <span class="inline-flex items-center gap-1">
                                 <span style="width:5px; height:5px; border-radius:50%; background:#22c55e;"></span>
-                                <span>Local Wi-Fi Network</span>
+                                <span>Online &middot; any network</span>
                             </span>
                             <span>&middot;</span>
                             <a href="<?= htmlspecialchars($defaultMobileUrl) ?>" target="_blank" rel="noopener" class="text-blue-600 hover:underline font-medium">
                                 Open mobile preview ↗
                             </a>
                         </div>
+                        <?php else: ?>
+
+                        <!-- Normal start: reachable on this computer only, so a QR code could not work on a phone -->
+                        <h2 class="text-2xl font-bold text-neutral-900 tracking-tight mb-1.5" style="font-size: 1.5rem;">
+                            Phone access is off
+                        </h2>
+                        <p class="text-neutral-500 text-sm max-w-xs leading-relaxed mb-4">
+                            Right now the system can only be opened on this computer, so there is no QR code to scan.
+                        </p>
+                        <div class="w-full bg-neutral-50 border border-neutral-200 rounded-lg px-3 py-1.5 text-xs text-neutral-600" style="text-align: left; line-height: 1.8;">
+                            <strong>To use it on a phone:</strong><br>
+                            1. Double-click <span class="font-mono">start-online.bat</span> in the project folder.<br>
+                            2. Wait until its window says the system is online.<br>
+                            3. Reload this page and scan the QR code.
+                        </div>
+                        <?php endif; ?>
                     </div>
                 </div>
 
@@ -529,23 +464,10 @@ document.addEventListener("DOMContentLoaded", function () {
         });
     }
 
-    // 3. Quick-fill credentials chips for testing
-    const chips = document.querySelectorAll(".quick-account-chip");
     const emailInput = document.getElementById("login-email");
     const passInput = document.getElementById("login-password");
-    chips.forEach(function (chip) {
-        chip.addEventListener("click", function () {
-            const em = this.getAttribute("data-email");
-            const pw = this.getAttribute("data-pass");
-            if (emailInput && passInput) {
-                emailInput.value = em;
-                passInput.value = pw;
-                passInput.focus();
-            }
-        });
-    });
 
-    // 4. Password show/hide toggle
+    // 3. Password show/hide toggle
     const toggle = document.getElementById('toggle-password');
     const eyeOpen = document.getElementById('eye-open');
     const eyeClosed = document.getElementById('eye-closed');
@@ -560,7 +482,7 @@ document.addEventListener("DOMContentLoaded", function () {
         });
     }
 
-    // 5. Client-side validation
+    // 4. Client-side validation
     const emailError = document.getElementById('email-error');
     const passwordError = document.getElementById('password-error');
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -664,7 +586,7 @@ document.addEventListener("DOMContentLoaded", function () {
             scale: 0.96,
             y: 20,
             duration: 0.5,
-            ease: "power2.out"
+            ease: "power3.out"
         });
     }
 });

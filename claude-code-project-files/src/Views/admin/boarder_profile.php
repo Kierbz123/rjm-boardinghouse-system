@@ -738,8 +738,12 @@ input[type="date"].profile-input {
 
                 <div class="divide-y divide-neutral-100 text-xs pt-1">
                     <div class="py-2 flex justify-between items-center">
-                        <span class="text-neutral-600">Rent Due this Period:</span>
+                        <span class="text-neutral-600">Unpaid Rent:</span>
                         <span class="font-bold text-neutral-900">₱<?= number_format($rentDue, 2) ?></span>
+                    </div>
+                    <div class="py-2 flex justify-between items-center">
+                        <span class="text-neutral-600">Unpaid Electricity Share:</span>
+                        <span class="font-bold text-neutral-900">₱<?= number_format((float) ($balanceDetails['electricity_due'] ?? 0), 2) ?></span>
                     </div>
                     <div class="py-2 flex justify-between items-center">
                         <span class="text-neutral-600">Unpaid Penalties:</span>
@@ -979,7 +983,7 @@ input[type="date"].profile-input {
                             ?>
                             <tr>
                                 <td class="font-bold text-neutral-900">
-                                    <?= htmlspecialchars($pm['billing_period'] ?? '—') ?>
+                                    <?= htmlspecialchars(\App\Services\BillingService::periodLabel($pm['billing_period'] ?? '—')) ?>
                                 </td>
                                 <td class="font-semibold text-neutral-900">
                                     ₱<?= number_format((float) ($pm['claimed_amount'] ?? 0), 2) ?>
@@ -1184,6 +1188,32 @@ input[type="date"].profile-input {
         </form>
     </div>
 
+    <!-- Sign-in: the admin sets a temporary password for a resident who forgot theirs -->
+    <div class="reveal-card profile-card" style="margin-top: 2rem;">
+        <div class="flex items-center gap-2.5 pb-3 border-b border-neutral-100">
+            <span class="profile-card-icon">🔑</span>
+            <div>
+                <h2 class="text-heading-sm font-semibold text-neutral-900">Reset Sign-in Password</h2>
+                <p class="text-caption text-neutral-500">For a resident who forgot their password. They are signed out everywhere and should change it under Profile.</p>
+            </div>
+        </div>
+
+        <form method="post" action="/admin/boarders/<?= $id ?>/password" class="space-y-3" id="reset-password-form">
+            <?= \App\Support\Csrf::field() ?>
+            <div>
+                <label for="reset-new-password" class="block text-xs font-semibold text-neutral-700 mb-1">New temporary password</label>
+                <input id="reset-new-password" name="new_password" type="password" required minlength="8" maxlength="72"
+                       autocomplete="new-password" class="input w-full" aria-describedby="reset-password-hint">
+                <p id="reset-password-hint" class="text-[11px] text-neutral-400 mt-1.5">At least 8 characters. Tell the resident in person; it is not sent anywhere.</p>
+            </div>
+            <div class="flex justify-end pt-1">
+                <button type="submit" class="profile-btn profile-btn-primary">
+                    Set New Password
+                </button>
+            </div>
+        </form>
+    </div>
+
     <!-- Section 9: Danger Zone -->
     <div class="reveal-card profile-danger-card" style="margin-top: 2rem;">
         <div class="flex items-center gap-2.5 pb-3 border-b border-error-200">
@@ -1314,22 +1344,7 @@ input[type="date"].profile-input {
     }
 })();
 
-if (window.gsap && window.ScrollTrigger) {
-    let mm = gsap.matchMedia();
-    mm.add({
-        animate: "(prefers-reduced-motion: no-preference)",
-        reduce:  "(prefers-reduced-motion: reduce)",
-    }, (context) => {
-        if (context.conditions.animate) {
-            gsap.from(".reveal-card", {
-                y: 16, opacity: 0, duration: 0.45, stagger: 0.06, ease: "power2.out",
-                scrollTrigger: { trigger: ".reveal-card", start: "top 95%", once: true },
-            });
-        } else {
-            gsap.set(".reveal-card", { opacity: 1, y: 0 });
-        }
-    });
-}
+
 </script>
 
 <?php

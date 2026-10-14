@@ -59,6 +59,94 @@ $totalOpenRequests = array_sum(array_column($openByTier, 'c'));
         </div>
     </div>
 
+    <!-- Rent & Collections -->
+    <div>
+        <div class="section-header">
+            <h2>Rent &amp; Collections</h2>
+            <a href="/admin/payments" class="text-caption text-neutral-600 font-semibold bg-neutral-100 px-3 py-1 rounded-full hover:bg-neutral-200 transition-colors">
+                Review payments &rarr;
+            </a>
+        </div>
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div class="card p-4 lg:col-span-1" style="display: flex; flex-direction: column; justify-content: space-between; gap: 1rem;">
+                <div>
+                    <span class="text-caption font-semibold text-neutral-500 uppercase tracking-wider">Total Outstanding</span>
+                    <p class="text-3xl font-bold text-neutral-900 mt-1" style="font-variant-numeric: tabular-nums;">₱<?= number_format($collections['total_outstanding'], 2) ?></p>
+                    <p class="text-caption text-neutral-400 mt-1">
+                        <?= $collections['owing_count'] ?> resident<?= $collections['owing_count'] === 1 ? '' : 's' ?> with a balance
+                    </p>
+                </div>
+                <div style="border-top: 1px solid #e6e5e2; padding-top: 0.875rem;">
+                    <span class="text-caption font-semibold text-neutral-500 uppercase tracking-wider">Overdue</span>
+                    <p class="font-bold <?= $collections['overdue_count'] > 0 ? 'text-error-600' : 'text-neutral-900' ?> mt-1" style="font-size: 1.375rem; font-variant-numeric: tabular-nums;">₱<?= number_format($collections['overdue_amount'], 2) ?></p>
+                    <p class="text-caption <?= $collections['overdue_count'] > 0 ? 'text-error-600 font-semibold' : 'text-neutral-400' ?> mt-1">
+                        <?= $collections['overdue_count'] > 0
+                            ? $collections['overdue_count'] . ' resident' . ($collections['overdue_count'] === 1 ? '' : 's') . ' past the due date'
+                            : 'Nobody is past their due date' ?>
+                    </p>
+                </div>
+                <div style="border-top: 1px solid #e6e5e2; padding-top: 0.875rem;">
+                    <span class="text-caption font-semibold text-neutral-500 uppercase tracking-wider">Collected in <?= date('F') ?></span>
+                    <p class="font-bold text-neutral-900 mt-1" style="font-size: 1.375rem; font-variant-numeric: tabular-nums;">₱<?= number_format($collections['collected_this_month'], 2) ?></p>
+                    <p class="text-caption text-emerald-700 mt-1 font-medium">Approved payments this month</p>
+                </div>
+            </div>
+
+            <div class="card overflow-hidden lg:col-span-2">
+                <div class="overflow-x-auto">
+                    <table class="w-full text-body-sm">
+                        <thead>
+                            <tr>
+                                <th>Resident</th>
+                                <th>Room</th>
+                                <th>Oldest Due</th>
+                                <th style="text-align: right;">Owes</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <?php foreach ($collections['debtors'] as $d): ?>
+                                <tr>
+                                    <td>
+                                        <a href="/admin/boarders/<?= (int) $d['user_id'] ?>" class="font-medium text-neutral-900" style="text-decoration: underline; text-decoration-color: #d4d2ce; text-underline-offset: 3px;">
+                                            <?= htmlspecialchars($d['name']) ?>
+                                        </a>
+                                    </td>
+                                    <td class="text-neutral-600"><?= htmlspecialchars($d['room_number'] ?? '—') ?></td>
+                                    <td>
+                                        <?php if ($d['oldest_due'] === null): ?>
+                                            <span class="text-caption text-neutral-400">No due date</span>
+                                        <?php else: ?>
+                                            <span class="text-caption text-neutral-600"><?= date('M j, Y', strtotime($d['oldest_due'])) ?></span>
+                                            <?php if ($d['overdue'] > 0): ?>
+                                                <span class="badge badge-error" style="margin-left: 0.375rem;">Overdue</span>
+                                            <?php endif; ?>
+                                        <?php endif; ?>
+                                    </td>
+                                    <td style="text-align: right; font-weight: 700; color: #0a0a0a; font-variant-numeric: tabular-nums;">
+                                        ₱<?= number_format($d['owed'], 2) ?>
+                                    </td>
+                                </tr>
+                            <?php endforeach; ?>
+                            <?php if (empty($collections['debtors'])): ?>
+                                <tr>
+                                    <td colspan="4" class="p-6 text-center text-neutral-400 text-xs">
+                                        ✓ Nobody owes anything right now.
+                                    </td>
+                                </tr>
+                            <?php endif; ?>
+                        </tbody>
+                    </table>
+                </div>
+                <?php if ($collections['owing_count'] > count($collections['debtors'])): ?>
+                    <p class="text-caption text-neutral-500" style="padding: 0.75rem 1rem; border-top: 1px solid #e6e5e2;">
+                        Showing <?= count($collections['debtors']) ?> of <?= $collections['owing_count'] ?> residents with a balance.
+                        <a href="/admin/boarders" class="font-semibold text-neutral-900" style="text-decoration: underline; text-underline-offset: 3px;">See all boarders</a>
+                    </p>
+                <?php endif; ?>
+            </div>
+        </div>
+    </div>
+
     <!-- Data Tables Section -->
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <!-- Open Maintenance by Priority -->
@@ -156,28 +244,6 @@ $totalOpenRequests = array_sum(array_column($openByTier, 'c'));
     </div>
 </div>
 
-<script>
-if (window.gsap && window.ScrollTrigger) {
-    let mm = gsap.matchMedia();
-    mm.add({
-        animate: "(prefers-reduced-motion: no-preference)",
-        reduce: "(prefers-reduced-motion: reduce)",
-    }, (context) => {
-        if (context.conditions.animate) {
-            gsap.from(".reveal-card", {
-                y: 16,
-                opacity: 0,
-                duration: 0.45,
-                stagger: 0.08,
-                ease: "power2.out",
-                scrollTrigger: { trigger: ".reveal-card", start: "top 90%", once: true },
-            });
-        } else {
-            gsap.set(".reveal-card", { opacity: 1, y: 0 });
-        }
-    });
-}
-</script>
 <?php
 $content = ob_get_clean();
 require __DIR__ . '/../shared/layout.php';

@@ -51,10 +51,13 @@ $amenities = [
     ],
     [
         'title' => 'Utilities',
-        'summary' => 'Fiber Wi-Fi, submetered electricity and purified drinking water.',
+        'summary' => 'Free water, solar power back-up, fiber Wi-Fi and laundry service.',
         'points' => [
+            'Water is free.',
+            'Solar power back-up, so there are no power interruptions.',
+            'Each room has its own electricity submeter. The room\'s bill is divided equally among the people staying in it, and your share is due together with your rent.',
+            'Laundry service is available: just ask the caretakers.',
             'Fiber Wi-Fi throughout the house.',
-            'Electricity is submetered, so you pay for what your room uses.',
             'Purified drinking water station and a shared study hall and pantry.',
         ],
     ],
@@ -62,11 +65,12 @@ $amenities = [
         'title' => 'Payments',
         'summary' => 'Upload your receipt online; your balance updates as soon as it is approved.',
         'points' => [
-            'Rent is due on the 5th of each month; your first month is charged only for the days you stay, and your first payment is due 30 days after you move in.',
+            'Rent is due every 30 days, counted from the day you move in: move in on October 20 and your first payment is due on November 19, then every 30 days after that.',
+            'Your share of your room\'s electricity bill (the bill divided by the number of people in the room) is due together with your rent.',
             'Pay by GCash, Maya or bank transfer, then upload the receipt in the resident portal.',
             'An administrator checks every receipt. Until then it shows as Pending review, and you are notified as soon as it is approved or rejected.',
-            'Approved payments clear your oldest unpaid month first; anything extra becomes credit.',
-            'A small daily late fee applies after a month\'s due date while its rent is unpaid. It stops on the day you upload a receipt that is approved, so review time is never charged, and an administrator can waive it for a good reason.',
+            'Approved payments clear your oldest unpaid rent first; anything extra becomes credit.',
+            'A small daily late fee applies after a due date while that rent is unpaid. It stops on the day you upload a receipt that is approved, so review time is never charged, and an administrator can waive it for a good reason.',
         ],
     ],
 ];

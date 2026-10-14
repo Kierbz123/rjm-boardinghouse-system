@@ -555,25 +555,6 @@ $stats = $stats ?? [];
 
 </div>
 
-<!-- Microinteraction & Smooth Entrance Animations -->
-<script>
-document.addEventListener("DOMContentLoaded", function () {
-    if (window.gsap) {
-        gsap.fromTo(
-            ".reveal-card",
-            { opacity: 0, y: 15 },
-            {
-                opacity: 1,
-                y: 0,
-                duration: 0.45,
-                stagger: 0.08,
-                ease: "power2.out"
-            }
-        );
-    }
-});
-</script>
-
 <?php
 $content = ob_get_clean();
 require __DIR__ . '/layout.php';

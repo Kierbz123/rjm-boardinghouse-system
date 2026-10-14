@@ -126,220 +126,6 @@ $totalPenaltyAmount = array_sum(array_map(fn($p) => (float) ($p['amount'] ?? 0),
         </div>
     </div>
 
-    <!-- Configured Rules Section -->
-    <div>
-        <div class="section-header">
-            <div class="flex items-center gap-2">
-                <h2>Configured Penalty Rules</h2>
-                <span class="text-caption text-neutral-500 font-medium bg-neutral-100 px-3 py-1 rounded-full">
-                    <?= $totalRules ?> rule<?= $totalRules !== 1 ? 's' : '' ?>
-                </span>
-            </div>
-        </div>
-
-        <div class="card overflow-hidden">
-            <div class="overflow-x-auto">
-                <table class="w-full text-body-sm" style="min-width: 720px;">
-                    <thead>
-                        <tr>
-                            <th style="width: 70px;">ID</th>
-                            <th style="width: 25%;">Rule Name</th>
-                            <th style="width: 20%;">Condition Type</th>
-                            <th style="width: 22%;">Fee Amount</th>
-                            <th style="width: 13%;">Status</th>
-                            <th style="width: 150px; text-align: right;">Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <?php foreach ($rules as $r): ?>
-                            <?php $isActive = (bool) $r['active']; ?>
-                            <tr class="border-b border-neutral-100 hover:bg-neutral-50/80 transition-colors">
-                                <td class="p-3">
-                                    <span class="id-tag">#<?= (int) $r['id'] ?></span>
-                                </td>
-                                <td class="p-3">
-                                    <div class="font-bold text-neutral-800 text-sm"><?= htmlspecialchars($r['name']) ?></div>
-                                </td>
-                                <td class="p-3">
-                                    <span class="badge badge-neutral font-mono font-medium">
-                                        <?= htmlspecialchars($r['condition_type']) ?>
-                                    </span>
-                                </td>
-                                <td class="p-3">
-                                    <!-- Inline Amount Update Form -->
-                                    <form method="post" action="/admin/penalty-rules/<?= (int) $r['id'] ?>/amount" class="flex items-center gap-1.5">
-                                        <?= \App\Support\Csrf::field() ?>
-                                        <div class="relative flex items-center">
-                                            <span style="position:absolute;left:0.5rem;color:#6b6b6b;font-size:0.75rem;font-weight:700;">₱</span>
-                                            <input name="amount"
-                                                   type="number"
-                                                   step="0.01"
-                                                   min="0.01"
-                                                   value="<?= htmlspecialchars($r['amount']) ?>"
-                                                   class="input input-sm font-mono font-medium"
-                                                   style="width: 6.5rem; padding-left: 1.5rem;"
-                                                   title="Update amount">
-                                        </div>
-                                        <button type="submit" class="btn btn-primary !py-1 !px-2.5 !text-xs cursor-pointer shadow-xs">
-                                            Save
-                                        </button>
-                                    </form>
-                                </td>
-                                <td class="p-3">
-                                    <span class="badge <?= $isActive ? 'badge-success' : 'badge-neutral' ?>">
-                                        <?= $isActive ? 'Active' : 'Inactive' ?>
-                                    </span>
-                                </td>
-                                <td class="p-3">
-                                    <!-- Toggle Active/Inactive Form -->
-                                    <form method="post" action="/admin/penalty-rules/<?= (int) $r['id'] ?>/toggle" class="inline">
-                                        <?= \App\Support\Csrf::field() ?>
-                                        <input type="hidden" name="active" value="<?= $isActive ? '0' : '1' ?>">
-                                        <?php if ($isActive): ?>
-                                            <button type="submit"
-                                                    class="btn-danger !py-1 !px-2.5 !text-xs cursor-pointer"
-                                                    onclick="return confirm('Deactivate rule &quot;<?= htmlspecialchars(addslashes($r['name'])) ?>&quot;?');">
-                                                Deactivate
-                                            </button>
-                                        <?php else: ?>
-                                            <button type="submit"
-                                                    class="btn btn-secondary !py-1 !px-2.5 !text-xs cursor-pointer"
-                                                    onclick="return confirm('Reactivate rule &quot;<?= htmlspecialchars(addslashes($r['name'])) ?>&quot;?');">
-                                                Reactivate
-                                            </button>
-                                        <?php endif; ?>
-                                    </form>
-                                </td>
-                            </tr>
-                        <?php endforeach; ?>
-
-                        <?php if (empty($rules)): ?>
-                            <tr>
-                                <td colspan="6" class="empty-state" style="padding:3.5rem 0;">
-                                    <span style="font-size:2rem;">⚖️</span>
-                                    <span class="text-xs font-medium text-neutral-500 mt-1 block">No penalty rules configured yet. Create one using the form below.</span>
-                                </td>
-                            </tr>
-                        <?php endif; ?>
-                    </tbody>
-                </table>
-            </div>
-        </div>
-    </div>
-
-    <!-- Penalties History Section -->
-    <div>
-        <div class="section-header">
-            <div class="flex items-center gap-2">
-                <h2 class="text-heading-sm font-semibold text-neutral-900">Penalty History</h2>
-                <span class="text-caption text-neutral-500 font-medium bg-neutral-100 px-2.5 py-1 rounded-full">
-                    <?= $totalPenalties ?> record<?= $totalPenalties !== 1 ? 's' : '' ?>
-                </span>
-            </div>
-            <a href="/admin/ledger/export"
-               class="btn btn-secondary !py-1.5 !px-3 !text-xs inline-flex items-center gap-1.5 shadow-xs"
-               title="Export detailed financial ledger with user names, descriptions, and proper formatting">
-                <span>📊</span>
-                <span>Export Ledger</span>
-            </a>
-        </div>
-
-        <!-- Table Card -->
-        <div class="card overflow-hidden">
-            <div class="overflow-x-auto">
-                <table class="w-full text-body-sm">
-                    <thead>
-                        <tr style="background:#f8f7f5; border-bottom:2px solid #e6e5e2;">
-                            <th class="p-3 text-left font-semibold text-neutral-500 text-caption uppercase tracking-wide" style="width:4rem;">ID</th>
-                            <th class="p-3 text-left font-semibold text-neutral-500 text-caption uppercase tracking-wide">Boarder</th>
-                            <th class="p-3 text-left font-semibold text-neutral-500 text-caption uppercase tracking-wide">Rule</th>
-                            <th class="p-3 text-left font-semibold text-neutral-500 text-caption uppercase tracking-wide">Amount</th>
-                            <th class="p-3 text-left font-semibold text-neutral-500 text-caption uppercase tracking-wide">Reason</th>
-                            <th class="p-3 text-left font-semibold text-neutral-500 text-caption uppercase tracking-wide">Due Date</th>
-                            <th class="p-3 text-left font-semibold text-neutral-500 text-caption uppercase tracking-wide">Status</th>
-                            <th class="p-3 text-left font-semibold text-neutral-500 text-caption uppercase tracking-wide">Settlement / Issuer</th>
-                            <th class="p-3 text-right font-semibold text-neutral-500 text-caption uppercase tracking-wide">Action</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <?php foreach ($penalties as $p): ?>
-                            <?php $isPaid = ($p['status'] ?? 'unpaid') === 'paid'; ?>
-                            <tr class="border-b border-neutral-100 hover:bg-neutral-50/80 transition-colors">
-                                <td class="p-3">
-                                    <span class="id-tag">#<?= (int) $p['id'] ?></span>
-                                </td>
-                                <td class="p-3">
-                                    <div class="font-bold text-neutral-800 text-sm"><?= htmlspecialchars($p['boarder_name'] ?? 'Unknown') ?></div>
-                                    <div class="text-caption text-neutral-400 font-normal">
-                                        <?= htmlspecialchars($p['boarder_email'] ?? '') ?>
-                                    </div>
-                                </td>
-                                <td class="p-3">
-                                    <div class="font-semibold text-neutral-800 text-sm"><?= htmlspecialchars($p['rule_name'] ?? 'Unknown') ?></div>
-                                    <div class="text-caption text-neutral-400 font-normal">
-                                        <?= htmlspecialchars($p['rule_type'] ?? '') ?>
-                                    </div>
-                                </td>
-                                <td class="p-3">
-                                    <span class="font-bold <?= $isPaid ? 'text-neutral-500 line-through' : 'text-red-600' ?>">₱<?= number_format((float) ($p['amount'] ?? 0), 2) ?></span>
-                                </td>
-                                <td class="p-3">
-                                    <div class="text-sm text-neutral-700"><?= htmlspecialchars($p['reason'] ?? '') ?></div>
-                                </td>
-                                <td class="p-3">
-                                    <div class="text-xs font-mono <?= !$isPaid && !empty($p['due_date']) && strtotime($p['due_date']) < time() ? 'text-red-600 font-bold' : 'text-neutral-600' ?>">
-                                        <?= !empty($p['due_date']) ? date('M j, Y', strtotime($p['due_date'])) : '—' ?>
-                                    </div>
-                                </td>
-                                <td class="p-3">
-                                    <?php if ($isPaid): ?>
-                                        <span class="badge badge-success text-xs">✓ Paid</span>
-                                    <?php else: ?>
-                                        <span class="badge badge-error text-xs">Unpaid</span>
-                                    <?php endif; ?>
-                                </td>
-                                <td class="p-3">
-                                    <?php if ($isPaid): ?>
-                                        <?php if (!empty($p['paid_payment_id'])): ?>
-                                            <div class="text-xs font-semibold text-emerald-700">Payment #<?= (int) $p['paid_payment_id'] ?></div>
-                                        <?php else: ?>
-                                            <div class="text-xs font-medium text-neutral-600">Admin Override</div>
-                                        <?php endif; ?>
-                                        <div class="text-caption text-neutral-400"><?= !empty($p['paid_at']) ? date('M j, Y', strtotime($p['paid_at'])) : '' ?></div>
-                                    <?php else: ?>
-                                        <div class="text-xs text-neutral-500">Issued by: <?= htmlspecialchars($p['issuer_name'] ?? 'System') ?></div>
-                                        <div class="text-caption text-amber-600 font-medium">Pending Settlement</div>
-                                    <?php endif; ?>
-                                </td>
-                                <td class="p-3 text-right">
-                                    <?php if (!$isPaid): ?>
-                                        <form method="post" action="/admin/penalties/<?= (int) $p['id'] ?>/mark-paid" class="inline" onsubmit="return confirm('Manually mark penalty #<?= (int)$p['id'] ?> (₱<?= number_format((float)$p['amount'], 2) ?>) as paid via administrative override?');">
-                                            <?= \App\Support\Csrf::field() ?>
-                                            <button type="submit" class="btn btn-secondary !py-1 !px-2.5 !text-xs cursor-pointer text-emerald-700 hover:bg-emerald-50">
-                                                Mark Paid
-                                            </button>
-                                        </form>
-                                    <?php else: ?>
-                                        <span class="text-caption text-neutral-400">Settled</span>
-                                    <?php endif; ?>
-                                </td>
-                            </tr>
-                        <?php endforeach; ?>
-
-                        <?php if (empty($penalties)): ?>
-                            <tr>
-                                <td colspan="9" class="empty-state" style="padding:3.5rem 0;">
-                                    <span style="font-size:2rem;">⚠️</span>
-                                    <span class="text-xs font-medium text-neutral-500 mt-1 block">No penalty records found.</span>
-                                </td>
-                            </tr>
-                        <?php endif; ?>
-                    </tbody>
-                </table>
-            </div>
-        </div>
-    </div>
-
     <!-- Management & Automation Actions Grid -->
     <div>
         <div class="section-header">
@@ -512,33 +298,221 @@ $totalPenaltyAmount = array_sum(array_map(fn($p) => (float) ($p['amount'] ?? 0),
 
         </div>
     </div>
-</div>
 
-<script>
-document.addEventListener('DOMContentLoaded', () => {
-    // GSAP reveal animation matching dashboard and boarders
-    if (window.gsap && window.ScrollTrigger) {
-        let mm = gsap.matchMedia();
-        mm.add({
-            animate: "(prefers-reduced-motion: no-preference)",
-            reduce: "(prefers-reduced-motion: reduce)",
-        }, (context) => {
-            if (context.conditions.animate) {
-                gsap.from(".reveal-card", {
-                    y: 16,
-                    opacity: 0,
-                    duration: 0.45,
-                    stagger: 0.08,
-                    ease: "power2.out",
-                    scrollTrigger: { trigger: ".reveal-card", start: "top 90%", once: true },
-                });
-            } else {
-                gsap.set(".reveal-card", { opacity: 1, y: 0 });
-            }
-        });
-    }
-});
-</script>
+    <!-- Configured Rules Section -->
+    <div>
+        <div class="section-header">
+            <div class="flex items-center gap-2">
+                <h2>Configured Penalty Rules</h2>
+                <span class="text-caption text-neutral-500 font-medium bg-neutral-100 px-3 py-1 rounded-full">
+                    <?= $totalRules ?> rule<?= $totalRules !== 1 ? 's' : '' ?>
+                </span>
+            </div>
+        </div>
+
+        <div class="card overflow-hidden">
+            <div class="overflow-x-auto">
+                <table class="w-full text-body-sm" style="min-width: 720px;">
+                    <thead>
+                        <tr>
+                            <th style="width: 70px;">ID</th>
+                            <th style="width: 25%;">Rule Name</th>
+                            <th style="width: 20%;">Condition Type</th>
+                            <th style="width: 22%;">Fee Amount</th>
+                            <th style="width: 13%;">Status</th>
+                            <th style="width: 150px; text-align: right;">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <?php foreach ($rules as $r): ?>
+                            <?php $isActive = (bool) $r['active']; ?>
+                            <tr class="border-b border-neutral-100 hover:bg-neutral-50/80 transition-colors">
+                                <td class="p-3">
+                                    <span class="id-tag">#<?= (int) $r['id'] ?></span>
+                                </td>
+                                <td class="p-3">
+                                    <div class="font-bold text-neutral-800 text-sm"><?= htmlspecialchars($r['name']) ?></div>
+                                </td>
+                                <td class="p-3">
+                                    <span class="badge badge-neutral font-mono font-medium">
+                                        <?= htmlspecialchars($r['condition_type']) ?>
+                                    </span>
+                                </td>
+                                <td class="p-3">
+                                    <!-- Inline Amount Update Form -->
+                                    <form method="post" action="/admin/penalty-rules/<?= (int) $r['id'] ?>/amount" class="flex items-center gap-1.5">
+                                        <?= \App\Support\Csrf::field() ?>
+                                        <div class="relative flex items-center">
+                                            <span style="position:absolute;left:0.5rem;color:#6b6b6b;font-size:0.75rem;font-weight:700;">₱</span>
+                                            <input name="amount"
+                                                   type="number"
+                                                   step="0.01"
+                                                   min="0.01"
+                                                   value="<?= htmlspecialchars($r['amount']) ?>"
+                                                   class="input input-sm font-mono font-medium"
+                                                   style="width: 6.5rem; padding-left: 1.5rem;"
+                                                   title="Update amount">
+                                        </div>
+                                        <button type="submit" class="btn btn-primary !py-1 !px-2.5 !text-xs cursor-pointer shadow-xs">
+                                            Save
+                                        </button>
+                                    </form>
+                                </td>
+                                <td class="p-3">
+                                    <span class="badge <?= $isActive ? 'badge-success' : 'badge-neutral' ?>">
+                                        <?= $isActive ? 'Active' : 'Inactive' ?>
+                                    </span>
+                                </td>
+                                <td class="p-3">
+                                    <!-- Toggle Active/Inactive Form -->
+                                    <form method="post" action="/admin/penalty-rules/<?= (int) $r['id'] ?>/toggle" class="inline">
+                                        <?= \App\Support\Csrf::field() ?>
+                                        <input type="hidden" name="active" value="<?= $isActive ? '0' : '1' ?>">
+                                        <?php if ($isActive): ?>
+                                            <button type="submit"
+                                                    class="btn-danger !py-1 !px-2.5 !text-xs cursor-pointer"
+                                                    onclick="return confirm('Deactivate rule &quot;<?= htmlspecialchars(addslashes($r['name'])) ?>&quot;?');">
+                                                Deactivate
+                                            </button>
+                                        <?php else: ?>
+                                            <button type="submit"
+                                                    class="btn btn-secondary !py-1 !px-2.5 !text-xs cursor-pointer"
+                                                    onclick="return confirm('Reactivate rule &quot;<?= htmlspecialchars(addslashes($r['name'])) ?>&quot;?');">
+                                                Reactivate
+                                            </button>
+                                        <?php endif; ?>
+                                    </form>
+                                </td>
+                            </tr>
+                        <?php endforeach; ?>
+
+                        <?php if (empty($rules)): ?>
+                            <tr>
+                                <td colspan="6" class="empty-state" style="padding:3.5rem 0;">
+                                    <span style="font-size:2rem;">⚖️</span>
+                                    <span class="text-xs font-medium text-neutral-500 mt-1 block">No penalty rules configured yet. Create one using the form above.</span>
+                                </td>
+                            </tr>
+                        <?php endif; ?>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Penalties History Section -->
+    <div>
+        <div class="section-header">
+            <div class="flex items-center gap-2">
+                <h2 class="text-heading-sm font-semibold text-neutral-900">Penalty History</h2>
+                <span class="text-caption text-neutral-500 font-medium bg-neutral-100 px-2.5 py-1 rounded-full">
+                    <?= $totalPenalties ?> record<?= $totalPenalties !== 1 ? 's' : '' ?>
+                </span>
+            </div>
+            <a href="/admin/ledger/export"
+               class="btn btn-secondary !py-1.5 !px-3 !text-xs inline-flex items-center gap-1.5 shadow-xs"
+               title="Export detailed financial ledger with user names, descriptions, and proper formatting">
+                <span>📊</span>
+                <span>Export Ledger</span>
+            </a>
+        </div>
+
+        <!-- Table Card -->
+        <div class="card overflow-hidden">
+            <div class="overflow-x-auto">
+                <table class="w-full text-body-sm">
+                    <thead>
+                        <tr style="background:#f8f7f5; border-bottom:2px solid #e6e5e2;">
+                            <th class="p-3 text-left font-semibold text-neutral-500 text-caption uppercase tracking-wide" style="width:4rem;">ID</th>
+                            <th class="p-3 text-left font-semibold text-neutral-500 text-caption uppercase tracking-wide">Boarder</th>
+                            <th class="p-3 text-left font-semibold text-neutral-500 text-caption uppercase tracking-wide">Rule</th>
+                            <th class="p-3 text-left font-semibold text-neutral-500 text-caption uppercase tracking-wide">Amount</th>
+                            <th class="p-3 text-left font-semibold text-neutral-500 text-caption uppercase tracking-wide">Reason</th>
+                            <th class="p-3 text-left font-semibold text-neutral-500 text-caption uppercase tracking-wide">Due Date</th>
+                            <th class="p-3 text-left font-semibold text-neutral-500 text-caption uppercase tracking-wide">Status</th>
+                            <th class="p-3 text-left font-semibold text-neutral-500 text-caption uppercase tracking-wide">Settlement / Issuer</th>
+                            <th class="p-3 text-right font-semibold text-neutral-500 text-caption uppercase tracking-wide">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <?php foreach ($penalties as $p): ?>
+                            <?php $isPaid = ($p['status'] ?? 'unpaid') === 'paid'; ?>
+                            <tr class="border-b border-neutral-100 hover:bg-neutral-50/80 transition-colors">
+                                <td class="p-3">
+                                    <span class="id-tag">#<?= (int) $p['id'] ?></span>
+                                </td>
+                                <td class="p-3">
+                                    <div class="font-bold text-neutral-800 text-sm"><?= htmlspecialchars($p['boarder_name'] ?? 'Unknown') ?></div>
+                                    <div class="text-caption text-neutral-400 font-normal">
+                                        <?= htmlspecialchars($p['boarder_email'] ?? '') ?>
+                                    </div>
+                                </td>
+                                <td class="p-3">
+                                    <div class="font-semibold text-neutral-800 text-sm"><?= htmlspecialchars($p['rule_name'] ?? 'Unknown') ?></div>
+                                    <div class="text-caption text-neutral-400 font-normal">
+                                        <?= htmlspecialchars($p['rule_type'] ?? '') ?>
+                                    </div>
+                                </td>
+                                <td class="p-3">
+                                    <span class="font-bold <?= $isPaid ? 'text-neutral-500 line-through' : 'text-red-600' ?>">₱<?= number_format((float) ($p['amount'] ?? 0), 2) ?></span>
+                                </td>
+                                <td class="p-3">
+                                    <div class="text-sm text-neutral-700"><?= htmlspecialchars($p['reason'] ?? '') ?></div>
+                                </td>
+                                <td class="p-3">
+                                    <div class="text-xs font-mono <?= !$isPaid && !empty($p['due_date']) && strtotime($p['due_date']) < time() ? 'text-red-600 font-bold' : 'text-neutral-600' ?>">
+                                        <?= !empty($p['due_date']) ? date('M j, Y', strtotime($p['due_date'])) : '—' ?>
+                                    </div>
+                                </td>
+                                <td class="p-3">
+                                    <?php if ($isPaid): ?>
+                                        <span class="badge badge-success text-xs">✓ Paid</span>
+                                    <?php else: ?>
+                                        <span class="badge badge-error text-xs">Unpaid</span>
+                                    <?php endif; ?>
+                                </td>
+                                <td class="p-3">
+                                    <?php if ($isPaid): ?>
+                                        <?php if (!empty($p['paid_payment_id'])): ?>
+                                            <div class="text-xs font-semibold text-emerald-700">Payment #<?= (int) $p['paid_payment_id'] ?></div>
+                                        <?php else: ?>
+                                            <div class="text-xs font-medium text-neutral-600">Admin Override</div>
+                                        <?php endif; ?>
+                                        <div class="text-caption text-neutral-400"><?= !empty($p['paid_at']) ? date('M j, Y', strtotime($p['paid_at'])) : '' ?></div>
+                                    <?php else: ?>
+                                        <div class="text-xs text-neutral-500">Issued by: <?= htmlspecialchars($p['issuer_name'] ?? 'System') ?></div>
+                                        <div class="text-caption text-amber-600 font-medium">Pending Settlement</div>
+                                    <?php endif; ?>
+                                </td>
+                                <td class="p-3 text-right">
+                                    <?php if (!$isPaid): ?>
+                                        <form method="post" action="/admin/penalties/<?= (int) $p['id'] ?>/mark-paid" class="inline" onsubmit="return confirm('Manually mark penalty #<?= (int)$p['id'] ?> (₱<?= number_format((float)$p['amount'], 2) ?>) as paid via administrative override?');">
+                                            <?= \App\Support\Csrf::field() ?>
+                                            <button type="submit" class="btn btn-secondary !py-1 !px-2.5 !text-xs cursor-pointer text-emerald-700 hover:bg-emerald-50">
+                                                Mark Paid
+                                            </button>
+                                        </form>
+                                    <?php else: ?>
+                                        <span class="text-caption text-neutral-400">Settled</span>
+                                    <?php endif; ?>
+                                </td>
+                            </tr>
+                        <?php endforeach; ?>
+
+                        <?php if (empty($penalties)): ?>
+                            <tr>
+                                <td colspan="9" class="empty-state" style="padding:3.5rem 0;">
+                                    <span style="font-size:2rem;">⚠️</span>
+                                    <span class="text-xs font-medium text-neutral-500 mt-1 block">No penalty records found.</span>
+                                </td>
+                            </tr>
+                        <?php endif; ?>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
 
 <style>
 /* Custom Modal Animations */
@@ -547,7 +521,7 @@ document.addEventListener('DOMContentLoaded', () => {
     100% { opacity: 1; }
 }
 @keyframes customCardPop {
-    0% { opacity: 0; transform: scale(0.9) translateY(12px); }
+    0% { opacity: 0; transform: scale(0.96) translateY(8px); }
     100% { opacity: 1; transform: scale(1) translateY(0); }
 }
 .animate-custom-backdrop {
@@ -632,8 +606,8 @@ document.addEventListener('DOMContentLoaded', () => {
         penaltyModal.classList.add('animate-custom-backdrop');
         if (window.gsap && penaltyCard) {
             gsap.fromTo(penaltyCard,
-                { opacity: 0, scale: 0.9, y: 12 },
-                { opacity: 1, scale: 1, y: 0, duration: 0.25, ease: 'back.out(1.7)' }
+                { opacity: 0, scale: 0.96, y: 8 },
+                { opacity: 1, scale: 1, y: 0, duration: 0.3, ease: 'power3.out' }
             );
         } else if (penaltyCard) {
             penaltyCard.classList.add('animate-custom-card');
@@ -680,8 +654,8 @@ document.addEventListener('DOMContentLoaded', () => {
         rentModal.classList.add('animate-custom-backdrop');
         if (window.gsap && rentCard) {
             gsap.fromTo(rentCard,
-                { opacity: 0, scale: 0.9, y: 12 },
-                { opacity: 1, scale: 1, y: 0, duration: 0.25, ease: 'back.out(1.7)' }
+                { opacity: 0, scale: 0.96, y: 8 },
+                { opacity: 1, scale: 1, y: 0, duration: 0.3, ease: 'power3.out' }
             );
         } else if (rentCard) {
             rentCard.classList.add('animate-custom-card');

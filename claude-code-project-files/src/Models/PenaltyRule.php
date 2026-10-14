@@ -11,6 +11,13 @@ class PenaltyRule
         return Database::getConnection()->query('SELECT * FROM penalty_rules WHERE active = 1')->fetchAll();
     }
 
+    public static function find(int $id): ?array
+    {
+        $stmt = Database::getConnection()->prepare('SELECT * FROM penalty_rules WHERE id = ?');
+        $stmt->execute([$id]);
+        return $stmt->fetch() ?: null;
+    }
+
     public static function all(): array
     {
         return Database::getConnection()->query('SELECT * FROM penalty_rules ORDER BY name')->fetchAll();

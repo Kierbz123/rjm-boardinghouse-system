@@ -13,6 +13,7 @@ use App\Models\MaintenanceRequest;
 use App\Models\Incident;
 use App\Services\BillingService;
 use App\Services\NotificationDispatcher;
+use App\Services\PasswordResetService;
 use App\Database;
 use App\Support\Csrf;
 use RuntimeException;
@@ -80,30 +81,24 @@ class BoarderController
             BoarderProfile::create($userId, $roomId, $bedId);
             $pdo->commit();
             $_SESSION['flash_success'] = "Added {$name}.";
-        } catch (RuntimeException $e) {
-            $pdo->rollBack();
-            $_SESSION['flash_error'] = $e->getMessage();
+        } catch (\Throwable $e) {
+            if ($pdo->inTransaction()) {
+                $pdo->rollBack();
+            }
+            $_SESSION['flash_error'] = self::messageFor($e, 'The resident could not be added. Please try again.');
         }
         header('Location: /admin/boarders');
         exit;
     }
 
-    public static function updateStatus(string $userId): void
+    /** Our own "why not" messages are shown as written; anything unexpected is logged and replaced. */
+    private static function messageFor(\Throwable $e, string $fallback): string
     {
-        if (!Csrf::verify($_POST['csrf_token'] ?? null)) {
-            http_response_code(400);
-            echo 'Invalid session, please retry.';
-            return;
+        if ($e instanceof RuntimeException && !$e instanceof \PDOException) {
+            return $e->getMessage();
         }
-        $newStatus = (string) ($_POST['status'] ?? '');
-        $reason = (string) ($_POST['reason'] ?? '');
-        try {
-            BoarderProfile::updateStatus((int) $userId, $newStatus, (int) $_SESSION['user_id'], $reason);
-        } catch (RuntimeException $e) {
-            $_SESSION['flash_error'] = $e->getMessage();
-        }
-        header('Location: /admin/boarders');
-        exit;
+        \App\Support\Logger::error($e->getMessage() . ' in ' . $e->getFile() . ':' . $e->getLine());
+        return $fallback;
     }
 
     /** Assigns an existing boarder to a bed. Rejects if the bed is already occupied — Phase 2 verification. */
@@ -128,11 +123,9 @@ class BoarderController
                 throw new RuntimeException('That boarder already has this bed.');
             }
 
-            // Moving beds: free the old one. If the new bed turns out to be taken,
+            // Moving beds: free the one they hold. If the new bed turns out to be taken,
             // the rollback below puts the boarder back in the old bed.
-            if (!empty($currentProfile['bed_id'])) {
-                Bed::vacate((int) $currentProfile['bed_id']);
-            }
+            Bed::vacateHeldBy($boarderId);
             Bed::assign($bedId, $boarderId);
             BoarderProfile::assignRoomAndBed($boarderId, (int) $bed['room_id'], $bedId);
             BillingService::calculateBalance($boarderId, $pdo); // the new room's price applies from this month
@@ -141,11 +134,11 @@ class BoarderController
             $room = Room::find((int) $bed['room_id']);
             NotificationDispatcher::bedAssigned($boarderId, $room['room_number'] ?? (string) $bed['room_id'], $bed['label'] ?? 'Bed');
             $_SESSION['flash_success'] = "{$currentProfile['name']} assigned to Room " . ($room['room_number'] ?? '') . " / {$bed['label']}.";
-        } catch (RuntimeException $e) {
+        } catch (\Throwable $e) {
             if ($pdo->inTransaction()) {
                 $pdo->rollBack();
             }
-            $_SESSION['flash_error'] = $e->getMessage();
+            $_SESSION['flash_error'] = self::messageFor($e, 'The bed could not be assigned. Please try again.');
         }
         // Only ever bounce back to a page of this app, never to wherever Referer points.
         $refererPath = (string) parse_url($_SERVER['HTTP_REFERER'] ?? '', PHP_URL_PATH);
@@ -166,6 +159,13 @@ class BoarderController
         $id = (int) $userId;
         $returnTo = trim((string) ($_POST['return_to'] ?? ''));
         $redirectUrl = preg_match('#^/admin/boarders/\d+$#', $returnTo) ? $returnTo : '/admin/boarders';
+
+        // This route edits residents only; an id belonging to a staff or admin account is refused.
+        if (BoarderProfile::find($id) === null) {
+            $_SESSION['flash_error'] = 'Boarder not found.';
+            header('Location: /admin/boarders');
+            exit;
+        }
 
         $name = trim((string) ($_POST['name'] ?? ''));
         $email = trim((string) ($_POST['email'] ?? ''));
@@ -265,9 +265,32 @@ class BoarderController
             echo 'Invalid session, please retry.';
             return;
         }
-        BoarderProfile::restore((int) $userId);
-        $_SESSION['flash_success'] = 'Resident restored. They can log in again; assign a bed and set them active to resume rent.';
+        if (BoarderProfile::restore((int) $userId)) {
+            $_SESSION['flash_success'] = 'Resident restored. They can log in again; assign a bed and set them active to resume rent.';
+        } else {
+            $_SESSION['flash_error'] = 'No archived resident with that number was found.';
+        }
         header('Location: /admin/boarders');
+        exit;
+    }
+
+    /** A resident forgot their password: the admin sets a temporary one and tells them in person. */
+    public static function resetPassword(string $userId): void
+    {
+        $boarder = self::resolveBoarderOrRedirect($userId, '/admin/boarders', true);
+        $id = (int) $boarder['user_id'];
+
+        $error = PasswordResetService::byAdmin(
+            User::findById($id),
+            (string) ($_POST['new_password'] ?? ''),
+            (int) $_SESSION['user_id']
+        );
+        if ($error !== null) {
+            $_SESSION['flash_error'] = $error;
+        } else {
+            $_SESSION['flash_success'] = "New password set for {$boarder['name']}. They have been signed out; share it privately and ask them to change it under Profile.";
+        }
+        header("Location: /admin/boarders/{$id}");
         exit;
     }
 

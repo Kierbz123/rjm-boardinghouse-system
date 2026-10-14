@@ -139,7 +139,7 @@ $tierBadges = [
                 ₱<?= number_format($totalBal, 2) ?>
             </p>
             <p class="text-caption text-neutral-500" style="margin-top: 0.375rem;">
-                Rent: ₱<?= number_format($rentDue, 2) ?> · Penalties: ₱<?= number_format($penDue, 2) ?>
+                Rent: ₱<?= number_format($rentDue, 2) ?> · Electricity: ₱<?= number_format((float) ($balanceDetails['electricity_due'] ?? 0), 2) ?> · Penalties: ₱<?= number_format($penDue, 2) ?>
             </p>
         </div>
         <div class="reveal-card card metric-accent-info" style="padding: 1.25rem 1.375rem; border-radius: 0.875rem;">
@@ -148,7 +148,7 @@ $tierBadges = [
                 <?= count($payments ?? []) ?>
             </p>
             <p class="text-caption text-neutral-400" style="margin-top: 0.375rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
-                <?= !empty($payments[0]) ? 'Latest: ' . htmlspecialchars($payments[0]['billing_period']) : 'No records yet' ?>
+                <?= !empty($payments[0]) ? 'Latest: ' . htmlspecialchars(\App\Services\BillingService::periodLabel($payments[0]['billing_period'])) : 'No records yet' ?>
             </p>
         </div>
         <div class="reveal-card card metric-accent-warning" style="padding: 1.25rem 1.375rem; border-radius: 0.875rem;">
@@ -406,7 +406,7 @@ $tierBadges = [
                                 ?>
                                 <tr class="hover:bg-neutral-50 transition-colors">
                                     <td style="padding: 0.75rem 1rem; font-family: ui-monospace, monospace; font-weight: 600; color: #0a0a0a;">
-                                        <span class="id-tag"><?= htmlspecialchars($p['billing_period']) ?></span>
+                                        <span class="id-tag"><?= htmlspecialchars(\App\Services\BillingService::periodLabel($p['billing_period'])) ?></span>
                                     </td>
                                     <td style="padding: 0.75rem 1rem; font-weight: 700; color: #0a0a0a;">
                                         ₱<?= number_format((float) ($p['claimed_amount'] ?? 0), 2) ?>
@@ -503,16 +503,6 @@ document.getElementById('sos-button').addEventListener('click', async () => {
     }
 });
 
-/* GSAP Card Reveal Animation — uses fromTo() so end-state is always guaranteed */
-if (window.gsap) {
-    gsap.fromTo(".reveal-card",
-        { opacity: 0, y: 12 },
-        { opacity: 1, y: 0, duration: 0.35, stagger: 0.05, ease: "power2.out" }
-    );
-} else {
-    /* Fallback: ensure all cards are visible even without GSAP */
-    document.querySelectorAll('.reveal-card').forEach(el => { el.style.opacity = '1'; });
-}
 </script>
 <?php
 $content = ob_get_clean();

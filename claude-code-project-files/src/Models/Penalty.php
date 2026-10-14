@@ -8,38 +8,6 @@ use App\Services\BillingService;
 class Penalty
 {
     /**
-     * Automated penalty creation (e.g. from PenaltyEngine late fee runs).
-     */
-    public static function create(int $boarderId, int $ruleId, float $amount, string $reason): int
-    {
-        $pdo = Database::getConnection();
-        $inTx = $pdo->inTransaction();
-        if (!$inTx) {
-            $pdo->beginTransaction();
-        }
-
-        try {
-            $stmt = $pdo->prepare(
-                'INSERT INTO penalties (boarder_id, rule_id, amount, reason, status) VALUES (?, ?, ?, ?, "unpaid")'
-            );
-            $stmt->execute([$boarderId, $ruleId, $amount, $reason]);
-            $penaltyId = (int) $pdo->lastInsertId();
-
-            BillingService::syncBalance($boarderId, $pdo);
-
-            if (!$inTx) {
-                $pdo->commit();
-            }
-            return $penaltyId;
-        } catch (\Throwable $e) {
-            if (!$inTx) {
-                $pdo->rollBack();
-            }
-            throw $e;
-        }
-    }
-
-    /**
      * The automatic late fee for one boarder/rule/month: created once, then its
      * amount follows the days late while still unpaid. Running the check again
      * never adds a second fee. Returns true only when the fee was newly created.

@@ -271,23 +271,6 @@ document.addEventListener('click', function(e) {
     }
 });
 
-if (window.gsap) {
-    let mm = gsap.matchMedia();
-    mm.add({
-        animate: "(prefers-reduced-motion: no-preference)",
-        reduce: "(prefers-reduced-motion: reduce)",
-    }, (context) => {
-        if (context.conditions.animate) {
-            gsap.from(".reveal-card", {
-                opacity: 0,
-                y: 12,
-                duration: 0.35,
-                stagger: 0.05,
-                ease: "power2.out"
-            });
-        }
-    });
-}
 </script>
 <?php
 $content = ob_get_clean();

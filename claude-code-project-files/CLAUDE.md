@@ -6,7 +6,7 @@ Localhost-only capstone web app. Read this file every session — it's intention
 A boardinghouse management system: rent/payments, maintenance requests with local priority scoring, emergency SOS/incidents, expense tracking, occupancy trends, bed-level room mapping, penalty automation, and notifications. Full functional spec: **`FEATURES.md`**. Architecture, connector contracts, sequence diagrams, DB schema: **`ARCHITECTURE.md`**. Phase-by-phase build plan and how to verify each phase: **`PHASES.md`**.
 
 ## Non-negotiable constraints
-- **Localhost only.** No cloud hosting, no public deployment.
+- **Localhost by default.** No cloud hosting, no permanent public deployment. The one permitted exposure is the temporary tunnel the user starts by hand with `start-online.bat` (`bin/go-online.ps1`): the app still runs and stores everything on this machine, and it must behave exactly as before when `TRUSTED_PROXIES` / `APP_BASE_URL` are unset.
 - **No outbound internet calls from the running app.** Both "AI" features (repair priority scoring, payment verification) are local rule-based logic — never a call to an external LLM/API. See `ARCHITECTURE.md` §3.2 for the exact contracts and what to do if a local service is unreachable (fail closed, never auto-approve).
 - **Stack:** HTML/CSS/JS frontend (Tailwind CSS for styling, GSAP for animation — see `UI-LIBRARY-EVALUATION.md`) · PHP backend (system of record, only thing the browser talks to) · MariaDB. Repair-priority scoring and payment checks are local PHP rules (`src/Services/ScoringClient.php`, `BillingService`); there is no Python service.
 
@@ -22,6 +22,7 @@ If you're ever unsure whether to keep going or ask: prefer asking when the ambig
 
 ## Commands (can't be guessed from the code)
 - PHP dev server: `php -d upload_max_filesize=20M -d post_max_size=25M -S 127.0.0.1:8000 -t public public/index.php` (the router argument is required; the two `-d` flags let 20 MB receipts/repair videos through on any PHP install; on Windows just run `start-system.bat`). `php-curl` is only needed for the optional Ollama assistant.
+- Online demo: `start-online.bat` (repo root) — same checks, then a Cloudflare quick tunnel + server on port 8010. Never start it without the user asking; it makes the sign-in page reachable from the internet.
 - PHP lint a file: `php -l path/to/file.php`
 - DB: `php database/migrate.php` applies new migrations and records them in `schema_migrations`; never edit an applied migration
 - Tests: `php tests/run.php` (throwaway `_test` database + private server; never run test files directly)

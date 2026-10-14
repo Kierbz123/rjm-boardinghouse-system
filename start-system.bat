@@ -50,6 +50,8 @@ if errorlevel 1 (
     echo       [OK] Ollama is online.
 )
 
+if /i "%~1"=="online" goto :online
+
 echo [5/5] Starting the web app on http://127.0.0.1:%PORT% ...
 call :port_open %PORT%
 if not errorlevel 1 (
@@ -65,6 +67,14 @@ echo ===================================================================
 echo  Running. Keep the "web server" window open while using the system.
 echo  Close that window to stop the app.
 echo ===================================================================
+echo.
+pause
+exit /b 0
+
+:online
+rem start-online.bat: serve through a temporary public tunnel instead (see bin\go-online.ps1)
+echo [5/5] Going online through a temporary tunnel ...
+powershell -NoProfile -ExecutionPolicy Bypass -File "bin\go-online.ps1"
 echo.
 pause
 exit /b 0

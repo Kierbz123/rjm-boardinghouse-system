@@ -22,6 +22,23 @@
   src: url("../fonts/onest-latin-ext.woff2") format("woff2");
   unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
 }
+/* Onest has no peso sign. Without this family the sign comes from the device's own fonts
+   and shows as an empty box on phones whose font lacks it. It holds that one character
+   and goes first in the font lists below, so everything else still falls through to Onest. */
+@font-face {
+  font-family: "RJMPeso";
+  font-weight: 400;
+  font-display: swap;
+  src: url("../fonts/peso-sign.woff") format("woff");
+  unicode-range: U+20B1;
+}
+@font-face {
+  font-family: "RJMPeso";
+  font-weight: 700;
+  font-display: swap;
+  src: url("../fonts/peso-sign-bold.woff") format("woff");
+  unicode-range: U+20B1;
+}
 
 /*
  * DESIGN TOKENS — RJM, after the approved "Lumora" direction.
@@ -74,7 +91,8 @@
   --color-tier-low: #5f6b66;
 
   /* Type */
-  --font-sans: "Onest", ui-sans-serif, system-ui, "Segoe UI", sans-serif;
+  --font-sans: "RJMPeso", "Onest", ui-sans-serif, system-ui, "Segoe UI", sans-serif;
+  --font-mono: "RJMPeso", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
   --text-caption: 0.75rem;
   --text-caption--line-height: 1.1rem;
   --text-body-sm: 0.875rem;
@@ -647,9 +665,17 @@
   @keyframes toast-in { from { opacity: 0; transform: translateY(-8px) scale(0.98); } }
   @keyframes toast-out { to { opacity: 0; transform: translateY(-6px); } }
 
-  /* GSAP safety net: content must show even if a timeline never runs */
-  @keyframes safeReveal { to { opacity: 1; transform: none; } }
-  .reveal-card, .form-card { animation: safeReveal 0s 0.6s forwards; }
+  /* Page entrance: cards rise in once per page load, staggered among siblings. CSS rather than
+     GSAP so it runs off the main thread and stays smooth while scripts are still loading.
+     layout.php sets `page-enter` on <html> and removes it afterwards. Without JS the class is
+     never set, so nothing is ever hidden and no safety net is needed. (The old 0.6s safety net
+     overrode GSAP's inline styles mid-tween and snapped every card after the third into place.) */
+  @keyframes rise-in { from { opacity: 0; transform: translateY(10px); } }
+  .page-enter :is(.reveal-card, .form-card) { animation: rise-in 520ms var(--ease-spring) both; }
+  .page-enter :is(.reveal-card, .form-card):nth-child(2) { animation-delay: 45ms; }
+  .page-enter :is(.reveal-card, .form-card):nth-child(3) { animation-delay: 90ms; }
+  .page-enter :is(.reveal-card, .form-card):nth-child(4) { animation-delay: 135ms; }
+  .page-enter :is(.reveal-card, .form-card):nth-child(n+5) { animation-delay: 180ms; }
 
   /* ---- AI assistant (ink + accent instead of purple) ---- */
   .ai-status-badge { display: inline-flex; align-items: center; gap: 0.35rem; font-size: 0.75rem; font-weight: 500; padding: 0.25rem 0.7rem; border-radius: 9999px; }
@@ -767,6 +793,14 @@
   .tabular { font-variant-numeric: tabular-nums; }
 }
 
+/* Page to page: the browser cross-fades between server-rendered pages instead of flashing blank.
+   Browsers without cross-document view transitions ignore this and navigate as before. */
+@view-transition { navigation: auto; }
+::view-transition-old(root), ::view-transition-new(root) {
+  animation-duration: 200ms;
+  animation-timing-function: var(--ease-out-soft);
+}
+
 /* Reduced motion: honoured once, at the foundation */
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {
@@ -775,4 +809,6 @@
     transition-duration: 0.01ms !important;
     scroll-behavior: auto !important;
   }
+  .page-enter :is(.reveal-card, .form-card) { animation: none; }
+  @view-transition { navigation: none; }
 }

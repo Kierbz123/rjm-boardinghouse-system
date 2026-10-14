@@ -31,13 +31,14 @@ class BoarderProfile
         return Database::getConnection()->query($sql)->fetchAll();
     }
 
-    /** Payments or penalties on record — such a boarder is archived, never erased. */
+    /** Payments, penalties or electricity shares on record — such a boarder is archived, never erased. */
     public static function hasFinancialHistory(int $userId): bool
     {
         $stmt = Database::getConnection()->prepare(
-            'SELECT (SELECT COUNT(*) FROM payments WHERE boarder_id = ?) + (SELECT COUNT(*) FROM penalties WHERE boarder_id = ?)'
+            'SELECT (SELECT COUNT(*) FROM payments WHERE boarder_id = ?) + (SELECT COUNT(*) FROM penalties WHERE boarder_id = ?)
+                  + (SELECT COUNT(*) FROM electricity_charges WHERE boarder_id = ?)'
         );
-        $stmt->execute([$userId, $userId]);
+        $stmt->execute([$userId, $userId, $userId]);
         return (int) $stmt->fetchColumn() > 0;
     }
 
@@ -57,9 +58,12 @@ class BoarderProfile
         Database::getConnection()->prepare('UPDATE users SET status = "archived" WHERE id = ? AND role = "boarder"')->execute([$userId]);
     }
 
-    public static function restore(int $userId): void
+    /** @return bool false when there was no archived boarder with that id */
+    public static function restore(int $userId): bool
     {
-        Database::getConnection()->prepare('UPDATE users SET status = "active" WHERE id = ? AND role = "boarder"')->execute([$userId]);
+        $stmt = Database::getConnection()->prepare('UPDATE users SET status = "active" WHERE id = ? AND role = "boarder" AND status = "archived"');
+        $stmt->execute([$userId]);
+        return $stmt->rowCount() > 0;
     }
 
     public static function create(int $userId, ?int $roomId, ?int $bedId): void
@@ -109,8 +113,8 @@ class BoarderProfile
             $pdo->prepare('INSERT INTO boarder_status_log (boarder_id, old_status, new_status, changed_by, reason) VALUES (?, ?, ?, ?, ?)')
                 ->execute([$boarderId, $row['status'], $newStatus, $changedBy, mb_substr($reason, 0, 255)]);
 
-            if ($newStatus === 'moved_out' && !empty($row['bed_id'])) {
-                Bed::vacate((int) $row['bed_id']);
+            if ($newStatus === 'moved_out') {
+                Bed::vacateHeldBy($boarderId);
                 $pdo->prepare('UPDATE boarder_profiles SET bed_id = NULL WHERE user_id = ?')->execute([$boarderId]);
             }
 
@@ -182,13 +186,8 @@ class BoarderProfile
                 );
                 $log->execute([$boarderId, $oldStatus, $newStatus, $changedBy, $reason]);
 
-                if (!empty($row['bed_id'])) {
-                    $vacateBed = $pdo->prepare('UPDATE beds SET status = "vacant", current_boarder_id = NULL WHERE id = ?');
-                    $vacateBed->execute([(int) $row['bed_id']]);
-
-                    $clearBed = $pdo->prepare('UPDATE boarder_profiles SET bed_id = NULL WHERE user_id = ?');
-                    $clearBed->execute([$boarderId]);
-                }
+                Bed::vacateHeldBy($boarderId);
+                $pdo->prepare('UPDATE boarder_profiles SET bed_id = NULL WHERE user_id = ?')->execute([$boarderId]);
             }
 
             // Move dates decide which months are charged.
@@ -245,15 +244,7 @@ class BoarderProfile
                 throw new \RuntimeException('Boarder not found.');
             }
 
-            // Free bed if assigned
-            $stmt = $pdo->prepare('SELECT bed_id FROM boarder_profiles WHERE user_id = ?');
-            $stmt->execute([$userId]);
-            $bedId = $stmt->fetchColumn();
-            if ($bedId) {
-                Bed::vacate((int) $bedId);
-            }
-            $clearBeds = $pdo->prepare('UPDATE beds SET current_boarder_id = NULL, status = "vacant" WHERE current_boarder_id = ?');
-            $clearBeds->execute([$userId]);
+            Bed::vacateHeldBy($userId);
 
             // Clear relational logs & child rows
             $tables = [

@@ -122,6 +122,11 @@ class ProfileController
             header('Location: /profile');
             exit;
         }
+        if (mb_strlen($contactNumber) > 50 || mb_strlen($emergencyContact) > 50) {
+            $_SESSION['flash_error'] = 'Contact numbers must be 50 characters or fewer.';
+            header('Location: /profile');
+            exit;
+        }
 
         if (User::emailTakenByAnotherUser($email, $userId)) {
             $_SESSION['flash_error'] = 'That email address is already registered to another account.';

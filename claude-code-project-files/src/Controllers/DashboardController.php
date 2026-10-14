@@ -37,6 +37,8 @@ class DashboardController
             $occupancy = $todaySnapshot;
         }
 
+        $collections = \App\Services\BillingService::collectionsSummary();
+
         require __DIR__ . '/../Views/admin/dashboard.php';
     }
 

@@ -159,7 +159,7 @@ class LandingController
         }
 
         try {
-            $result = \App\Models\Inquiry::submit($_POST, 'website', null, $_SERVER['REMOTE_ADDR'] ?? null);
+            $result = \App\Models\Inquiry::submit($_POST, 'website', null, \App\Support\TrustedProxy::clientIp($_SERVER));
             if ($result['ok']) {
                 \App\Services\NotificationDispatcher::inquiryReceived($result);
             }

@@ -58,8 +58,8 @@ class AssistantService
         ['roles' => ['boarder', 'staff', 'admin'],
             'about' => 'when rent is due and how the late fee works',
             'ask' => ['due date', 'when is rent due', 'rent due', 'deadline', 'late fee', 'late payment', 'kailan ang bayad', 'kailan dapat', 'multa'],
-            'en' => "Rent is due on or before the 5th of each month. A new resident's first payment is due 30 days after moving in, so nothing is due in your first 30 days. After a month's due date, a late fee is added for each day its rent is still unpaid: {late_fee}. It stops on the day you submit a receipt that the admin then approves (review time is not charged); if the receipt is rejected, it counts again. The admin can waive a late fee, with a reason.",
-            'tl' => 'Dapat bayaran ang renta sa o bago ang ika-5 ng bawat buwan. Ang unang bayad ng bagong residente ay 30 araw pagkatapos lumipat, kaya walang babayaran sa unang 30 araw. Paglampas ng due date ng isang buwan, may late fee sa bawat araw na hindi pa bayad ang renta nito: {late_fee}. Titigil ito sa araw na nagpasa ka ng resibo na ia-approve ng admin (hindi sinisingil ang oras ng pagsusuri); kapag hindi tinanggap ang resibo, magpapatuloy ito. Puwedeng i-waive ng admin ang late fee, may dahilan.',
+            'en' => "Rent is due every 30 days, counted from the day you moved in: move in on October 20 and your rent is due on November 19, then every 30 days after that. Your share of your room's electricity bill is due together with it. After a due date, a late fee is added for each day that rent is still unpaid: {late_fee}. It stops on the day you submit a receipt that the admin then approves (review time is not charged); if the receipt is rejected, it counts again. The admin can waive a late fee, with a reason.",
+            'tl' => 'Dapat bayaran ang renta kada 30 araw, bilang mula sa araw ng paglipat mo: kung lumipat ka noong Oktubre 20, due ang renta sa Nobyembre 19, at kada 30 araw pagkatapos. Kasabay nitong babayaran ang hati mo sa kuryente ng kuwarto. Paglampas ng due date, may late fee sa bawat araw na hindi pa bayad ang rentang iyon: {late_fee}. Titigil ito sa araw na nagpasa ka ng resibo na ia-approve ng admin (hindi sinisingil ang oras ng pagsusuri); kapag hindi tinanggap ang resibo, magpapatuloy ito. Puwedeng i-waive ng admin ang late fee, may dahilan.',
             'open' => ['boarder' => ['Pay Rent', '/portal/payments/new'], 'admin' => ['Penalties', '/admin/penalty-rules']]],
         ['roles' => ['boarder'],
             'about' => 'how to pay rent and how payments get approved',
@@ -92,11 +92,25 @@ class AssistantService
             'tl' => 'Nasa ibaba ng sidebar ang log out button, katabi ng pangalan mo. Kusa ka ring mala-log out pagkalipas ng 30 minutong walang galaw.',
             'open' => []],
         ['roles' => ['boarder', 'admin'],
-            'about' => 'how rent is worked out for a partial month',
+            'about' => 'how rent is worked out, and a last period cut short by moving out',
             'ask' => ['prorate', 'partial month', 'half month', 'why is my rent', 'how is rent computed', 'how is rent calculated', 'kalahating buwan'],
-            'en' => 'Rent is charged month by month from the move-in date. A month that is only partly stayed (the first or the last) is charged by the day: monthly rent × days stayed ÷ days in that month. Unpaid months carry over to the next.',
-            'tl' => 'Sinisingil ang renta kada buwan mula sa petsa ng paglipat. Ang buwang hindi buo ang tinirhan (una o huli) ay sinisingil kada araw: buwanang renta × araw na tinirhan ÷ araw sa buwang iyon. Nadadala sa susunod na buwan ang hindi nabayaran.',
+            'en' => 'Rent is charged every 30 days, counted from your move-in date, at the full monthly rent each time. Only a last period cut short by moving out is charged by the day: monthly rent × days stayed ÷ 30. Unpaid rent carries over to the next period.',
+            'tl' => 'Sinisingil ang renta kada 30 araw mula sa petsa ng paglipat mo, buong buwanang renta bawat isa. Ang huling 30 araw lang na naputol dahil sa pag-alis ang sinisingil kada araw: buwanang renta × araw na tinirhan ÷ 30. Nadadala sa susunod ang hindi nabayaran.',
             'open' => ['boarder' => ['Pay Rent', '/portal/payments/new'], 'admin' => ['Boarders', '/admin/boarders']]],
+        ['roles' => ['boarder', 'admin'],
+            'about' => 'how the electricity bill is shared and when it is due',
+            'ask' => ['electric bill', 'electricity bill', 'electricity share', 'pay for electricity', 'how is electricity', 'submeter',
+                'bill ng kuryente', 'bayad sa kuryente', 'singil sa kuryente', 'hati sa kuryente'],
+            'en' => "Each room has its own electricity submeter. The room's bill is divided equally among the people staying in the room, and your share is due together with your next rent. It is listed on Pay Rent with its due date. The admin enters each room's bill in Rooms & Beds.",
+            'tl' => 'May sariling submeter ng kuryente ang bawat kuwarto. Hinahati nang pantay ang bill ng kuwarto sa mga nakatira rito, at kasabay ng susunod mong renta ang bayad sa hati mo. Nakalista ito sa Pay Rent kasama ang due date. Inilalagay ng admin ang bill ng bawat kuwarto sa Rooms & Beds.',
+            'open' => ['boarder' => ['Pay Rent', '/portal/payments/new'], 'admin' => ['Rooms & Beds', '/admin/rooms']]],
+        ['roles' => ['boarder', 'staff', 'admin'],
+            'about' => 'free water, solar power back-up and laundry service',
+            'ask' => ['water bill', 'free water', 'water free', 'pay for water', 'libre ang tubig', 'bayad sa tubig', 'solar', 'brownout', 'brown out',
+                'blackout', 'power outage', 'power interruption', 'laundry', 'labada', 'magpalaba'],
+            'en' => 'Water is free. The boardinghouse has solar power back-up, so there are no power interruptions; if your room loses power, report it as a repair. Laundry service is available: just ask the caretakers.',
+            'tl' => 'Libre ang tubig. May solar power back-up ang boardinghouse kaya walang brownout; kung mawalan ng kuryente ang kuwarto mo, i-report ito bilang repair. May laundry service: magtanong lang sa mga caretaker.',
+            'open' => []],
         ['roles' => ['boarder', 'staff', 'admin'],
             'about' => 'how the urgency of a repair is decided',
             'ask' => ['priority', 'how urgent', 'critical mean', 'severity', 'urgency score'],
@@ -109,6 +123,14 @@ class AssistantService
             'en' => 'There is no curfew. Live CCTV covers the boardinghouse. Violations with a set penalty: {penalties}. Other house rules, such as visitors, are not written in the system, so please ask the house administrator.',
             'tl' => 'Walang curfew. May live CCTV sa buong boardinghouse. Mga paglabag na may nakatakdang multa: {penalties}. Ang ibang patakaran ng bahay, gaya ng bisita, ay hindi nakasulat sa system, kaya magtanong sa house administrator.',
             'open' => []],
+        // Last on purpose: on a tie the earlier topic wins, so "what day is rent due" stays a rent question.
+        ['roles' => ['boarder', 'staff', 'admin'],
+            'about' => 'what the date and time are right now',
+            'ask' => ['date today', 'today s date', 'current date', 'date now', 'what day is it', 'what day is today', 'what time is it',
+                'current time', 'time now', 'anong petsa', 'petsa ngayon', 'anong araw ngayon', 'anong oras'],
+            'en' => 'It is {now}.',
+            'tl' => 'Ngayon ay {now}.',
+            'open' => []],
     ];
 
     /**
@@ -118,6 +140,10 @@ class AssistantService
     public static function answer(string $message, string $role, string $lang = 'en', int $userId = 0): ?array
     {
         $lang = $lang === 'tl' ? 'tl' : 'en';
+
+        if ($card = self::greeting($message, $role, $lang, $userId) ?? self::timeUntil($message, $lang)) {
+            return $card + ['actions' => [], 'source' => 'data'];
+        }
 
         // Whichever matches the message best wins; a how-to explanation beats a figure on a tie.
         $help = $lookup = null;
@@ -299,9 +325,11 @@ class AssistantService
     {
         $b = BillingService::calculateBalance($userId);
         if ($b['total_outstanding'] > 0) {
-            $months = implode(', ', array_map(fn ($p) => date('F Y', strtotime($p . '-01')), array_keys($b['unpaid_rent'])));
-            $reply = self::t($lang, 'You owe %s in total. Rent: %s%s. Penalties: %s.', 'May babayaran kang %s lahat. Renta: %s%s. Multa: %s.',
-                self::peso($b['total_outstanding']), self::peso($b['rent_due']), $months ? " ({$months})" : '', self::peso($b['penalties_due']));
+            $months = implode('; ', array_map([BillingService::class, 'periodLabel'], array_keys($b['unpaid_rent'])));
+            $reply = self::t($lang, 'You owe %s in total. Rent: %s%s. Electricity: %s. Penalties: %s.',
+                'May babayaran kang %s lahat. Renta: %s%s. Kuryente: %s. Multa: %s.',
+                self::peso($b['total_outstanding']), self::peso($b['rent_due']), $months ? " ({$months})" : '',
+                self::peso($b['electricity_due']), self::peso($b['penalties_due']));
         } else {
             $reply = self::t($lang, 'You have nothing to pay right now.', 'Wala kang babayaran ngayon.');
             if ($b['credit'] > 0) {
@@ -326,7 +354,7 @@ class AssistantService
             'admin-approved' => ['approved', 'aprubado'],
             'rejected' => ['rejected', 'hindi tinanggap'],
         ];
-        $lines = array_map(fn ($p) => sprintf('%s, %s: %s', self::peso($p['claimed_amount']), date('F Y', strtotime($p['billing_period'] . '-01')),
+        $lines = array_map(fn ($p) => sprintf('%s, %s: %s', self::peso($p['claimed_amount']), BillingService::periodLabel($p['billing_period']),
             self::t($lang, ...$status[$p['verification_status']])), Payment::allForBoarder($userId, 3));
         return [
             'reply' => $lines
@@ -534,11 +562,65 @@ class AssistantService
         return null;
     }
 
+    /**
+     * A bare "hello" is answered here with the name and role the person is signed in with. Left to
+     * the model, it asked an admin "Are you a resident, staff member, or administrator?". Only a
+     * message that is nothing but a greeting matches, so "hi, where do I pay rent" still gets its answer.
+     */
+    private static function greeting(string $message, string $role, string $lang, int $userId): ?array
+    {
+        $roles = ['admin' => ['an administrator', 'administrator'], 'staff' => ['a staff member', 'staff'], 'boarder' => ['a resident', 'residente']];
+        $hello = '(?:hi+|hello+|hey+|yo|good (?:morning|afternoon|evening|day)|k[au]musta(?: ka)?|musta|magandang (?:umaga|tanghali|hapon|gabi|araw)|maayong (?:buntag|udto|hapon|gabii|adlaw))';
+        if (!isset($roles[$role]) || !preg_match("/^\\s*{$hello}(?:\\s+(?:there|po|assistant|ai))?[\\s!.?,]*$/iu", $message)) {
+            return null;
+        }
+        $name = \App\Models\User::findById($userId)['name'] ?? '';
+        return ['reply' => self::t(
+            $lang,
+            'Hello%s. You are signed in as %s. Ask a question or type a page name.',
+            'Kumusta%s. Naka-sign in ka bilang %s. Magtanong o i-type ang pangalan ng page.',
+            $name !== '' ? ", {$name}" : '',
+            $roles[$role][$lang === 'tl' ? 1 : 0]
+        )];
+    }
+
+    /**
+     * "how many hours till 5pm today", "ilang araw hanggang friday": counted here from the server's
+     * clock, because the model rounds or guesses. Null when the message names no time PHP can read
+     * ("until my rent is due"), so those questions carry on to the rules below.
+     * ponytail: a time already past today ("till 5pm" asked at 6pm) is left to the model, not moved to tomorrow.
+     */
+    private static function timeUntil(string $message, string $lang): ?array
+    {
+        $asks = '(?:how long|how many (?:second|minute|hour|day|week)s?|ilang (?:segundo|minuto|oras|araw|linggo)|gaano katagal)';
+        if (!preg_match("/\\b{$asks}\\b.*\\b(?:till|until|til|before|bago|hanggang)\\s+(.+?)[?.!\\s]*$/iu", $message, $m)) {
+            return null;
+        }
+        // PHP reads "5pm today" and "5pm friday" as midnight (a day word after the time resets the clock), so the day goes first.
+        $then = strtotime(preg_replace('/^(\d{1,2}(?::\d{2})?\s*(?:am|pm)?|noon|midnight)\s+(.+)$/i', '$2 $1', $m[1]));
+        if ($then === false || $then <= time()) {
+            return null;
+        }
+        $left = $then - time();
+        $parts = [];
+        foreach (['day' => ['araw', 86400], 'hour' => ['oras', 3600], 'minute' => ['minuto', 60], 'second' => ['segundo', 1]] as $en => [$tl, $size]) {
+            $n = intdiv($left, $size);
+            $left %= $size;
+            if ($n || $parts) { // start at the largest unit that is not zero
+                $parts[] = $lang === 'tl' ? "{$n} {$tl}" : self::count($n, $en, "{$en}s");
+            }
+        }
+        return ['reply' => self::t($lang, '%s until %s.', '%s hanggang %s.', implode(', ', $parts), date('g:i A, l j F', $then))];
+    }
+
     // ── Helpers ────────────────────────────────────────────────────────────────
 
     /** Live values the help text quotes, read from where the rest of the system keeps them. */
     private static function fact(string $name, string $lang): string
     {
+        if ($name === 'now') {
+            return date('l, j F Y, g:i A'); // the server's clock; a model can only guess the date
+        }
         $rules = PenaltyRule::allActive(); // as set by the admin on the Penalties page
         if ($name === 'late_fee') {
             $perDay = array_sum(array_column(array_filter($rules, fn ($r) => $r['condition_type'] === 'late_per_day'), 'amount'));

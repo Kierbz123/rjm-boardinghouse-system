@@ -60,8 +60,9 @@ function renderNavSvg(string $icon): string {
         top: 0 !important;
         bottom: 0 !important;
         left: 0 !important;
-        height: 100vh !important;
-        max-height: 100vh !important;
+        /* No height here: top + bottom already pin it to the visible screen. A 100vh height
+           includes the strip under a phone browser's toolbars, which pushed the profile and
+           logout row off-screen. */
         z-index: 50;
         display: flex !important;
         flex-direction: column !important;
@@ -322,7 +323,7 @@ function renderNavSvg(string $icon): string {
 
     /* Double-confirmation modal animations */
     @keyframes logoutModalFadeIn { 0% { opacity: 0; } 100% { opacity: 1; } }
-    @keyframes logoutCardPop { 0% { opacity: 0; transform: scale(0.9) translateY(12px); } 100% { opacity: 1; transform: scale(1) translateY(0); } }
+    @keyframes logoutCardPop { 0% { opacity: 0; transform: scale(0.96) translateY(8px); } 100% { opacity: 1; transform: scale(1) translateY(0); } }
     .animate-logout-backdrop { animation: logoutModalFadeIn 180ms ease-out forwards; }
     .animate-logout-card { animation: logoutCardPop 220ms cubic-bezier(0.16, 1, 0.3, 1) forwards; }
     #logout-modal-cancel:hover { background-color: #f1f0ee !important; color: #0a0a0a !important; }
@@ -843,8 +844,8 @@ function renderNavSvg(string $icon): string {
         modal.classList.add('animate-logout-backdrop');
         if (window.gsap && card) {
             gsap.fromTo(card,
-                { opacity: 0, scale: 0.9, y: 12 },
-                { opacity: 1, scale: 1, y: 0, duration: 0.25, ease: 'back.out(1.7)' }
+                { opacity: 0, scale: 0.96, y: 8 },
+                { opacity: 1, scale: 1, y: 0, duration: 0.3, ease: 'power3.out' }
             );
         } else if (card) {
             card.classList.add('animate-logout-card');

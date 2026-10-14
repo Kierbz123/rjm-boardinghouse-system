@@ -13,6 +13,8 @@ use App\Models\PenaltyRule;
 use App\Models\MaintenanceRequest;
 use App\Models\Incident;
 
+str_ends_with((string) getenv('DB_NAME'), '_test') || exit("Run through tests/run.php\n");
+
 echo "=========================================================\n";
 echo "  RJM BOARDINGHOUSE - BOARDER PROFILE TEST SUITE         \n";
 echo "=========================================================\n\n";
@@ -56,25 +58,12 @@ if (!$staff) {
 }
 $staffId = (int) $staff['id'];
 
-// Ensure Room & 2 Beds exist for bed reassignment testing
-$room = $pdo->query("SELECT * FROM rooms LIMIT 1")->fetch();
-if (!$room) {
-    $roomId = Room::create('999', '2', 2, 4000.00);
-    $room = Room::find($roomId);
-} else {
-    $roomId = (int) $room['id'];
-}
-
-$beds = $pdo->query("SELECT * FROM beds WHERE room_id = {$roomId}")->fetchAll();
-if (count($beds) < 2) {
-    $bed1Id = Bed::create($roomId, 'Bed X1');
-    $bed2Id = Bed::create($roomId, 'Bed X2');
-} else {
-    $bed1Id = (int) $beds[0]['id'];
-    $bed2Id = (int) $beds[1]['id'];
-}
-Bed::vacate($bed1Id);
-Bed::vacate($bed2Id);
+// Its own room and two beds. Borrowing beds that seeded residents hold would leave two
+// profiles pointing at one bed, which the database refuses (migration 0029).
+$roomId = Room::create('T' . substr((string) time(), -6), '2', 2, 4000.00);
+$room = Room::find($roomId);
+$bed1Id = Bed::create($roomId, 'Bed X1');
+$bed2Id = Bed::create($roomId, 'Bed X2');
 
 // Create Dedicated Test Boarder
 $testEmail = 'prof_tester_' . time() . '@rjm.test';

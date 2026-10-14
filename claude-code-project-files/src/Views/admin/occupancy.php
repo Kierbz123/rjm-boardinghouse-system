@@ -201,30 +201,6 @@ $reversedTrend = array_reverse($trend ?? []);
     </div>
 </div>
 
-<script>
-document.addEventListener('DOMContentLoaded', () => {
-    if (window.gsap && window.ScrollTrigger) {
-        let mm = gsap.matchMedia();
-        mm.add({
-            animate: "(prefers-reduced-motion: no-preference)",
-            reduce: "(prefers-reduced-motion: reduce)",
-        }, (context) => {
-            if (context.conditions.animate) {
-                gsap.from(".reveal-card", {
-                    y: 16,
-                    opacity: 0,
-                    duration: 0.45,
-                    stagger: 0.08,
-                    ease: "power2.out",
-                    scrollTrigger: { trigger: ".reveal-card", start: "top 90%", once: true },
-                });
-            } else {
-                gsap.set(".reveal-card", { opacity: 1, y: 0 });
-            }
-        });
-    }
-});
-</script>
 <?php
 $content = ob_get_clean();
 require __DIR__ . '/../shared/layout.php';

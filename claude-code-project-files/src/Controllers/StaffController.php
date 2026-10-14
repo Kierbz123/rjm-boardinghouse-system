@@ -50,6 +50,21 @@ class StaffController
             : "{$user['name']} is deactivated and has been signed out. Their records are kept.");
     }
 
+    /** A staff member forgot their password: the admin sets a temporary one and tells them in person. */
+    public static function resetPassword(string $id): void
+    {
+        self::requireCsrf();
+        $user = User::findById((int) $id);
+        if ($user === null || $user['role'] !== 'staff') {
+            self::back('flash_error', 'Staff account not found.');
+        }
+        $error = \App\Services\PasswordResetService::byAdmin($user, (string) ($_POST['new_password'] ?? ''), (int) $_SESSION['user_id']);
+        if ($error !== null) {
+            self::back('flash_error', $error);
+        }
+        self::back('flash_success', "New password set for {$user['name']}. They have been signed out; share it privately and ask them to change it under Profile.");
+    }
+
     private static function requireCsrf(): void
     {
         if (!Csrf::verify($_POST['csrf_token'] ?? null)) {

@@ -10,7 +10,8 @@ These suggestions add to the fixes already made in batches B0–B7 (see `FINAL-R
 
 ## The billing rules the system now follows (Done now)
 
-- **Rent is due on the 5th of each month.** A new resident's **first month is charged only for the days they stay**, and **nothing is due during their first 30 days**. Example, moving in on 20 Oct at ₱3,500: October is ₱1,354.84 (12 of 31 days) and is due 19 Nov; November is also due 19 Nov; from December rent is due on the 5th.
+- **Rent is due every 30 days, counted from the day the resident moved in** (owner rule, 5 Oct 2026; replaces "due on the 5th"). Each 30-day period is charged in full. Example, moving in on 20 Oct at ₱3,500: ₱3,500 is due 19 Nov, the next ₱3,500 on 19 Dec, then 18 Jan. Only a last period cut short by a move-out is charged by the day.
+- **Electricity is billed alongside the rent.** Each room has its own submeter; the admin enters the room's bill on Rooms & Beds and it is divided equally among the residents staying in the room. Each share is due on that resident's next rent due date. **Water is free.**
 - **Pay by GCash, Maya or bank transfer, then upload the receipt** in the resident portal. The method, an optional reference number and the receipt image are required on the form, apart from the reference number.
 - **An administrator checks every receipt.** After submitting, the resident sees a **pop-up: "Receipt submitted — Status: Pending review"**. The payment stays *Pending review* until an admin decides, and the resident is **notified either way**:
   - Approved: what it paid, month by month, any credit, and the new balance.
@@ -65,7 +66,7 @@ These suggestions add to the fixes already made in batches B0–B7 (see `FINAL-R
 
 ### Penalty Rules
 - **Front-end:** **Done now:** the approve dialog previews the late fee for the months a receipt pays and has a "Waive this late fee" box that requires a reason. **To do:** a preview of who the penalty check would charge, before running it.
-- **Back-end:** **Done now:** late fees follow each month's own due date, cover unpaid earlier months, and never stack. **To do:** move the due day (5) and the 30-day first-payment period into a settings screen; today they are constants in `BillingService`.
+- **Back-end:** **Done now:** late fees follow each rent period's own due date, cover unpaid earlier periods, and never stack. **To do:** move the 30-day rent period into a settings screen; today it is the constant `BillingService::CYCLE_DAYS`.
 - **Database:** **Done now:** waivers record who and why (`penalties.waived_by`, `waive_reason`). **To do:** a `settings` table.
 
 ### Expenses

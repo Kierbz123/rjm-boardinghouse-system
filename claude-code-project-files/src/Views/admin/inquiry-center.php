@@ -150,98 +150,79 @@ ob_start();
                 </div>
             </div>
 
-            <div class="card" style="max-height: 600px; overflow-y: auto;">
+            <div class="card inq-notif-panel">
                 <?php if (empty($notifications)): ?>
-                    <div style="padding: 2rem; text-align: center; color: #6b6b6b;">
+                    <div class="inq-notif-empty">
                         <div style="font-size: 2rem; margin-bottom: 0.5rem;">🔔</div>
-                        <p style="font-size: 0.875rem;">No notifications yet</p>
+                        <p>No notifications yet</p>
                     </div>
                 <?php else: ?>
-                    <div id="notification-list" style="display: flex; flex-direction: column; gap: 0.75rem; padding: 0.75rem;">
+                    <div id="notification-list">
                         <?php foreach ($notifications as $notif): ?>
-                            <?php 
-                            $isUnread = ($notif['is_read'] ?? 0) == 0;
-                            $isPinned = ($notif['is_pinned'] ?? 0) == 1;
-                            $createdDate = date('M d, Y • h:i a', strtotime($notif['created_at']));
+                            <?php
+                            $isUnread = empty($notif['is_read']);
+                            $isPinned = !empty($notif['is_pinned']);
                             $notifId = (int) $notif['id'];
+                            $typeConfig = \App\Support\NotificationType::config((string) ($notif['type'] ?? ''));
+                            $ts = strtotime($notif['created_at']);
+                            // The year only matters once it is no longer this year.
+                            $when = date('Y', $ts) === date('Y') ? date('M j · g:i a', $ts) : date('M j, Y', $ts);
                             ?>
-                            
-                            <div class="notification-item <?= $isUnread ? 'unread' : '' ?> <?= $isPinned ? 'pinned' : '' ?>" 
-                                 data-id="<?= $notifId ?>" 
-                                 data-read="<?= $isUnread ? '0' : '1' ?>" 
-                                 data-pinned="<?= $isPinned ? '1' : '0' ?>"
-                                 style="border: 1px solid #e6e5e2; border-radius: 0.75rem; padding: 0.875rem; background: <?= $isUnread ? '#f8f7f5' : '#ffffff' ?>; <?= $isPinned ? 'border-left: 3px solid #b15f2c;' : '' ?>">
-                                
-                                <div class="flex items-start justify-between gap-3">
-                                    <!-- Left: Icon & Content -->
-                                    <div class="flex items-start gap-3 flex-1 min-w-0">
-                                        <div class="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 text-base shadow-xs mt-0.5" style="background: #f8f7f5; color: #555452; border: 1px solid #47556925;">
-                                            📋
-                                        </div>
-                                        <div class="flex-1 min-w-0">
-                                            <div class="flex items-center gap-2 flex-wrap mb-1">
-                                                <?php 
-                                                $notifType = strtolower($notif['type'] ?? 'notification');
-                                                $typeLabel = str_contains($notifType, 'inquiry') ? 'Inquiry' : ucfirst($notifType);
-                                                $typeBadge = str_contains($notifType, 'inquiry') ? 'badge-primary' : 'badge-neutral';
-                                                $typeBg = str_contains($notifType, 'inquiry') ? '#fbf4ef' : '#f1f0ee';
-                                                $typeColor = str_contains($notifType, 'inquiry') ? '#b15f2c' : '#555452';
-                                                ?>
-                                                <span class="badge <?= $typeBadge ?> text-[10px] font-bold uppercase tracking-wider" style="background: <?= $typeBg ?>; color: <?= $typeColor ?>; padding: 0.15rem 0.5rem; border-radius: 0.375rem;">
-                                                    <?= htmlspecialchars($typeLabel) ?>
-                                                </span>
-                                                <span class="id-tag">#<?= $notifId ?></span>
-                                                
-                                                <?php if ($isUnread): ?>
-                                                    <span class="inline-flex items-center gap-1 text-[10px] font-bold text-primary-700 bg-primary-100 px-2 py-0.5 rounded-full">
-                                                        <span class="w-1.5 h-1.5 rounded-full bg-primary-600"></span>
-                                                        Unread
-                                                    </span>
-                                                <?php endif; ?>
-                                                
-                                                <span class="text-caption text-neutral-400 font-normal">
-                                                    <?= htmlspecialchars($createdDate) ?>
-                                                </span>
-                                            </div>
-                                            <div class="text-sm text-neutral-800 font-medium leading-relaxed mt-1 break-words">
-                                                <?= htmlspecialchars($notif['message'] ?? '') ?>
-                                            </div>
-                                            
-                                            <?php if (!empty($notif['action_url'])): ?>
-                                                <div class="mt-2.5">
-                                                    <a href="<?= htmlspecialchars($notif['action_url']) ?>" class="inline-flex items-center gap-1.5 px-3 py-1 rounded-md text-xs font-semibold bg-neutral-900 text-white hover:bg-neutral-800 transition-colors shadow-xs">
-                                                        <span>View Details</span>
-                                                        <span aria-hidden="true">→</span>
-                                                    </a>
-                                                </div>
-                                            <?php endif; ?>
-                                        </div>
-                                    </div>
+                            <div class="notification-item inq-notif <?= $isUnread ? 'unread' : '' ?> <?= $isPinned ? 'pinned' : '' ?>"
+                                 data-id="<?= $notifId ?>"
+                                 data-read="<?= $isUnread ? '0' : '1' ?>"
+                                 data-pinned="<?= $isPinned ? '1' : '0' ?>">
+                                <div class="inq-notif-head">
+                                    <span class="inq-notif-type" style="background: <?= $typeConfig['bg'] ?>; color: <?= $typeConfig['color'] ?>;">
+                                        <span aria-hidden="true"><?= $typeConfig['icon'] ?></span>
+                                        <?= htmlspecialchars($typeConfig['label']) ?>
+                                    </span>
+                                    <?php if ($isPinned): ?>
+                                        <span class="inq-notif-flag">Pinned</span>
+                                    <?php endif; ?>
+                                    <time class="inq-notif-time" datetime="<?= date('c', $ts) ?>" title="<?= date('M j, Y • g:i a', $ts) ?>">
+                                        <?php if ($isUnread): ?>
+                                            <span class="inq-notif-dot" role="img" aria-label="Unread"></span>
+                                        <?php endif; ?>
+                                        <?= $when ?>
+                                    </time>
+                                </div>
 
-                                    <!-- Right: Action Buttons -->
-                                    <div class="action-cluster flex-shrink-0 flex items-center gap-1.5">
-                                        <!-- Pin / Unpin Form -->
-                                        <form method="post" action="/notifications/<?= $notifId ?>/toggle-pin" class="inline">
-                                            <input type="hidden" name="csrf_token" value="<?= htmlspecialchars(\App\Support\Csrf::token()) ?>">
-                                            <button type="submit" class="btn btn-secondary !py-1 !px-2.5 !text-xs cursor-pointer shadow-xs" title="<?= $isPinned ? 'Unpin from top' : 'Pin to top as important' ?>">
-                                                <?= $isPinned ? '📍 Unpin' : '📍 Pin' ?>
+                                <p class="inq-notif-msg"><?= htmlspecialchars($notif['message'] ?? '') ?></p>
+
+                                <div class="inq-notif-foot">
+                                    <?php if (!empty($notif['action_url'])): ?>
+                                        <a href="<?= htmlspecialchars($notif['action_url']) ?>" class="inq-notif-link">
+                                            <?= htmlspecialchars($typeConfig['actionText']) ?> <span aria-hidden="true">→</span>
+                                        </a>
+                                    <?php endif; ?>
+
+                                    <div class="inq-notif-actions">
+                                        <form method="post" action="/notifications/<?= $notifId ?>/toggle-pin">
+                                            <?= \App\Support\Csrf::field() ?>
+                                            <?php $pinLabel = $isPinned ? 'Unpin' : 'Pin to top'; ?>
+                                            <button type="submit" class="inq-notif-btn <?= $isPinned ? 'is-on' : '' ?>" title="<?= $pinLabel ?>" aria-label="<?= $pinLabel ?>">
+                                                <svg viewBox="0 0 24 24" fill="<?= $isPinned ? 'currentColor' : 'none' ?>" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 17v5"/><path d="M9 10.76a2 2 0 0 1-1.11 1.79l-1.78.9A2 2 0 0 0 5 15.24V16a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-.76a2 2 0 0 0-1.11-1.79l-1.78-.9A2 2 0 0 1 15 10.76V7a1 1 0 0 1 1-1 2 2 0 0 0 0-4H8a2 2 0 0 0 0 4 1 1 0 0 1 1 1z"/></svg>
                                             </button>
                                         </form>
 
-                                        <!-- Mark Read / Unread Form -->
-                                        <form method="post" action="/notifications/<?= $notifId ?>/toggle-read" class="inline">
-                                            <input type="hidden" name="csrf_token" value="<?= htmlspecialchars(\App\Support\Csrf::token()) ?>">
+                                        <form method="post" action="/notifications/<?= $notifId ?>/toggle-read">
+                                            <?= \App\Support\Csrf::field() ?>
                                             <input type="hidden" name="is_read" value="<?= $isUnread ? '0' : '1' ?>">
-                                            <button type="submit" class="btn btn-secondary !py-1 !px-2.5 !text-xs cursor-pointer shadow-xs" title="<?= $isUnread ? 'Mark as read' : 'Mark as unread' ?>">
-                                                <?= $isUnread ? '✓ Read' : '○ Unread' ?>
+                                            <?php $readLabel = $isUnread ? 'Mark as read' : 'Mark as unread'; ?>
+                                            <button type="submit" class="inq-notif-btn" title="<?= $readLabel ?>" aria-label="<?= $readLabel ?>">
+                                                <?php if ($isUnread): ?>
+                                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>
+                                                <?php else: ?>
+                                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
+                                                <?php endif; ?>
                                             </button>
                                         </form>
 
-                                        <!-- Delete Form -->
-                                        <form method="post" action="/notifications/<?= $notifId ?>/delete" class="inline" onsubmit="return confirm('Dismiss and remove this notification?');">
-                                            <input type="hidden" name="csrf_token" value="<?= htmlspecialchars(\App\Support\Csrf::token()) ?>">
-                                            <button type="submit" class="btn-danger !py-1 !px-2 !text-xs cursor-pointer" title="Delete notification">
-                                                ✕
+                                        <form method="post" action="/notifications/<?= $notifId ?>/delete" onsubmit="return confirm('Dismiss and remove this notification?');">
+                                            <?= \App\Support\Csrf::field() ?>
+                                            <button type="submit" class="inq-notif-btn is-danger" title="Delete notification" aria-label="Delete notification">
+                                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
                                             </button>
                                         </form>
                                     </div>
@@ -249,11 +230,41 @@ ob_start();
                             </div>
                         <?php endforeach; ?>
                     </div>
+                    <div id="notification-filter-empty" class="inq-notif-empty" style="display: none;">
+                        <p>Nothing matches this filter.</p>
+                    </div>
                 <?php endif; ?>
             </div>
         </div>
     </div>
 </div>
+
+<style>
+/* Notification panel: one-third-width column, so each item stacks instead of sitting buttons beside the text. */
+.inq-notif-panel { max-height: 600px; overflow-y: auto; scrollbar-width: thin; }
+.inq-notif { padding: 0.875rem 1rem; border-bottom: 1px solid #e6e5e2; }
+.inq-notif:last-child { border-bottom: 0; }
+.inq-notif.unread { background: #fdf9f5; box-shadow: inset 3px 0 0 #b15f2c; }
+.inq-notif-head { display: flex; align-items: center; flex-wrap: wrap; gap: 0.375rem 0.5rem; }
+.inq-notif-type { display: inline-flex; align-items: center; gap: 0.3rem; font-size: 0.6875rem; font-weight: 600; line-height: 1.4; padding: 0.15rem 0.55rem; border-radius: 9999px; white-space: nowrap; }
+.inq-notif-flag { font-size: 0.6875rem; font-weight: 600; color: #b15f2c; }
+.inq-notif-time { display: inline-flex; align-items: center; gap: 0.375rem; margin-left: auto; font-size: 0.75rem; color: #6b6b6b; white-space: nowrap; font-variant-numeric: tabular-nums; }
+.inq-notif-dot { width: 0.4rem; height: 0.4rem; border-radius: 50%; background: #b15f2c; }
+.inq-notif-msg { margin-top: 0.5rem; font-size: 0.875rem; line-height: 1.5; color: #555452; overflow-wrap: anywhere; }
+.inq-notif.unread .inq-notif-msg { color: #0a0a0a; font-weight: 500; }
+.inq-notif-foot { display: flex; align-items: center; gap: 0.5rem; margin-top: 0.5rem; min-height: 1.875rem; }
+.inq-notif-link { font-size: 0.8125rem; font-weight: 600; color: #0a0a0a; text-decoration: underline; text-decoration-color: #d4d2ce; text-underline-offset: 3px; }
+.inq-notif-link:hover { text-decoration-color: currentColor; }
+.inq-notif-actions { display: flex; gap: 0.125rem; margin-left: auto; }
+.inq-notif-actions form { display: inline-flex; }
+.inq-notif-btn { width: 1.875rem; height: 1.875rem; display: inline-flex; align-items: center; justify-content: center; border: 0; border-radius: 0.5rem; background: transparent; color: #6b6b6b; cursor: pointer; transition: background-color 140ms, color 140ms; }
+.inq-notif-btn svg { width: 0.9375rem; height: 0.9375rem; }
+.inq-notif-btn:hover { background: #f1f0ee; color: #0a0a0a; }
+.inq-notif-btn:focus-visible, .inq-notif-link:focus-visible { outline: 2px solid #b15f2c; outline-offset: 2px; }
+.inq-notif-btn.is-on { color: #b15f2c; }
+.inq-notif-btn.is-danger:hover { background: #fdf1f0; color: #b42318; }
+.inq-notif-empty { padding: 2rem; text-align: center; font-size: 0.875rem; color: #6b6b6b; }
+</style>
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
@@ -345,6 +356,8 @@ document.addEventListener('DOMContentLoaded', function() {
             
             item.style.display = show ? 'block' : 'none';
         });
+        const empty = document.getElementById('notification-filter-empty');
+        if (empty) empty.style.display = [...items].some(i => i.style.display !== 'none') ? 'none' : 'block';
     }
 
     if (filterAll) filterAll.addEventListener('click', () => { setActiveFilter(filterAll); filterNotifications('all'); });

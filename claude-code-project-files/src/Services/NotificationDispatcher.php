@@ -121,7 +121,7 @@ class NotificationDispatcher
         // Sent ONLY to admins — Staff has no access to payments
         Notification::broadcastToAdmins(
             'payment',
-            "New payment proof submitted by Boarder #{$boarderId} for {$billingPeriod} (₱" . number_format($claimed, 2) . ")",
+            "New payment proof submitted by Boarder #{$boarderId} for " . BillingService::periodLabel($billingPeriod) . ' (₱' . number_format($claimed, 2) . ')',
             "Payment ID #{$paymentId} awaiting review",
             '/admin/payments'
         );
@@ -152,6 +152,18 @@ class NotificationDispatcher
         );
     }
 
+    /** Sent ONLY to the boarder: their equal share of the room's electricity bill. */
+    public static function electricityBilled(int $boarderId, string $label, float $share, string $dueDate): void
+    {
+        Notification::create(
+            $boarderId,
+            'rent_due',
+            "Electricity ({$label}): your share of your room's bill is ₱" . number_format($share, 2)
+                . ', due with your rent on ' . (new \DateTimeImmutable($dueDate))->format('M j, Y') . '.',
+            '/portal/payments/new'
+        );
+    }
+
     public static function penaltyApplied(int $boarderId, float $amount, string $billingPeriod): void
     {
         // Sent ONLY to the boarder
@@ -176,6 +188,16 @@ class NotificationDispatcher
     }
 
     /** Bed & Room Assignments */
+    public static function passwordResetByAdmin(int $userId): void
+    {
+        Notification::create(
+            $userId,
+            'general',
+            'An administrator set a new password for your account. Change it to one only you know under Profile.',
+            '/profile'
+        );
+    }
+
     public static function bedAssigned(int $boarderId, string $roomNumber, string $bedLabel): void
     {
         Notification::create(
@@ -213,9 +235,11 @@ class NotificationDispatcher
         $applied = 0.0;
         foreach ($allocations as $al) {
             $applied += (float) $al['amount'];
-            $parts[] = ($al['allocation_type'] === 'rent'
-                ? BillingService::periodLabel($al['reference_id']) . ' rent'
-                : 'late fee') . ' ₱' . number_format((float) $al['amount'], 2);
+            $parts[] = match ($al['allocation_type']) {
+                'rent' => BillingService::periodLabel($al['reference_id']) . ' rent',
+                'electricity' => 'electricity (' . ($al['electricity_label'] ?? 'room bill') . ')',
+                default => 'late fee',
+            } . ' ₱' . number_format((float) $al['amount'], 2);
         }
         // Most important first: the 255-character notification may cut the end of a long list.
         $message = 'Your ' . self::describePayment(['claimed_amount' => $paid] + $payment) . ' payment was approved. Balance now: ₱'

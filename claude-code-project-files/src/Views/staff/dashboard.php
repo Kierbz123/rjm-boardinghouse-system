@@ -279,7 +279,6 @@ if (window.gsap) {
     }, (context) => {
         if (context.conditions.animate) {
             gsap.to(".sos-dot", { opacity: 0.2, scale: 0.7, duration: 0.6, repeat: -1, yoyo: true, ease: "sine.inOut" });
-            gsap.from(".reveal-card", { opacity: 0, y: 12, duration: 0.35, stagger: 0.05, ease: "power2.out" });
         }
     });
 }

@@ -2,7 +2,13 @@ Onest (variable, weights 100-900) — downloaded once from Google Fonts (fonts.g
 and served locally so the app makes no outbound requests.
 
 onest-latin.woff2      Basic Latin, Latin-1
-onest-latin-ext.woff2  Latin Extended (includes the peso sign U+20B1)
+onest-latin-ext.woff2  Latin Extended (Onest has no peso sign, see below)
 
 License: SIL Open Font License, Version 1.1 — free to use, bundle and redistribute with software.
 Full text and copyright notice: https://fonts.google.com/specimen/Onest/license
+
+peso-sign.woff         the peso sign (U+20B1) only, regular
+peso-sign-bold.woff    the peso sign (U+20B1) only, bold
+Both are cut from DejaVu Sans / DejaVu Sans Bold, because Onest has no peso sign and some
+phones have no font that does. Licence and copyright notice: LICENSE-DEJAVU.txt (free to
+use, modify and redistribute).

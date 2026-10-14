@@ -69,7 +69,11 @@ class AssistantController
         // The rules found nothing: let the local model choose from this role's own list of answers.
         // Its choice is only a name from that list, and run() checks the role again before running it.
         $catalogue = AssistantService::catalogue($role);
-        $pick = OllamaClient::pick($message, $catalogue);
+        // The question and answer just before this one, so the model can tell a follow-up ("and in minutes?")
+        // from a new question. It is the person's own chat text and is only ever quoted to the model.
+        $previous = array_values(array_filter((array) ($input['previous'] ?? []), 'is_string'));
+        $previous = count($previous) === 2 ? array_map(fn ($text) => mb_substr($text, 0, 600), $previous) : null;
+        $pick = OllamaClient::pick($message, $catalogue, $previous);
         if ($pick !== null && ($card = AssistantService::run($pick, $message, $role, $lang, $userId))) {
             // The model guesses right about three times in four on this machine, so say it is a guess.
             $card['reply'] = ($lang === 'tl' ? 'Sa tingin ko ito ang ibig mong sabihin. ' : 'I think this is what you mean. ') . $card['reply'];
@@ -77,7 +81,7 @@ class AssistantController
             return;
         }
 
-        $result = OllamaClient::chat($message, self::buildBoarderContext(), $lang);
+        $result = OllamaClient::chat($message, self::buildBoarderContext(), $lang, $previous);
         if ($result['ok']) {
             echo json_encode(['ok' => true, 'reply' => $result['reply'], 'actions' => [], 'source' => 'ai']);
             return;
@@ -343,6 +347,7 @@ class AssistantController
             $balance = \App\Services\BillingService::calculateBalance($userId, $pdo);
             $context['outstanding_balance'] = '₱' . number_format((float) $balance['total_outstanding'], 2);
             $context['rent_due'] = '₱' . number_format((float) $balance['rent_due'], 2);
+            $context['electricity_due'] = '₱' . number_format((float) $balance['electricity_due'], 2);
             $context['penalties_due'] = '₱' . number_format((float) $balance['penalties_due'], 2);
             $context['unpaid_penalties_count'] = count($balance['unpaid_penalties']);
             if (!empty($balance['unpaid_penalties'])) {

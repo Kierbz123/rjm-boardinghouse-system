@@ -41,6 +41,8 @@ $rentDue = (float) ($balanceDetails['rent_due'] ?? $rentPrice);
 $penDue = (float) ($balanceDetails['penalties_due'] ?? 0.00);
 $defaultExpected = $totalDue > 0 ? $totalDue : $rentPrice;
 $credit = (float) ($balanceDetails['credit'] ?? 0);
+$elecDue = (float) ($balanceDetails['electricity_due'] ?? 0.00);
+$unpaidElectricity = $balanceDetails['unpaid_electricity'] ?? [];
 $unpaidMonths = $balanceDetails['unpaid_rent'] ?? [];
 $dueDates = $balanceDetails['rent_due_dates'] ?? [];
 $today = date('Y-m-d');
@@ -85,8 +87,14 @@ $methods = \App\Models\Payment::METHODS;
             </span>
             <span class="text-neutral-300">|</span>
             <span class="text-neutral-600">
-                Monthly Rent Due: <strong class="text-neutral-900 font-mono">₱<?= number_format($rentDue, 2) ?></strong>
+                Rent Due: <strong class="text-neutral-900 font-mono">₱<?= number_format($rentDue, 2) ?></strong>
             </span>
+            <?php if ($elecDue > 0): ?>
+                <span class="text-neutral-300">|</span>
+                <span class="text-neutral-600">
+                    Electricity Share: <strong class="text-neutral-900 font-mono">₱<?= number_format($elecDue, 2) ?></strong>
+                </span>
+            <?php endif; ?>
             <?php if ($penDue > 0): ?>
                 <span class="text-neutral-300">|</span>
                 <span class="text-amber-700">
@@ -106,15 +114,25 @@ $methods = \App\Models\Payment::METHODS;
     </div>
 
     <!-- What is owed, oldest first: the order an approved payment is applied in -->
-    <?php if ($unpaidMonths): ?>
+    <?php
+    // Rent first, then electricity: the same order an approved payment clears them in.
+    $owedLines = [];
+    foreach ($unpaidMonths as $period => $amount) {
+        $owedLines[] = ['Rent, ' . \App\Services\BillingService::periodLabel($period), (float) $amount, $dueDates[$period] ?? null];
+    }
+    foreach ($unpaidElectricity as $e) {
+        $owedLines[] = ['Electricity share, ' . $e['label'], (float) $e['amount'], $e['due_date']];
+    }
+    ?>
+    <?php if ($owedLines): ?>
         <div class="card" style="padding: 1.25rem 1.5rem; border-radius: 0.875rem;" data-testid="unpaid-months">
-            <h2 class="text-heading-sm font-bold text-neutral-900" style="margin-bottom: 0.75rem;">Unpaid rent, oldest first</h2>
+            <h2 class="text-heading-sm font-bold text-neutral-900" style="margin-bottom: 0.75rem;">Unpaid rent and electricity, oldest first</h2>
             <ul style="display: flex; flex-direction: column; gap: 0.5rem; font-size: 0.875rem;">
-                <?php foreach ($unpaidMonths as $period => $amount): ?>
-                    <?php $due = $dueDates[$period] ?? null; $overdue = $due !== null && $due < $today; ?>
+                <?php foreach ($owedLines as [$what, $amount, $due]): ?>
+                    <?php $overdue = $due !== null && $due < $today; ?>
                     <li class="grid items-center gap-2" style="grid-template-columns: minmax(8rem, 1fr) 7rem auto;">
-                        <span class="font-semibold text-neutral-800"><?= htmlspecialchars(\App\Services\BillingService::periodLabel($period)) ?></span>
-                        <span class="font-mono text-right">₱<?= number_format((float) $amount, 2) ?></span>
+                        <span class="font-semibold text-neutral-800"><?= htmlspecialchars($what) ?></span>
+                        <span class="font-mono text-right">₱<?= number_format($amount, 2) ?></span>
                         <span class="justify-self-end badge <?= $overdue ? 'badge-error' : 'badge-neutral' ?>">
                             <?= $due ? ($overdue ? 'Overdue since ' : 'Due ') . date('M j, Y', strtotime($due)) : 'Due date not set' ?>
                         </span>
@@ -191,7 +209,7 @@ $methods = \App\Models\Payment::METHODS;
                         <p class="input w-full font-mono font-bold text-neutral-900" style="padding: 0.5rem 0.75rem; border-radius: 0.5rem; background: #f8f7f5;">
                             <?= number_format($totalDue, 2) ?>
                         </p>
-                        <p class="text-caption text-neutral-400" style="margin-top: 0.375rem;">Unpaid rent and penalties, calculated by the system.</p>
+                        <p class="text-caption text-neutral-400" style="margin-top: 0.375rem;">Unpaid rent, electricity and penalties, calculated by the system.</p>
                     </div>
 
                     <div>
@@ -277,11 +295,11 @@ $methods = \App\Models\Payment::METHODS;
                     How approval works
                 </h3>
                 <ul style="font-size: 0.8125rem; color: #245a3f; line-height: 1.6; display: flex; flex-direction: column; gap: 0.4rem; list-style: disc; padding-left: 1rem;">
-                    <li>Rent is due on the 5th of each month. Your first month is charged only for the days you stay, and your first payment is due 30 days after you move in.</li>
+                    <li>Rent is due every 30 days, counted from the day you moved in. Your share of your room's electricity bill (the bill divided by the number of people in the room) is due together with it.</li>
                     <li>Pay by GCash, Maya or bank transfer, then upload the receipt here.</li>
                     <li>Your receipt shows as <strong>Pending review</strong> until an administrator checks it. You get a notification when it is approved or rejected.</li>
-                    <li>Approved payments clear your oldest unpaid month first; anything extra becomes credit.</li>
-                    <li>A late fee counts only until the day you submit the receipt, not until it is approved. If the receipt is rejected, the month counts as late again. The administrator can waive a late fee for a good reason.</li>
+                    <li>Approved payments clear your oldest unpaid rent first, then electricity; anything extra becomes credit.</li>
+                    <li>A late fee counts only until the day you submit the receipt, not until it is approved. If the receipt is rejected, that rent counts as late again. The administrator can waive a late fee for a good reason.</li>
                 </ul>
             </div>
         </div>
@@ -321,8 +339,8 @@ $methods = \App\Models\Payment::METHODS;
                                 };
                                 ?>
                                 <tr class="hover:bg-neutral-50 transition-colors">
-                                    <td style="padding: 0.75rem 1rem; font-family: ui-monospace, monospace; font-weight: 600; color: #0a0a0a;">
-                                        <span class="id-tag"><?= htmlspecialchars($p['billing_period']) ?></span>
+                                    <td style="padding: 0.75rem 1rem; font-family: RJMPeso, ui-monospace, monospace; font-weight: 600; color: #0a0a0a;">
+                                        <span class="id-tag"><?= htmlspecialchars(\App\Services\BillingService::periodLabel($p['billing_period'])) ?></span>
                                     </td>
                                     <td style="padding: 0.75rem 1rem; color: #555452;">
                                         <?= htmlspecialchars(\App\Models\Payment::methodLabel($p['payment_method'] ?? null)) ?>
@@ -330,10 +348,10 @@ $methods = \App\Models\Payment::METHODS;
                                             <span class="block text-caption font-mono text-neutral-400"><?= htmlspecialchars($p['reference_number']) ?></span>
                                         <?php endif; ?>
                                     </td>
-                                    <td style="padding: 0.75rem 1rem; color: #555452; font-family: ui-monospace, monospace;">
+                                    <td style="padding: 0.75rem 1rem; color: #555452; font-family: RJMPeso, ui-monospace, monospace;">
                                         ₱<?= number_format((float) ($p['expected_amount'] ?? 0), 2) ?>
                                     </td>
-                                    <td style="padding: 0.75rem 1rem; font-weight: 700; color: #0a0a0a; font-family: ui-monospace, monospace;">
+                                    <td style="padding: 0.75rem 1rem; font-weight: 700; color: #0a0a0a; font-family: RJMPeso, ui-monospace, monospace;">
                                         ₱<?= number_format((float) ($p['claimed_amount'] ?? 0), 2) ?>
                                     </td>
                                     <td style="padding: 0.75rem 1rem;">
@@ -355,7 +373,7 @@ $methods = \App\Models\Payment::METHODS;
                                             <span class="text-caption text-neutral-400">None attached</span>
                                         <?php endif; ?>
                                     </td>
-                                    <td style="padding: 0.75rem 1rem; text-align: right; font-size: 0.75rem; font-family: ui-monospace, monospace; color: #9d9b97;">
+                                    <td style="padding: 0.75rem 1rem; text-align: right; font-size: 0.75rem; font-family: RJMPeso, ui-monospace, monospace; color: #9d9b97;">
                                         <?= date('M j, Y', strtotime($p['created_at'])) ?>
                                     </td>
                                 </tr>
@@ -429,14 +447,6 @@ $methods = \App\Models\Payment::METHODS;
 })();
 </script>
 
-<script>
-if (window.gsap) {
-    gsap.fromTo(".form-card",
-        { opacity: 0, y: 12 },
-        { opacity: 1, y: 0, duration: 0.35, ease: "power2.out" }
-    );
-}
-</script>
 <?php
 $content = ob_get_clean();
 require __DIR__ . '/../shared/layout.php';

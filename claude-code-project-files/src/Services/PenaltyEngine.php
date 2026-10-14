@@ -11,25 +11,23 @@ use App\Models\Penalty;
  * check" button — no cron on localhost, per ARCHITECTURE.md §4.5. $today is
  * injectable so this is testable without touching the system clock.
  *
- * A month's rent is late from the day after its due date (the 5th, or 30 days
- * after move-in for a new resident — BillingService::dueDate()). Every month that
- * is still unpaid is checked, not only the current one, except months that fell
- * due before these rules went live (BillingService::rulesStartDate()).
+ * A rent cycle is late from the day after its due date (30 days after the cycle
+ * starts, counted from move-in — BillingService::dueDate()). Every cycle that is
+ * still unpaid is checked, not only the latest one, except rent that fell due
+ * before these rules went live (BillingService::rulesStartDate()). Electricity
+ * shares carry no late fee.
  *
- * Late days stop counting on the day a receipt is submitted, for the months that
+ * Late days stop counting on the day a receipt is submitted, for the cycles that
  * receipt would fully pay (oldest first) — the resident is never charged for the
- * time it takes an admin to review it. If that receipt is rejected, the months
+ * time it takes an admin to review it. If that receipt is rejected, the cycles
  * count as late again from their due date. The admin may also waive a fee, with a
  * reason, when approving (PaymentReviewService).
  *
  * Safe to run any number of times: each boarder gets at most one late fee per
- * rule per month, whose amount tracks the days late until that month is paid.
+ * rule per cycle, whose amount tracks the days late until that cycle is paid.
  */
 class PenaltyEngine
 {
-    /** Kept for older callers; the rule itself lives in BillingService. */
-    public const DUE_DAY = BillingService::DUE_DAY;
-
     public static function runCheck(?\DateTimeImmutable $today = null): array
     {
         $today = $today ?? new \DateTimeImmutable('today');

@@ -200,18 +200,11 @@ if (window.gsap) {
     }, (context) => {
         if (context.conditions.animate) {
             gsap.from(".priority-badge", {
-                scale: 0.6,
+                scale: 0.85,
                 opacity: 0,
                 duration: 0.35,
                 stagger: 0.05,
-                ease: "back.out(2)"
-            });
-            gsap.from(".reveal-card", {
-                opacity: 0,
-                y: 12,
-                duration: 0.35,
-                stagger: 0.05,
-                ease: "power2.out"
+                ease: "power3.out"
             });
         } else {
             gsap.set(".priority-badge", { opacity: 1, scale: 1 });

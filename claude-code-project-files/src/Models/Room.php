@@ -68,6 +68,11 @@ class Room
         if ((int) $bedCount->fetchColumn() > 0) {
             throw new \RuntimeException('Cannot delete a room that still has beds — remove its beds first.');
         }
+        $billCount = $pdo->prepare('SELECT COUNT(*) FROM electricity_bills WHERE room_id = ?');
+        $billCount->execute([$id]);
+        if ((int) $billCount->fetchColumn() > 0) {
+            throw new \RuntimeException('Cannot delete a room that has electricity bills on record.');
+        }
         $stmt = $pdo->prepare('DELETE FROM rooms WHERE id = ?');
         $stmt->execute([$id]);
     }

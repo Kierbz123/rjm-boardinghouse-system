@@ -13,6 +13,9 @@ use App\Database;
 
 class PenaltyController
 {
+    /** Amounts are stored as DECIMAL(10,2); anything above this is a typing mistake. */
+    private const MAX_AMOUNT = 1000000;
+
     public static function index(): void
     {
         $rules = PenaltyRule::all();
@@ -41,11 +44,11 @@ class PenaltyController
             echo 'Invalid session, please retry.';
             return;
         }
-        $amount = (float) $_POST['amount'];
-        $name = trim((string) $_POST['name']);
-        $conditionType = trim((string) $_POST['condition_type']);
-        if ($name === '' || $conditionType === '' || $amount <= 0) {
-            $_SESSION['flash_error'] = 'Name and type are required, and amount must be greater than zero.';
+        $amount = round((float) ($_POST['amount'] ?? 0), 2);
+        $name = trim((string) ($_POST['name'] ?? ''));
+        $conditionType = trim((string) ($_POST['condition_type'] ?? ''));
+        if ($name === '' || $conditionType === '' || $amount <= 0 || $amount > self::MAX_AMOUNT) {
+            $_SESSION['flash_error'] = 'Name and type are required, and the amount must be more than ₱0 and at most ₱1,000,000.';
             header('Location: /admin/penalty-rules');
             exit;
         }
@@ -100,8 +103,8 @@ class PenaltyController
             exit;
         }
 
-        if ($boarderId <= 0 || $ruleId <= 0 || $amount <= 0) {
-            $_SESSION['flash_error'] = 'Please select a valid boarder, rule, and specify an amount greater than zero.';
+        if ($boarderId <= 0 || $ruleId <= 0 || $amount <= 0 || $amount > self::MAX_AMOUNT) {
+            $_SESSION['flash_error'] = 'Please select a valid boarder and rule, and an amount more than ₱0 and at most ₱1,000,000.';
             header("Location: {$redirectUrl}");
             exit;
         }
@@ -129,6 +132,11 @@ class PenaltyController
         }
 
         // Staff may issue a rule's penalty but not set its amount; only admins can.
+        if (!(int) $rule['active']) {
+            $_SESSION['flash_error'] = 'That penalty rule is deactivated. Reactivate it first or choose another.';
+            header("Location: {$redirectUrl}");
+            exit;
+        }
         if ($currentRole !== 'admin') {
             $amount = (float) $rule['amount'];
         }
@@ -198,9 +206,14 @@ class PenaltyController
             echo 'Invalid session, please retry.';
             return;
         }
-        $amount = (float) $_POST['amount'];
-        if ($amount <= 0) {
-            $_SESSION['flash_error'] = 'Amount must be greater than zero.';
+        $amount = round((float) ($_POST['amount'] ?? 0), 2);
+        if ($amount <= 0 || $amount > self::MAX_AMOUNT) {
+            $_SESSION['flash_error'] = 'The amount must be more than ₱0 and at most ₱1,000,000.';
+            header('Location: /admin/penalty-rules');
+            exit;
+        }
+        if (PenaltyRule::find((int) $id) === null) {
+            $_SESSION['flash_error'] = 'Penalty rule not found.';
             header('Location: /admin/penalty-rules');
             exit;
         }
@@ -218,6 +231,11 @@ class PenaltyController
             return;
         }
         $active = ($_POST['active'] ?? '') === '1';
+        if (PenaltyRule::find((int) $id) === null) {
+            $_SESSION['flash_error'] = 'Penalty rule not found.';
+            header('Location: /admin/penalty-rules');
+            exit;
+        }
         PenaltyRule::setActive((int) $id, $active);
         header('Location: /admin/penalty-rules');
         exit;
@@ -234,7 +252,7 @@ class PenaltyController
         $new = count(array_filter($applied, fn ($a) => $a['new']));
         $_SESSION['flash_info'] = $applied
             ? "{$new} new late fee(s); " . (count($applied) - $new) . ' existing fee(s) updated to today\'s days late.'
-            : 'No late fees due: no unpaid month is past its due date (the 5th, or 30 days after move-in for new residents).';
+            : 'No late fees due: no unpaid rent is past its due date (every 30 days, counted from each resident\'s move-in date).';
         header('Location: /admin/penalty-rules');
         exit;
     }
@@ -252,7 +270,7 @@ class PenaltyController
         foreach ($active as $b) {
             $boarderId = (int) $b['user_id'];
             $balance = BillingService::calculateBalance($boarderId, $pdo);
-            // Remind about the oldest unpaid month, with its own due date (new residents get 30 days).
+            // Remind about the oldest unpaid rent cycle, with its own due date.
             $period = array_key_first($balance['unpaid_rent']);
             if ($period !== null) {
                 NotificationDispatcher::rentDue($boarderId, $period, $balance['unpaid_rent'][$period], $balance['rent_due_dates'][$period]);

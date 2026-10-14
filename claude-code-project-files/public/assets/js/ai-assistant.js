@@ -742,6 +742,11 @@
             const text = input.value.trim();
             if (!text) return;
 
+            // The exchange just before this one, so a follow-up ("and in minutes?") is understood as one.
+            const lastAsked = [...msgBox.querySelectorAll('.ai-bubble-user')].pop();
+            const lastTold = [...msgBox.querySelectorAll('.ai-bubble-assistant')].pop();
+            const previous = lastAsked && lastTold ? [lastAsked.textContent, lastTold.textContent] : null;
+
             input.value = '';
             showMatches();
             appendChatMessage('user', text);
@@ -753,7 +758,7 @@
             }, 3500);
 
             try {
-                const res = await apiRequest('/api/assistant/ask', { message: text, lang: lang });
+                const res = await apiRequest('/api/assistant/ask', { message: text, lang: lang, previous: previous });
                 bubble.innerHTML = res.ok ? answerHtml(res.data) : escapeHtml(res.data.error || t('failed'));
             } catch (err) {
                 bubble.textContent = t('failed');

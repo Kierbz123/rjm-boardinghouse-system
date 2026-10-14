@@ -4,6 +4,8 @@ namespace App\Controllers;
 
 use App\Models\Room;
 use App\Models\Bed;
+use App\Models\ElectricityBill;
+use App\Services\NotificationDispatcher;
 use App\Support\Csrf;
 use RuntimeException;
 
@@ -13,7 +15,73 @@ class RoomController
     {
         $rooms = Room::all();
         $beds = Bed::all();
+        $electricityBills = ElectricityBill::recent();
+        $residentsPerRoom = ElectricityBill::residentsPerRoom();
         require __DIR__ . '/../Views/admin/rooms.php';
+    }
+
+    /**
+     * The admin enters a room's electricity bill; it is split equally among the residents
+     * staying in that room, each share due with that resident's next rent (ElectricityBill).
+     */
+    public static function createElectricityBill(): void
+    {
+        if (!Csrf::verify($_POST['csrf_token'] ?? null)) {
+            http_response_code(400);
+            echo 'Invalid session, please retry.';
+            return;
+        }
+        $room = Room::find((int) ($_POST['room_id'] ?? 0));
+        $label = trim((string) ($_POST['label'] ?? ''));
+        $raw = $_POST['amount'] ?? null;
+        if (!$room) {
+            self::backWithError('Please select a room.');
+        }
+        if ($label === '' || mb_strlen($label) > 60) {
+            self::backWithError('Say what the bill covers, for example "September 2026" (up to 60 characters).');
+        }
+        if (!is_numeric($raw) || (float) $raw < 1 || (float) $raw > 1000000) {
+            self::backWithError('Enter the amount of the room\'s bill, from ₱1 up.');
+        }
+
+        try {
+            $bill = ElectricityBill::create((int) $room['id'], round((float) $raw, 2), $label, (int) $_SESSION['user_id']);
+        } catch (RuntimeException $e) {
+            self::backWithError($e->getMessage());
+        }
+        foreach ($bill['due_dates'] as $boarderId => $dueDate) {
+            NotificationDispatcher::electricityBilled($boarderId, $label, $bill['share'], $dueDate);
+        }
+
+        $count = count($bill['due_dates']);
+        $_SESSION['flash_success'] = "Room {$room['room_number']} electricity ({$label}): ₱" . number_format((float) $raw, 2)
+            . " split among {$count} resident" . ($count === 1 ? '' : 's') . ', ₱' . number_format($bill['share'], 2)
+            . ' each, due with their next rent.';
+        header('Location: /admin/rooms');
+        exit;
+    }
+
+    /** Removes a bill entered by mistake; every resident's balance is recalculated. */
+    public static function deleteElectricityBill(string $id): void
+    {
+        if (!Csrf::verify($_POST['csrf_token'] ?? null)) {
+            http_response_code(400);
+            echo 'Invalid session, please retry.';
+            return;
+        }
+        if (!ElectricityBill::delete((int) $id)) {
+            self::backWithError('That electricity bill was not found.');
+        }
+        $_SESSION['flash_success'] = 'Electricity bill removed. The residents\' balances have been recalculated.';
+        header('Location: /admin/rooms');
+        exit;
+    }
+
+    private static function backWithError(string $error): never
+    {
+        $_SESSION['flash_error'] = $error;
+        header('Location: /admin/rooms');
+        exit;
     }
 
     public static function create(): void
@@ -284,6 +352,7 @@ class RoomController
             exit;
         }
         Bed::updateLabel((int) $id, $label);
+        $_SESSION['flash_success'] = "Bed renamed to \"{$label}\".";
         header('Location: /admin/rooms');
         exit;
     }

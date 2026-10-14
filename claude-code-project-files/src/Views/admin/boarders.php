@@ -823,6 +823,169 @@ $totalBalancesOwed  = array_sum(array_column($boarders, 'outstanding_balance'));
         </div>
     </div>
 
+    <!-- Management Actions Section -->
+    <div>
+        <div class="section-headline-wrap">
+            <div>
+                <h2 class="section-headline-title">Management Actions</h2>
+                <p class="section-headline-subtitle">Register new resident accounts, assign room/bed allocations, or review system operations rules.</p>
+            </div>
+        </div>
+
+        <div class="boarders-management-grid">
+
+            <!-- Card 1: Add Boarder Form -->
+            <form method="post" action="/admin/boarders" class="mgmt-card">
+                <div class="mgmt-card-header">
+                    <span style="font-size:1.15rem; line-height:1;">👤</span>
+                    <h3 class="mgmt-card-title">Add Boarder</h3>
+                </div>
+                <?= \App\Support\Csrf::field() ?>
+                <div class="mgmt-card-body">
+                    <div>
+                        <label class="field-label">Full Name</label>
+                        <input name="name" placeholder="Juan dela Cruz" required class="field-input">
+                    </div>
+                    <div>
+                        <label class="field-label">Email Address</label>
+                        <input name="email" type="email" placeholder="boarder@example.com" required class="field-input">
+                    </div>
+                    <div>
+                        <label for="add-boarder-password" class="field-label">Temporary Password</label>
+                        <div class="password-relative-wrap">
+                            <input id="add-boarder-password"
+                                   name="password"
+                                   type="password"
+                                   placeholder="Min. 8 characters"
+                                   required
+                                   class="field-input password-input-with-toggle">
+                            <button type="button"
+                                    id="toggle-boarder-password"
+                                    class="password-eye-toggle"
+                                    aria-label="Show password"
+                                    title="Show / hide password"
+                                    tabindex="0">
+                                <!-- Eye icon (seen) -->
+                                <svg id="eye-open-boarder" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2.062 12.348a1 1 0 0 1 0-.696 10.75 10.75 0 0 1 19.876 0 1 1 0 0 1 0 .696 10.75 10.75 0 0 1-19.876 0"/><circle cx="12" cy="12" r="3"/></svg>
+                                <!-- Eye-off icon (unseen) -->
+                                <svg id="eye-closed-boarder" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="hidden" aria-hidden="true"><path d="M10.733 5.076a10.744 10.744 0 0 1 11.205 6.575 1 1 0 0 1 0 .696 10.747 10.747 0 0 1-1.444 2.49"/><path d="M14.084 14.158a3 3 0 0 1-4.242-4.242"/><path d="M17.479 17.499a10.75 10.75 0 0 1-15.417-5.151 1 1 0 0 1 0-.696 10.75 10.75 0 0 1 4.446-5.143"/><path d="m2 2 20 20"/></svg>
+                            </button>
+                        </div>
+                    </div>
+                    <div>
+                        <label for="add_boarder_room" class="field-label">
+                            Room <span class="font-normal text-neutral-400">(optional)</span>
+                        </label>
+                        <select id="add_boarder_room" name="room_id" class="field-select">
+                            <option value="">— Skip room assignment —</option>
+                            <?php foreach ($availableRooms as $r): ?>
+                                <option value="<?= (int) $r['id'] ?>">Room <?= htmlspecialchars($r['room_number']) ?> (<?= count($vacantBedsByRoom[(int)$r['id']] ?? []) ?> vacant)</option>
+                            <?php endforeach; ?>
+                        </select>
+                    </div>
+                    <div>
+                        <label for="add_boarder_bed" class="field-label">
+                            Bed <span class="font-normal text-neutral-400">(optional)</span>
+                        </label>
+                        <select id="add_boarder_bed" name="bed_id" class="field-select">
+                            <option value="">— Select a room first —</option>
+                            <?php foreach ($vacantBeds as $b): ?>
+                                <option value="<?= (int) $b['id'] ?>" data-room-id="<?= (int) $b['room_id'] ?>" style="display:none;">
+                                    Room <?= htmlspecialchars($b['room_number']) ?> — <?= htmlspecialchars($b['label']) ?>
+                                </option>
+                            <?php endforeach; ?>
+                        </select>
+                    </div>
+                </div>
+                <div class="mgmt-btn-wrap">
+                    <button class="btn btn-primary w-full !py-2 !text-xs font-semibold">
+                        Create Boarder Account
+                    </button>
+                </div>
+            </form>
+
+            <!-- Card 2: Assign Boarder to Bed Form -->
+            <form method="post" action="/admin/beds/assign" class="mgmt-card accent-success">
+                <div class="mgmt-card-header">
+                    <span style="font-size:1.15rem; line-height:1;">🛏️</span>
+                    <h3 class="mgmt-card-title">Assign to Bed</h3>
+                </div>
+                <?= \App\Support\Csrf::field() ?>
+                <div class="mgmt-card-body">
+                    <div>
+                        <label class="field-label">Select Boarder</label>
+                        <select name="boarder_id" required class="field-select">
+                            <option value="">— Choose Boarder —</option>
+                            <?php foreach ($boarders as $b): ?>
+                                <option value="<?= (int) $b['user_id'] ?>">
+                                    <?= htmlspecialchars($b['name']) ?> <?= !empty($b['bed_id']) ? '(Assigned: ' . htmlspecialchars(($b['room_number'] ?? '') . '/' . ($b['bed_label'] ?? '')) . ')' : '(Unassigned)' ?>
+                                </option>
+                            <?php endforeach; ?>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="field-label">Select Vacant Bed</label>
+                        <select name="bed_id" required class="field-select">
+                            <option value="">— Choose Vacant Bed —</option>
+                            <?php foreach ($vacantBeds as $b): ?>
+                                <option value="<?= (int) $b['id'] ?>">Room <?= htmlspecialchars($b['room_number']) ?> / Bed <?= htmlspecialchars($b['label']) ?></option>
+                            <?php endforeach; ?>
+                        </select>
+                    </div>
+                    <div class="assign-notice-box">
+                        <span style="font-size: 1rem; line-height: 1;">ℹ️</span>
+                        <span>Assigning a new bed to an already-assigned resident will safely relocate them and vacate their previous bed automatically.</span>
+                    </div>
+                </div>
+                <div class="mgmt-btn-wrap">
+                    <button class="btn btn-secondary w-full !py-2 !text-xs font-semibold hover:bg-emerald-50 hover:text-emerald-800 hover:border-emerald-300">
+                        Confirm Bed Assignment
+                    </button>
+                </div>
+            </form>
+
+            <!-- Card 3: Operations Guide -->
+            <div class="mgmt-card accent-neutral guide-card-col">
+                <div class="mgmt-card-header">
+                    <span style="font-size:1.15rem; line-height:1;">📋</span>
+                    <h3 class="mgmt-card-title">Operations Guide</h3>
+                </div>
+                <div class="mgmt-card-body">
+                    <div class="guide-card-stack">
+                        <div class="guide-item-box">
+                            <div class="guide-item-title">
+                                <span>🔄</span>
+                                <span>Automated Bed Synchronization</span>
+                            </div>
+                            When a resident is deleted or marked as <em>moved out</em>, their assigned bed is automatically released back to the vacant inventory.
+                        </div>
+                        <div class="guide-item-box">
+                            <div class="guide-item-title">
+                                <span>🏷️</span>
+                                <span>Status Lifecycle Flow</span>
+                            </div>
+                            Residents transition across structured stages:
+                            <span class="inline-block font-semibold text-neutral-800">pending &rarr; active &rarr; on notice &rarr; moved out</span>.
+                        </div>
+                        <div class="guide-item-box">
+                            <div class="guide-item-title">
+                                <span>🔀</span>
+                                <span>Seamless Relocation</span>
+                            </div>
+                            Assigning an active resident to a new bed relocates them instantly while freeing up their prior bed with zero manual cleanup required.
+                        </div>
+                    </div>
+                </div>
+                <div class="mgmt-btn-wrap">
+                    <a href="/admin/rooms" class="btn btn-secondary w-full !py-2 !text-xs font-semibold text-neutral-600 hover:text-neutral-900">
+                        View All Rooms &amp; Beds &rarr;
+                    </a>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
     <!-- Boarders Directory Section -->
     <div>
         <div class="section-headline-wrap">
@@ -1070,176 +1233,13 @@ $totalBalancesOwed  = array_sum(array_column($boarders, 'outstanding_balance'));
                             <td colspan="6" class="text-center" style="padding: 3.5rem 1rem;">
                                 <span style="font-size:2.25rem; display:block; margin-bottom:0.75rem;">🏠</span>
                                 <span class="text-sm font-semibold text-neutral-800 block">No boarders registered yet</span>
-                                <span class="text-xs text-neutral-500 block mt-1">Use the "Add Boarder" form below to register your first resident.</span>
+                                <span class="text-xs text-neutral-500 block mt-1">Use the "Add Boarder" form above to register your first resident.</span>
                             </td>
                         </tr>
                         <?php endif; ?>
                     </tbody>
                 </table>
             </div>
-        </div>
-    </div>
-
-    <!-- Management Actions Section -->
-    <div>
-        <div class="section-headline-wrap">
-            <div>
-                <h2 class="section-headline-title">Management Actions</h2>
-                <p class="section-headline-subtitle">Register new resident accounts, assign room/bed allocations, or review system operations rules.</p>
-            </div>
-        </div>
-
-        <div class="boarders-management-grid">
-
-            <!-- Card 1: Add Boarder Form -->
-            <form method="post" action="/admin/boarders" class="mgmt-card">
-                <div class="mgmt-card-header">
-                    <span style="font-size:1.15rem; line-height:1;">👤</span>
-                    <h3 class="mgmt-card-title">Add Boarder</h3>
-                </div>
-                <?= \App\Support\Csrf::field() ?>
-                <div class="mgmt-card-body">
-                    <div>
-                        <label class="field-label">Full Name</label>
-                        <input name="name" placeholder="Juan dela Cruz" required class="field-input">
-                    </div>
-                    <div>
-                        <label class="field-label">Email Address</label>
-                        <input name="email" type="email" placeholder="boarder@example.com" required class="field-input">
-                    </div>
-                    <div>
-                        <label for="add-boarder-password" class="field-label">Temporary Password</label>
-                        <div class="password-relative-wrap">
-                            <input id="add-boarder-password"
-                                   name="password"
-                                   type="password"
-                                   placeholder="Min. 8 characters"
-                                   required
-                                   class="field-input password-input-with-toggle">
-                            <button type="button"
-                                    id="toggle-boarder-password"
-                                    class="password-eye-toggle"
-                                    aria-label="Show password"
-                                    title="Show / hide password"
-                                    tabindex="0">
-                                <!-- Eye icon (seen) -->
-                                <svg id="eye-open-boarder" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2.062 12.348a1 1 0 0 1 0-.696 10.75 10.75 0 0 1 19.876 0 1 1 0 0 1 0 .696 10.75 10.75 0 0 1-19.876 0"/><circle cx="12" cy="12" r="3"/></svg>
-                                <!-- Eye-off icon (unseen) -->
-                                <svg id="eye-closed-boarder" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="hidden" aria-hidden="true"><path d="M10.733 5.076a10.744 10.744 0 0 1 11.205 6.575 1 1 0 0 1 0 .696 10.747 10.747 0 0 1-1.444 2.49"/><path d="M14.084 14.158a3 3 0 0 1-4.242-4.242"/><path d="M17.479 17.499a10.75 10.75 0 0 1-15.417-5.151 1 1 0 0 1 0-.696 10.75 10.75 0 0 1 4.446-5.143"/><path d="m2 2 20 20"/></svg>
-                            </button>
-                        </div>
-                    </div>
-                    <div>
-                        <label for="add_boarder_room" class="field-label">
-                            Room <span class="font-normal text-neutral-400">(optional)</span>
-                        </label>
-                        <select id="add_boarder_room" name="room_id" class="field-select">
-                            <option value="">— Skip room assignment —</option>
-                            <?php foreach ($availableRooms as $r): ?>
-                                <option value="<?= (int) $r['id'] ?>">Room <?= htmlspecialchars($r['room_number']) ?> (<?= count($vacantBedsByRoom[(int)$r['id']] ?? []) ?> vacant)</option>
-                            <?php endforeach; ?>
-                        </select>
-                    </div>
-                    <div>
-                        <label for="add_boarder_bed" class="field-label">
-                            Bed <span class="font-normal text-neutral-400">(optional)</span>
-                        </label>
-                        <select id="add_boarder_bed" name="bed_id" class="field-select">
-                            <option value="">— Select a room first —</option>
-                            <?php foreach ($vacantBeds as $b): ?>
-                                <option value="<?= (int) $b['id'] ?>" data-room-id="<?= (int) $b['room_id'] ?>" style="display:none;">
-                                    Room <?= htmlspecialchars($b['room_number']) ?> — <?= htmlspecialchars($b['label']) ?>
-                                </option>
-                            <?php endforeach; ?>
-                        </select>
-                    </div>
-                </div>
-                <div class="mgmt-btn-wrap">
-                    <button class="btn btn-primary w-full !py-2 !text-xs font-semibold">
-                        Create Boarder Account
-                    </button>
-                </div>
-            </form>
-
-            <!-- Card 2: Assign Boarder to Bed Form -->
-            <form method="post" action="/admin/beds/assign" class="mgmt-card accent-success">
-                <div class="mgmt-card-header">
-                    <span style="font-size:1.15rem; line-height:1;">🛏️</span>
-                    <h3 class="mgmt-card-title">Assign to Bed</h3>
-                </div>
-                <?= \App\Support\Csrf::field() ?>
-                <div class="mgmt-card-body">
-                    <div>
-                        <label class="field-label">Select Boarder</label>
-                        <select name="boarder_id" required class="field-select">
-                            <option value="">— Choose Boarder —</option>
-                            <?php foreach ($boarders as $b): ?>
-                                <option value="<?= (int) $b['user_id'] ?>">
-                                    <?= htmlspecialchars($b['name']) ?> <?= !empty($b['bed_id']) ? '(Assigned: ' . htmlspecialchars(($b['room_number'] ?? '') . '/' . ($b['bed_label'] ?? '')) . ')' : '(Unassigned)' ?>
-                                </option>
-                            <?php endforeach; ?>
-                        </select>
-                    </div>
-                    <div>
-                        <label class="field-label">Select Vacant Bed</label>
-                        <select name="bed_id" required class="field-select">
-                            <option value="">— Choose Vacant Bed —</option>
-                            <?php foreach ($vacantBeds as $b): ?>
-                                <option value="<?= (int) $b['id'] ?>">Room <?= htmlspecialchars($b['room_number']) ?> / Bed <?= htmlspecialchars($b['label']) ?></option>
-                            <?php endforeach; ?>
-                        </select>
-                    </div>
-                    <div class="assign-notice-box">
-                        <span style="font-size: 1rem; line-height: 1;">ℹ️</span>
-                        <span>Assigning a new bed to an already-assigned resident will safely relocate them and vacate their previous bed automatically.</span>
-                    </div>
-                </div>
-                <div class="mgmt-btn-wrap">
-                    <button class="btn btn-secondary w-full !py-2 !text-xs font-semibold hover:bg-emerald-50 hover:text-emerald-800 hover:border-emerald-300">
-                        Confirm Bed Assignment
-                    </button>
-                </div>
-            </form>
-
-            <!-- Card 3: Operations Guide -->
-            <div class="mgmt-card accent-neutral guide-card-col">
-                <div class="mgmt-card-header">
-                    <span style="font-size:1.15rem; line-height:1;">📋</span>
-                    <h3 class="mgmt-card-title">Operations Guide</h3>
-                </div>
-                <div class="mgmt-card-body">
-                    <div class="guide-card-stack">
-                        <div class="guide-item-box">
-                            <div class="guide-item-title">
-                                <span>🔄</span>
-                                <span>Automated Bed Synchronization</span>
-                            </div>
-                            When a resident is deleted or marked as <em>moved out</em>, their assigned bed is automatically released back to the vacant inventory.
-                        </div>
-                        <div class="guide-item-box">
-                            <div class="guide-item-title">
-                                <span>🏷️</span>
-                                <span>Status Lifecycle Flow</span>
-                            </div>
-                            Residents transition across structured stages:
-                            <span class="inline-block font-semibold text-neutral-800">pending &rarr; active &rarr; on notice &rarr; moved out</span>.
-                        </div>
-                        <div class="guide-item-box">
-                            <div class="guide-item-title">
-                                <span>🔀</span>
-                                <span>Seamless Relocation</span>
-                            </div>
-                            Assigning an active resident to a new bed relocates them instantly while freeing up their prior bed with zero manual cleanup required.
-                        </div>
-                    </div>
-                </div>
-                <div class="mgmt-btn-wrap">
-                    <a href="/admin/rooms" class="btn btn-secondary w-full !py-2 !text-xs font-semibold text-neutral-600 hover:text-neutral-900">
-                        View All Rooms &amp; Beds &rarr;
-                    </a>
-                </div>
-            </div>
-
         </div>
     </div>
 </div>
@@ -1382,8 +1382,8 @@ $totalBalancesOwed  = array_sum(array_column($boarders, 'outstanding_balance'));
             const card = document.getElementById('confirm-card');
             if (window.gsap && card) {
                 gsap.fromTo(card,
-                    { opacity: 0, scale: 0.9, y: 12 },
-                    { opacity: 1, scale: 1,   y: 0,  duration: 0.25, ease: 'back.out(1.7)' }
+                    { opacity: 0, scale: 0.96, y: 8 },
+                    { opacity: 1, scale: 1,   y: 0,  duration: 0.3, ease: 'power3.out' }
                 );
             }
         }
@@ -1595,22 +1595,6 @@ $totalBalancesOwed  = array_sum(array_column($boarders, 'outstanding_balance'));
     initBoardersPage();
 })();
 
-if (window.gsap && window.ScrollTrigger) {
-    let mm = gsap.matchMedia();
-    mm.add({
-        animate: "(prefers-reduced-motion: no-preference)",
-        reduce:  "(prefers-reduced-motion: reduce)",
-    }, (context) => {
-        if (context.conditions.animate) {
-            gsap.from(".reveal-card", {
-                y: 18, opacity: 0, duration: 0.45, stagger: 0.06, ease: "power2.out",
-                scrollTrigger: { trigger: ".boarders-kpi-grid", start: "top 95%", once: true },
-            });
-        } else {
-            gsap.set(".reveal-card", { opacity: 1, y: 0 });
-        }
-    });
-}
 </script>
 
 <?php

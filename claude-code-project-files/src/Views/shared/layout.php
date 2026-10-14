@@ -21,8 +21,12 @@
 
     <!-- GSAP — vendored locally -->
     <script src="/assets/js/vendor/gsap.min.js"></script>
-    <script src="/assets/js/vendor/ScrollTrigger.min.js"></script>
-    <script>if (window.gsap && window.ScrollTrigger) { gsap.registerPlugin(ScrollTrigger); }</script>
+    <script>
+    // Cards rise in once per page load (.page-enter in input.css). The class comes off afterwards
+    // so cards shown again later (filters, toggled forms) do not replay the entrance.
+    document.documentElement.classList.add('page-enter');
+    document.addEventListener('DOMContentLoaded', () => setTimeout(() => document.documentElement.classList.remove('page-enter'), 1000));
+    </script>
 
     <?php if (!empty($needsQrCode)): ?><script src="/assets/js/vendor/qrcode.min.js"></script><?php endif; ?>
 

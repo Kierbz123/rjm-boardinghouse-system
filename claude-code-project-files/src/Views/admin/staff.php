@@ -59,6 +59,18 @@ $staff = $staff ?? [];
                             <span class="badge <?= $isActive ? 'badge-success' : 'badge-neutral' ?>"><?= $isActive ? 'Active' : 'Deactivated' ?></span>
                         </td>
                         <td class="px-5 py-3 text-right">
+                            <details class="inline-block text-left align-top mr-2">
+                                <summary class="btn btn-secondary cursor-pointer">Reset password</summary>
+                                <form method="post" action="/admin/staff/<?= (int) $s['id'] ?>/password" class="mt-2 flex items-end gap-2"
+                                      data-confirm="Set a new password for <?= htmlspecialchars($s['name']) ?>? They will be signed out.">
+                                    <?= \App\Support\Csrf::field() ?>
+                                    <div>
+                                        <label for="staff-reset-<?= (int) $s['id'] ?>" class="block text-xs font-semibold text-neutral-700 mb-1">New temporary password</label>
+                                        <input id="staff-reset-<?= (int) $s['id'] ?>" name="new_password" type="password" required minlength="8" maxlength="72" class="input" autocomplete="new-password">
+                                    </div>
+                                    <button type="submit" class="btn btn-primary">Save</button>
+                                </form>
+                            </details>
                             <form method="post" action="/admin/staff/<?= (int) $s['id'] ?>/status" class="inline"
                                   <?= $isActive ? 'data-confirm="Deactivate ' . htmlspecialchars($s['name']) . '? They will be signed out."' : '' ?>>
                                 <?= \App\Support\Csrf::field() ?>

@@ -18,8 +18,9 @@ All three were checked against the live database on 3 October 2026.
 Sees and controls everything.
 - **Dashboard:** pending payments, open repairs by priority, active SOS alerts, recent expenses, occupancy.
 - **Boarders:** add residents, assign beds, change status (pending, active, on notice, moved out), edit move-in/move-out dates, add notes. *Remove* archives a resident who has payment history (records kept, restorable) and deletes only residents with no payment history.
-- **Rooms & Beds:** add rooms and beds; a bed can't be double-booked and a room can't have more beds than its capacity.
-- **Staff Accounts:** add staff, deactivate or reactivate them.
+- **Rooms & Beds:** add, edit and delete rooms; add, rename and delete beds; a bed can't be double-booked (the database refuses it) and a room can't have more beds than its capacity.
+- **Staff Accounts:** add staff, deactivate or reactivate them, reset a forgotten password.
+- **Forgotten passwords:** set a new temporary password for a resident (on their page) or a staff member.
 - **Payments:** approve or reject boarders' receipts, or *Reverse* an approved payment. Every payment waits for an admin.
 - **Penalties:** create penalty rules, issue penalties with any amount, run the late-fee check, mark a penalty paid.
 - **Expenses, Occupancy, Ledger export (CSV), Inquiry Center** (room inquiries from the public website).
@@ -49,9 +50,17 @@ trying the payment flow.
 The live database also has two real boarder accounts that are **not** demo accounts and keep their own
 passwords. They are not listed here.
 
-## Forgot a demo password?
+## Forgot a password?
 
-From the `claude-code-project-files` folder, this resets one account (example: the boarder):
+**A resident or a staff member:** sign in as the admin and set a new temporary password for them.
+- Resident: **Boarders → open the resident → Reset Sign-in Password**.
+- Staff: **Staff Accounts → Reset password** on their row.
+
+They are signed out everywhere, any lockout from wrong attempts is lifted, and they should change the
+password under **Profile** after signing in.
+
+**The admin account itself** has no one above it, so it can only be reset from the command line. From the
+`claude-code-project-files` folder (change the email and password to suit):
 
 ```
 C:\xampp\php\php.exe -r "require 'src/autoload.php'; App\Models\User::updatePassword(App\Models\User::findByEmail('boarder@rjm.test')['id'], 'BoarderPass123!'); echo 'done';"

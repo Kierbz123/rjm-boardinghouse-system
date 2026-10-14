@@ -113,6 +113,19 @@ class Bed
         $stmt->execute([$bedId]);
     }
 
+    /**
+     * Frees whatever bed this resident holds, going by the beds table itself rather than
+     * the pointer on their profile: a stale pointer can then never empty someone else's
+     * bed, and a bed the profile lost track of is still freed.
+     */
+    public static function vacateHeldBy(int $boarderId): void
+    {
+        $stmt = Database::getConnection()->prepare(
+            'UPDATE beds SET status = "vacant", current_boarder_id = NULL WHERE current_boarder_id = ?'
+        );
+        $stmt->execute([$boarderId]);
+    }
+
     public static function counts(): array
     {
         $row = Database::getConnection()->query(
