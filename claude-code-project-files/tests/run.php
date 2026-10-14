@@ -27,6 +27,8 @@ $pdo = null;
 // Children (CLI scripts and the server) inherit this.
 putenv("DB_NAME={$testDb}");
 putenv("TEST_BASE_URL=http://127.0.0.1:{$port}");
+// Tests never read the real .env (it holds the live database login).
+putenv('APP_ENV_FILE=');
 // A second server on the same database: concurrency tests send requests to both at once.
 // (PHP_CLI_SERVER_WORKERS is not available on Windows, so two processes stand in for workers.)
 $port2 = $port - 1;

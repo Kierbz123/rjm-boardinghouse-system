@@ -505,7 +505,7 @@ Effort: **S** ≤ ½ day · **M** 1–3 days · **L** > 3 days.
 ### FRONT-END
 
 **FE-01 — Real passwords (including admin's) embedded in the public login page** · **High**
-- **Location:** `src/Views/shared/login.php:383-405` (`data-pass="AdminPass123!"` etc.)
+- **Location:** `src/Views/shared/login.php:383-405` (`data-pass="(the admin demo password)"` etc.)
 - **Repro [EXECUTED]:** `curl /login | grep data-pass` shows all three seeded passwords. They are the live seed credentials, so anyone who can reach the login page is admin unless the password was changed.
 - **Fix:** Remove the chips, or render them only when `APP_ENV=demo` **and** never with real passwords. Force a password change on first admin login. **S**
 

@@ -12,6 +12,12 @@ $stats = $stats ?? [];
 ?>
 <div class="max-w-5xl mx-auto px-5 py-5 space-y-6">
 
+    <?php if (!empty($user['must_change_password'])): ?>
+    <div class="rounded-xl border border-amber-300 bg-amber-50 text-amber-900 px-4 py-3 text-sm" role="alert">
+        <strong>Choose a new password.</strong> This account was set up with a temporary password. Enter it as the current password below and pick one only you know; the rest of the system opens afterwards.
+    </div>
+    <?php endif; ?>
+
     <!-- Page Banner -->
     <div class="page-banner" style="background: linear-gradient(135deg, #0a0a0a 0%, #1f1f1e 100%); border-radius: 1rem; padding: 1.5rem 1.75rem; box-shadow: 0 4px 16px rgba(10, 10, 10,0.15);">
         <div>

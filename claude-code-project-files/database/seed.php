@@ -13,10 +13,32 @@ use App\Models\Bed;
 use App\Models\BoarderProfile;
 use App\Models\PenaltyRule;
 
-// SEED_*_PASSWORD lets the test runner (and an installer) choose the passwords.
-$adminId = User::create('admin', 'Admin User', 'admin@rjm.test', getenv('SEED_ADMIN_PASSWORD') ?: 'AdminPass123!');
-$staffId = User::create('staff', 'Staff User', 'staff@rjm.test', getenv('SEED_STAFF_PASSWORD') ?: 'StaffPass123!');
-$boarderId = User::create('boarder', 'Boarder User', 'boarder@rjm.test', getenv('SEED_BOARDER_PASSWORD') ?: 'BoarderPass123!');
+// No password is written anywhere in the repository. Each account gets a random one, printed once
+// below, and must choose its own at first sign-in. SEED_<ROLE>_PASSWORD lets the test runner or an
+// installer pick the password instead; such an account is not forced to change it.
+$generated = [];
+$passwordFor = function (string $role) use (&$generated): string {
+    $chosen = getenv('SEED_' . strtoupper($role) . '_PASSWORD');
+    if ($chosen !== false && $chosen !== '') {
+        return $chosen;
+    }
+    // 16 characters from an alphabet without look-alikes (0/O, 1/l/I), plus fixed classes so any password policy passes.
+    $alphabet = 'abcdefghjkmnpqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+    $password = '';
+    for ($i = 0; $i < 14; $i++) {
+        $password .= $alphabet[random_int(0, strlen($alphabet) - 1)];
+    }
+    return $generated[$role] = $password . '#7';
+};
+
+$adminId = User::create('admin', 'Admin User', 'admin@rjm.test', $passwordFor('admin'));
+$staffId = User::create('staff', 'Staff User', 'staff@rjm.test', $passwordFor('staff'));
+$boarderId = User::create('boarder', 'Boarder User', 'boarder@rjm.test', $passwordFor('boarder'));
+foreach (['admin' => $adminId, 'staff' => $staffId, 'boarder' => $boarderId] as $role => $id) {
+    if (isset($generated[$role])) {
+        App\Database::getConnection()->prepare('UPDATE users SET must_change_password = 1 WHERE id = ?')->execute([$id]);
+    }
+}
 
 $roomId = Room::create('101', '1', 2, 3500.00);
 $bedAId = Bed::create($roomId, 'Bed A');
@@ -27,5 +49,14 @@ BoarderProfile::create($boarderId, $roomId, $bedAId);
 
 PenaltyRule::create('Late rent penalty', 'late_per_day', 5.00);
 
-echo "Seeded: admin@rjm.test / staff@rjm.test / boarder@rjm.test (see this file for passwords)\n";
+if ($generated) {
+    echo "Seeded accounts. These passwords are shown ONCE; each account must choose its own at first sign-in:\n";
+    foreach (['admin', 'staff', 'boarder'] as $role) {
+        if (isset($generated[$role])) {
+            printf("  %-18s %s\n", "{$role}@rjm.test", $generated[$role]);
+        }
+    }
+} else {
+    echo "Seeded: admin@rjm.test / staff@rjm.test / boarder@rjm.test (passwords from SEED_*_PASSWORD)\n";
+}
 echo "Room 101 / Bed A assigned to boarder (user_id={$boarderId})\n";

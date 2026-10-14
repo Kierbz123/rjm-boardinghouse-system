@@ -26,17 +26,13 @@
 #>
 param(
     [int]$Port = 8010,
-    [switch]$NoBrowser
+    [switch]$NoBrowser,
+    # Run only the safety check and exit (used by the tests); opens nothing.
+    [switch]$CheckOnly
 )
 
 $ErrorActionPreference = 'Stop'
 $root = Split-Path -Parent $PSScriptRoot
-
-$cloudflaredCommand = Get-Command cloudflared -ErrorAction SilentlyContinue
-$cloudflared = if ($cloudflaredCommand) { $cloudflaredCommand.Source } else { Join-Path ${env:ProgramFiles(x86)} 'cloudflared\cloudflared.exe' }
-if (-not (Test-Path -LiteralPath $cloudflared)) {
-    throw "cloudflared is not installed. Run 'winget install --id Cloudflare.cloudflared', open a new window, and start this again."
-}
 
 $php = 'C:\xampp\php\php.exe'
 if (-not (Test-Path -LiteralPath $php)) {
@@ -45,23 +41,35 @@ if (-not (Test-Path -LiteralPath $php)) {
     $php = $phpCommand.Source
 }
 
-if (Get-NetTCPConnection -LocalPort $Port -State Listen -ErrorAction SilentlyContinue) {
-    throw "Port $Port is already in use. Close the program using it, or choose another port: .\bin\go-online.ps1 -Port 8011"
-}
-
+# Refuse to open the system to the internet while it is not safe to: an account still has a
+# default password, the database login is root without a password, or this cannot be checked.
 Push-Location $root
 try {
-    $unchanged = & $php -d display_errors=0 'database/check-demo-passwords.php'
+    $problems = & $php -d display_errors=0 'bin/pre-online-check.php'
     $checkExit = $LASTEXITCODE
 } finally {
     Pop-Location
 }
-if ($checkExit -eq 1) {
-    Write-Warning 'These demo accounts still use the passwords written in DEMO-ACCOUNTS.md:'
-    $unchanged | ForEach-Object { Write-Warning "    $_" }
-    Write-Warning 'Anyone who has the public address and knows those passwords can sign in. Change them unless this is a short demo.'
-} elseif ($checkExit -ne 0) {
-    Write-Warning 'Could not check the demo account passwords (is the database running?).'
+if ($checkExit -ne 0) {
+    Write-Host 'NOT going online. Fix these first:' -ForegroundColor Red
+    $problems | ForEach-Object { Write-Host "    $_" -ForegroundColor Red }
+    Write-Host '  - An account listed above: sign in with it and choose a new password under Profile.' -ForegroundColor Red
+    Write-Host '  - A DATABASE line: run  php bin\setup-db-user.php  once, then start again.' -ForegroundColor Red
+    exit 3
+}
+if ($CheckOnly) {
+    Write-Host 'OK: safe to go online.'
+    exit 0
+}
+
+$cloudflaredCommand = Get-Command cloudflared -ErrorAction SilentlyContinue
+$cloudflared = if ($cloudflaredCommand) { $cloudflaredCommand.Source } else { Join-Path ${env:ProgramFiles(x86)} 'cloudflared\cloudflared.exe' }
+if (-not (Test-Path -LiteralPath $cloudflared)) {
+    throw "cloudflared is not installed. Run 'winget install --id Cloudflare.cloudflared', open a new window, and start this again."
+}
+
+if (Get-NetTCPConnection -LocalPort $Port -State Listen -ErrorAction SilentlyContinue) {
+    throw "Port $Port is already in use. Close the program using it, or choose another port: .\bin\go-online.ps1 -Port 8011"
 }
 
 $logDirectory = Join-Path $root 'logs'

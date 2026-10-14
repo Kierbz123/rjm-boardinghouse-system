@@ -4,6 +4,12 @@ ob_start();
 $totalOpenRequests = array_sum(array_column($openByTier, 'c'));
 ?>
 <div class="max-w-5xl mx-auto px-4 sm:px-6 py-6 space-y-6">
+    <?php if (\App\Database::describe()['insecure']): ?>
+    <div class="rounded-xl border border-amber-300 bg-amber-50 text-amber-900 px-4 py-3 text-sm" role="alert" id="db-login-warning">
+        <strong>The database is open to anyone on this computer.</strong> The system is logged in to MariaDB as <code>root</code> with no password.
+        Run <code>php bin\setup-db-user.php</code> once in the project folder, then restart the system. The online launcher will not start until this is done.
+    </div>
+    <?php endif; ?>
     <!-- Page Banner -->
     <div class="page-banner">
         <div>

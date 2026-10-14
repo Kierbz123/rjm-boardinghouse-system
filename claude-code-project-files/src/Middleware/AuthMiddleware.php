@@ -34,7 +34,29 @@ class AuthMiddleware
             self::toLogin();
         }
 
+        // A seeded or default-password account may do nothing but choose its own password (or sign out).
+        if (!empty($user['must_change_password']) && !self::allowedWhilePasswordMustChange()) {
+            $path = (string) parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH);
+            if (str_starts_with($path, '/api/')) {
+                http_response_code(403);
+                header('Content-Type: application/json');
+                echo json_encode(['ok' => false, 'error' => 'You must choose a new password before using the system.']);
+                exit;
+            }
+            $_SESSION['flash_error'] = 'Choose a new password to continue.';
+            header('Location: /profile');
+            exit;
+        }
+
         $_SESSION['last_activity'] = time();
+    }
+
+    private static function allowedWhilePasswordMustChange(): bool
+    {
+        $path = (string) parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH);
+        $method = $_SERVER['REQUEST_METHOD'] ?? 'GET';
+        return ($method === 'GET' && $path === '/profile')
+            || ($method === 'POST' && in_array($path, ['/profile/password', '/logout'], true));
     }
 
     /** Changes whenever the password does, so a password change logs out other sessions. */

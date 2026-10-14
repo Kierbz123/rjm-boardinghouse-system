@@ -64,6 +64,12 @@ class User
         $stmt->execute([$status === 'active' ? 'active' : 'inactive', $id]);
     }
 
+    /** The person themselves chose a password: it is no longer a temporary or default one. */
+    public static function markPasswordChosen(int $id): void
+    {
+        Database::getConnection()->prepare('UPDATE users SET must_change_password = 0, password_changed_at = NOW() WHERE id = ?')->execute([$id]);
+    }
+
     public static function updatePassword(int $id, string $password): void
     {
         $hash = password_hash($password, PASSWORD_DEFAULT);

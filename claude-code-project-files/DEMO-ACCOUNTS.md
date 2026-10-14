@@ -1,16 +1,18 @@
 # Demo accounts
 
 Use these to log in at **http://127.0.0.1:8000/login** after starting the system with `start-system.bat`.
-All three were checked against the live database on 3 October 2026.
 
-| Role | Email | Password | Name in the system |
-|---|---|---|---|
-| Admin | `admin@rjm.test` | `AdminPass123!` | Admin User |
-| Staff | `staff@rjm.test` | `StaffPass123!` | Staff User |
-| Boarder | `boarder@rjm.test` | `BoarderPass123!` | Demo Boarder (Room 1, Bed A) |
+| Role | Email | Name in the system |
+|---|---|---|
+| Admin | `admin@rjm.test` | Admin User |
+| Staff | `staff@rjm.test` | Staff User |
+| Boarder | `boarder@rjm.test` | Demo Boarder (Room 1, Bed A) |
 
-> These are **demo passwords**. They are also written in `database/seed.php` and the README, so anyone with
-> the project files knows them. Change them (Profile → Change password) before the system holds real data.
+> **There are no fixed passwords.** `php database/seed.php` generates a random password for each account
+> and prints it once. Each account must choose its own password at first sign-in; until it does, it can only
+> open the Profile page. Accounts on a database seeded before this change are asked to choose a new password
+> the next time they sign in. `start-online.bat` refuses to open the system to the internet while any account
+> still has a default password.
 
 ## What each account can do
 
@@ -63,7 +65,7 @@ password under **Profile** after signing in.
 `claude-code-project-files` folder (change the email and password to suit):
 
 ```
-C:\xampp\php\php.exe -r "require 'src/autoload.php'; App\Models\User::updatePassword(App\Models\User::findByEmail('boarder@rjm.test')['id'], 'BoarderPass123!'); echo 'done';"
+C:\xampp\php\php.exe -r "require 'src/autoload.php'; App\Models\User::updatePassword(App\Models\User::findByEmail('admin@rjm.test')['id'], 'TYPE-A-NEW-PASSWORD-HERE'); echo 'done';"
 ```
 
 Changing a password signs that account out everywhere else.

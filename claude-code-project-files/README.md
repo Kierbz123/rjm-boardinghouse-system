@@ -44,13 +44,7 @@ php -d upload_max_filesize=20M -d post_max_size=25M -S 127.0.0.1:8000 -t public 
 
 ## Demo accounts
 
-Created by `database/seed.php` (change these before real use):
-
-| Role | Email | Password |
-|---|---|---|
-| Admin | `admin@rjm.test` | `AdminPass123!` |
-| Staff | `staff@rjm.test` | `StaffPass123!` |
-| Boarder | `boarder@rjm.test` | `BoarderPass123!` |
+`database/seed.php` creates three accounts: `admin@rjm.test`, `staff@rjm.test` and `boarder@rjm.test`. **No password is written anywhere in this project.** Each one gets a random password that the seed script prints once, and each must choose its own at first sign-in (the rest of the system stays closed until then). To reset one later, see DEMO-ACCOUNTS.md.
 
 There is no public sign-up. Admins create boarders (Boarders page) and staff (Staff Accounts page). When a resident or staff member forgets their password, the admin sets a new temporary one from the same pages (resident: open them, then "Reset Sign-in Password"; staff: "Reset password" on their row).
 
@@ -78,11 +72,12 @@ There is no public sign-up. Admins create boarders (Boarders page) and staff (St
 
 ```bash
 php tests/run.php            # add --with-ai to include the Ollama test
+php tests/run.php billing    # only files whose name contains "billing"
 ```
 
-The runner never touches your real data: it rebuilds a throwaway `<DB_NAME>_test` database from the migrations and seed, starts a private server on port 8099, runs every `tests/test_*.php` (billing rules, scoring, roles/permissions, security headers, end-to-end HTTP flows) and removes any uploads it created. Lint everything with `php -l`.
+The runner never touches your real data: it rebuilds a throwaway `<DB_NAME>_test` database from the migrations and seed (with fresh random passwords every run), starts two private servers on ports 8099 and 8098 (the second one is for concurrency tests), runs every `tests/test_*.php` (billing rules, scoring, roles/permissions, security headers, end-to-end HTTP flows, and probe suites that drive each role through the app) and removes any uploads it created. A defect that is known and not yet fixed prints `[KNOWN]` and does not fail the run. Lint everything with `php -l`.
 
-`tests/test_z_feature_audit.php` also checks the wiring of the whole app on every run: each form on each page must post to a route that exists, each link must open, and each state-changing route must have a form on some page. `FEATURE_IMPLEMENTATION_AUDIT.md` lists every feature with its screen, route, tables and the test that proves it.
+`tests/test_z_feature_audit.php` also checks the wiring of the whole app on every run: each form on each page must post to a route that exists, each link must open, and each state-changing route must have a form on some page. `FEATURE_IMPLEMENTATION_AUDIT.md` (10 Oct 2026) traces every feature from screen to route to table to the test that proves it; the later `../FUNCTIONALITY-AUDIT-2026-10-14.md` lists what is still missing or wrong.
 
 ## Going online for a demo (any phone, any network)
 

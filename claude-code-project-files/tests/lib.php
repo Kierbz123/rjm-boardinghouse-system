@@ -49,6 +49,15 @@ function knownDefect(string $id, bool $ok, string $label, string $detail = ''): 
     $LIB_KNOWN++;
 }
 
+/** A check that cannot run in this environment: reported loudly, never counted as a pass. */
+function skip(string $label, string $why): void
+{
+    global $LIB_SKIPPED;
+    echo "  [SKIP] {$label}  -- {$why}
+";
+    $LIB_SKIPPED = ($LIB_SKIPPED ?? 0) + 1;
+}
+
 function section(string $title): void
 {
     echo "\n== {$title} ==\n";
