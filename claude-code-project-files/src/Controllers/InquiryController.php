@@ -38,6 +38,37 @@ class InquiryController
         require __DIR__ . '/../Views/admin/inquiry-center.php';
     }
 
+    /** Full record of one inquiry (admin only: it holds the prospect's contact details). */
+    public static function show(string $id): void
+    {
+        $inquiry = \App\Models\Inquiry::find((int) $id);
+        if ($inquiry === null) {
+            \App\Support\ErrorPage::render(404);
+        }
+        Notification::markEntityRead((int) $_SESSION['user_id'], 'inquiry', (int) $inquiry['id']);
+
+        // Walk-in notes are appended to the message as "Staff notes: ..."; show them separately.
+        [$visitorMessage, $staffNotes] = array_pad(explode("\n\nStaff notes: ", (string) $inquiry['message'], 2), 2, '');
+        $flashOk = $_SESSION['flash_inquiry_success'] ?? null;
+        unset($_SESSION['flash_inquiry_success']);
+
+        require __DIR__ . '/../Views/admin/inquiry-detail.php';
+    }
+
+    public static function updateStatus(string $id): void
+    {
+        $inquiryId = (int) $id;
+        if (!\App\Support\Csrf::verify($_POST['csrf_token'] ?? null)) {
+            $_SESSION['flash_inquiry_error'] = 'Invalid session token. Please try again.';
+        } elseif (\App\Models\Inquiry::find($inquiryId) === null) {
+            \App\Support\ErrorPage::render(404);
+        } elseif (\App\Models\Inquiry::setStatus($inquiryId, (string) ($_POST['status'] ?? ''))) {
+            $_SESSION['flash_inquiry_success'] = 'Status updated.';
+        }
+        header("Location: /admin/inquiries/{$inquiryId}");
+        exit;
+    }
+
     /** Walk-in / phone inquiry logged by staff or an admin. */
     public static function handleStaffInquiry(): void
     {

@@ -133,7 +133,9 @@ $penalty = (int) one('SELECT id FROM penalties WHERE reason = ?', ["audit fee {$
 http('POST', '/admin/electricity', $admin, ['csrf_token' => $adminT, 'room_id' => $roomId, 'label' => "Audit {$tag}", 'amount' => '300']);
 http('POST', '/admin/penalties/issue', $admin, ['csrf_token' => $adminT, 'boarder_id' => $r2, 'rule_id' => $ruleId, 'amount' => '10', 'reason' => "audit two {$tag}"]);
 http('POST', "/admin/boarders/{$r2}/delete", $admin, ['csrf_token' => $adminT]);
-check($ticket > 0 && $incident > 0 && $sos > 0 && $penalty > 0, 'repair request, incident, SOS and penalty saved');
+http('POST', '/admin/inquiry-center/submit', $admin, ['csrf_token' => $adminT, 'name' => "Audit prospect {$tag}", 'phone' => '09171234567']);
+$inquiry = (int) one('SELECT id FROM inquiries WHERE name = ?', ["Audit prospect {$tag}"]);
+check($ticket > 0 && $incident > 0 && $sos > 0 && $penalty > 0 && $inquiry > 0, 'repair request, incident, SOS, penalty and inquiry saved');
 check(one('SELECT status FROM users WHERE id = ?', [$r2]) === 'archived', 'a resident with a penalty on record is archived, not erased');
 
 // ---------------------------------------------------------------------------------
@@ -152,7 +154,7 @@ $matches = function (string $method, string $path) use ($routes): ?string {
 
 $pages = [
     'visitor' => [null, ['/', '/login']],
-    'admin' => [$admin, ['/admin/dashboard', '/admin/inquiry-center', '/admin/boarders', '/admin/boarders?archived=1', "/admin/boarders/{$r1}",
+    'admin' => [$admin, ['/admin/dashboard', '/admin/inquiry-center', "/admin/inquiries/{$inquiry}", '/admin/boarders', '/admin/boarders?archived=1', "/admin/boarders/{$r1}",
         '/admin/staff', '/admin/rooms', '/admin/payments', '/admin/expenses', '/admin/penalty-rules', '/admin/occupancy', '/staff/dashboard',
         '/staff/maintenance', '/staff/maintenance/history', '/staff/incidents', '/staff/incidents/history', '/notifications', '/profile']],
     'staff' => [$staff, ['/staff/dashboard', '/staff/maintenance', '/staff/maintenance/history', '/staff/incidents', '/staff/incidents/history',

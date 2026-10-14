@@ -139,6 +139,24 @@ ob_start();
             </div>
         </div>
 
+        <?php if (!empty($recentInquiries)): ?>
+        <div class="lg:col-span-3 order-last">
+            <div class="section-header">
+                <h2>Recent inquiries</h2>
+                <span class="text-caption text-neutral-400">Admins only</span>
+            </div>
+            <div class="card" style="overflow:hidden;">
+                <?php foreach ($recentInquiries as $inq): ?>
+                    <a href="/admin/inquiries/<?= (int) $inq['id'] ?>" class="flex flex-wrap items-center gap-x-4 gap-y-1 px-4 py-3 hover:bg-neutral-50" style="border-bottom:1px solid #e6e5e2;">
+                        <span class="font-semibold text-neutral-900 text-sm">#<?= (int) $inq['id'] ?> · <?= htmlspecialchars($inq['name']) ?></span>
+                        <span class="text-sm text-neutral-600"><?= htmlspecialchars((string) $inq['room_type']) ?></span>
+                        <span class="text-caption text-neutral-400" style="margin-left:auto;"><?= htmlspecialchars(ucfirst($inq['status'])) ?> · <?= date('M j, g:i a', strtotime($inq['created_at'])) ?></span>
+                    </a>
+                <?php endforeach; ?>
+            </div>
+        </div>
+        <?php endif; ?>
+
         <!-- Right Column: Notification Hub (1/3 width) -->
         <div class="lg:col-span-1">
             <div class="section-header">

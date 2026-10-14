@@ -102,6 +102,14 @@ $router->add('POST', '/admin/inquiry-center/submit', function () {
     AuthMiddleware::require(); RoleMiddleware::require(['admin', 'staff']);
     InquiryController::handleStaffInquiry();
 });
+$router->add('GET', '/admin/inquiries/{id}', function ($id) {
+    AuthMiddleware::require(); RoleMiddleware::require(['admin']);
+    InquiryController::show($id);
+});
+$router->add('POST', '/admin/inquiries/{id}/status', function ($id) {
+    AuthMiddleware::require(); RoleMiddleware::require(['admin']);
+    InquiryController::updateStatus($id);
+});
 $router->add('GET', '/admin/boarders', function () {
     AuthMiddleware::require(); RoleMiddleware::require(['admin']);
     BoarderController::index();

@@ -183,7 +183,9 @@ class NotificationDispatcher
             'inquiry',
             "New room inquiry #{$inquiry['id']} from {$inquiry['name']} ({$inquiry['phone']}){$via}",
             "Requested: {$inquiry['room_type']}",
-            '/admin/inquiry-center'
+            "/admin/inquiries/{$inquiry['id']}",
+            'inquiry',
+            (int) $inquiry['id']
         );
     }
 

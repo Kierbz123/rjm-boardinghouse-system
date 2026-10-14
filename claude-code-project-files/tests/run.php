@@ -14,6 +14,18 @@ $testDb = (getenv('DB_NAME') ?: 'rjm_boardinghouse') . '_test';
 // Two sessions running the suite at once would drop each other's database: give each its own DB_NAME and TEST_PORT.
 $port = (int) (getenv('TEST_PORT') ?: 8099);
 
+// One run at a time per checkout and per test database. Uploads land in this checkout's storage/uploads
+// and are removed afterwards by diff, so an overlapping run deletes the other run's files (its link
+// crawl then 404s); the test database is dropped below. The locks are released when this process ends.
+$locks = [];
+foreach (['checkout' => $root, 'test database' => $testDb] as $what => $key) {
+    $locks[$what] = fopen(sys_get_temp_dir() . '/rjm-tests-' . md5($key) . '.lock', 'c');
+    if (!flock($locks[$what], LOCK_EX | LOCK_NB)) {
+        fwrite(STDERR, "Another test run is using this {$what} ({$key}). Wait for it to finish, or run from another checkout with its own DB_NAME and TEST_PORT.\n");
+        exit(1);
+    }
+}
+
 // Fresh database. Connect without a schema so we can drop/create it.
 $pdo = new PDO(
     sprintf('mysql:host=%s;port=%s;charset=utf8mb4', getenv('DB_HOST') ?: '127.0.0.1', getenv('DB_PORT') ?: '3306'),

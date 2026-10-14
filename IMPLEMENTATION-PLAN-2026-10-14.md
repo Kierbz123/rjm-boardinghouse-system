@@ -111,6 +111,7 @@ For every package: **Files** · **Migration** · **UI** · **Tests** (all red fi
 * **WP-11:** time-decay ordering; assignment + notes (`maintenance_notes`, migration `0038`); resident cancel; reopen needs reason; "AI" wording → rule-based.
 * **WP-12:** `expenses` gets `expense_date`, `category` list, receipt upload, `status` (pending/approved/rejected/void), approver, reasons (migration `0039`); staff entries pending; reports count approved only.
 * **WP-13:** use `inquiries.status`; paged list, filters, status buttons, convert-to-resident prefill (migration `0040` adds `handled_by/handled_at/note`).
+  **Part 1 done (14 Oct):** the notification's View Details opens `/admin/inquiries/{id}` (admin only: full message, contacts, move-in date, staff notes, source) with a new/contacted/closed status form; inquiry notifications carry `entity_type='inquiry'` + `entity_id`, and migration `0032_link_inquiry_notifications` relinks the old ones. Still to do: paged list, filters, convert-to-resident, `handled_by/handled_at/note`.
 * **WP-14:** edit staff, create admin, last-admin guard, staff delete only if no records.
 * **WP-15:** `sos_alerts.resolved_by/resolution_note/is_false_alarm`, SOS history page, toasts, incident `people_involved`/`room_id` (migration `0041`).
 * **Tests:** one test file each, red first (ordering, cancel rules, approval gating, status workflow, last-admin refusal, SOS lifecycle fields).

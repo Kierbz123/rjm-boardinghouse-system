@@ -62,6 +62,26 @@ class Inquiry
         )->fetch();
     }
 
+    public const STATUSES = ['new', 'contacted', 'closed'];
+
+    public static function find(int $id): ?array
+    {
+        $stmt = Database::getConnection()->prepare(
+            'SELECT i.*, u.name AS submitted_by_name FROM inquiries i LEFT JOIN users u ON u.id = i.submitted_by WHERE i.id = ?'
+        );
+        $stmt->execute([$id]);
+        return $stmt->fetch() ?: null;
+    }
+
+    public static function setStatus(int $id, string $status): bool
+    {
+        if (!in_array($status, self::STATUSES, true)) {
+            return false;
+        }
+        Database::getConnection()->prepare('UPDATE inquiries SET status = ? WHERE id = ?')->execute([$status, $id]);
+        return true;
+    }
+
     public static function recent(int $limit = 10): array
     {
         $stmt = Database::getConnection()->prepare('SELECT * FROM inquiries ORDER BY created_at DESC, id DESC LIMIT ?');

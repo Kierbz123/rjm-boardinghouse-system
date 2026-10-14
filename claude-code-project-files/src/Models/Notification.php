@@ -104,7 +104,7 @@ class Notification
         }
     }
 
-    public static function broadcastToAdmins(string $type, string $message, string $details = '', ?string $actionUrl = null): void
+    public static function broadcastToAdmins(string $type, string $message, string $details = '', ?string $actionUrl = null, ?string $entityType = null, ?int $entityId = null): void
     {
         $pdo = Database::getConnection();
         $stmt = $pdo->prepare('SELECT id FROM users WHERE role = "admin"');
@@ -113,8 +113,16 @@ class Notification
 
         foreach ($adminUsers as $user) {
             $fullMessage = $details ? "{$message} ({$details})" : $message;
-            self::create((int) $user['id'], $type, $fullMessage, $actionUrl);
+            self::create((int) $user['id'], $type, $fullMessage, $actionUrl, $entityType, $entityId);
         }
+    }
+
+    /** Marks one user's notifications about an entity as read (they have just opened it). */
+    public static function markEntityRead(int $userId, string $entityType, int $entityId): void
+    {
+        Database::getConnection()->prepare(
+            'UPDATE notifications SET is_read = 1 WHERE user_id = ? AND entity_type = ? AND entity_id = ?'
+        )->execute([$userId, $entityType, $entityId]);
     }
 
 }
