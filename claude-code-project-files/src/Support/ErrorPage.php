@@ -6,6 +6,7 @@ namespace App\Support;
 class ErrorPage
 {
     private const COPY = [
+        400 => ['That request was not understood', 'Something in the form was not plain text, so it was refused. Go back, reload the page and try again.'],
         403 => ['You don\'t have access to this page', 'Your account can\'t open this page. Go back to your dashboard to continue.'],
         404 => ['Page not found', 'This page doesn\'t exist or was moved. Check the address, or go back to your dashboard.'],
         500 => ['Something went wrong on our side', 'The problem has been logged. Try again in a moment; if it keeps happening, tell the administrator.'],

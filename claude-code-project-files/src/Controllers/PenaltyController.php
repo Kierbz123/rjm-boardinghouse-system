@@ -155,7 +155,7 @@ class PenaltyController
 
             $_SESSION['flash_info'] = "Penalty of ₱" . number_format($amount, 2) . " ('{$rule['name']}') successfully issued to {$boarder['name']}. Current balance updated to ₱" . number_format($newBalance, 2) . ".";
         } catch (\Throwable $e) {
-            $_SESSION['flash_error'] = 'Failed to issue penalty: ' . $e->getMessage();
+            $_SESSION['flash_error'] = \App\Support\Flash::error($e, 'The penalty could not be issued. Please try again.');
         }
 
         header("Location: {$redirectUrl}");

@@ -11,7 +11,8 @@
 $root = dirname(__DIR__);
 $php = PHP_BINARY;
 $testDb = (getenv('DB_NAME') ?: 'rjm_boardinghouse') . '_test';
-$port = 8099;
+// Two sessions running the suite at once would drop each other's database: give each its own DB_NAME and TEST_PORT.
+$port = (int) (getenv('TEST_PORT') ?: 8099);
 
 // Fresh database. Connect without a schema so we can drop/create it.
 $pdo = new PDO(
@@ -28,7 +29,7 @@ $pdo = null;
 putenv("DB_NAME={$testDb}");
 putenv("TEST_BASE_URL=http://127.0.0.1:{$port}");
 // Tests never read the real .env (it holds the live database login).
-putenv('APP_ENV_FILE=');
+putenv('APP_ENV_FILE=none');
 // A second server on the same database: concurrency tests send requests to both at once.
 // (PHP_CLI_SERVER_WORKERS is not available on Windows, so two processes stand in for workers.)
 $port2 = $port - 1;

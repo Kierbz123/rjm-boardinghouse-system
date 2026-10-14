@@ -110,6 +110,7 @@ check(!q1('SELECT COUNT(*) FROM notifications WHERE id = ?', [$mine]), 'delete o
 
 section('Inquiries and the landing page');
 q('DELETE FROM inquiries WHERE ip_address = ?', ['127.0.0.1']);
+q("DELETE FROM notifications WHERE entity_type = 'inquiry' AND entity_id NOT IN (SELECT id FROM inquiries)");
 $base = (int) q1('SELECT COUNT(*) FROM inquiries');
 $anon->req('POST', '/inquire', ['name' => 'Juan', 'phone' => '09171234567', 'email' => 'j@x.test', 'room_type' => 'Solo', 'message' => 'Is a room free?', 'website' => '']);
 check((int) q1('SELECT COUNT(*) FROM inquiries') === $base + 1, 'a public inquiry is saved');
@@ -137,7 +138,7 @@ check(flashHas($me, $me->post('/profile/update', ['name' => 'Demo Boarder', 'ema
 check(flashHas($me, $me->post('/profile/update', ['name' => 'Demo', 'email' => 'admin@rjm.test']), 'already registered'), "another account's e-mail cannot be taken");
 check(flashHas($me, $me->post('/profile/update', ['name' => 'Demo', 'email' => $res['email'], 'contact_number' => str_repeat('1', 51)]), '50 characters'), 'a contact number over 50 characters is refused');
 check(flashHas($me, $me->post('/profile/password', ['current_password' => 'wrong', 'new_password' => 'NewPassw0rd!', 'confirm_password' => 'NewPassw0rd!']), 'incorrect'), 'a wrong current password is refused');
-check(flashHas($me, $me->post('/profile/password', ['current_password' => $res['password'], 'new_password' => 'short', 'confirm_password' => 'short']), '8 characters'), 'a weak new password is refused');
+check(flashHas($me, $me->post('/profile/password', ['current_password' => $res['password'], 'new_password' => 'short', 'confirm_password' => 'short']), '8 to 72'), 'a weak new password is refused');
 check(flashHas($me, $me->post('/profile/password', ['current_password' => $res['password'], 'new_password' => 'NewPassw0rd!', 'confirm_password' => 'Different1!']), 'do not match'), 'a confirmation mismatch is refused');
 $second = new Client('second');
 $second->login($res['email'], $res['password']);

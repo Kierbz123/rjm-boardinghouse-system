@@ -21,8 +21,8 @@ class PasswordResetService
             return 'That account cannot be reset here.';
         }
         // 72 bytes is all the password hash looks at; anything longer would be silently cut.
-        if (mb_strlen($newPassword) < 8 || strlen($newPassword) > 72) {
-            return 'The temporary password must be 8 to 72 characters.';
+        if (($problem = \App\Support\PasswordPolicy::problem($newPassword)) !== null) {
+            return $problem;
         }
 
         // A new hash also ends every session that account still has open (AuthMiddleware).

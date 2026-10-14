@@ -9,7 +9,7 @@ namespace App;
  * and always prepared statements, never string-built SQL.
  *
  * Settings come from real environment variables first, then from the project's .env file
- * (APP_ENV_FILE overrides its location; an empty value switches the file off). A login that
+ * (APP_ENV_FILE overrides its location; point it at a file that does not exist, e.g. "none", to switch the file off - an empty value cannot be used because Windows has no empty environment variables). A login that
  * came only from .env and that the server refuses (a stale password) falls back to XAMPP's
  * default root login, loudly: it is logged, describe() reports it, and the admin dashboard
  * and the online launcher complain until bin/setup-db-user.php has been run.
@@ -82,6 +82,12 @@ class Database
         }
 
         return self::$instance;
+    }
+
+    /** Drops the shared connection so the next call opens a fresh one (long test runs after a server restart). */
+    public static function reconnect(): void
+    {
+        self::$instance = null;
     }
 
     /** @return array{user:?string, insecure:bool, fellBack:bool} how this process is logged in to the database */

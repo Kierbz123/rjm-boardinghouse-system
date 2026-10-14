@@ -855,7 +855,7 @@ $totalBalancesOwed  = array_sum(array_column($boarders, 'outstanding_balance'));
                         <div class="password-relative-wrap">
                             <input id="add-boarder-password"
                                    name="password"
-                                   type="password"
+                                   type="password" data-max-bytes="72"
                                    placeholder="Min. 8 characters"
                                    required
                                    class="field-input password-input-with-toggle">

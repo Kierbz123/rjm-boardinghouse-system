@@ -180,8 +180,13 @@ class ProfileController
             exit;
         }
 
-        if (mb_strlen($newPassword) < 8) {
-            $_SESSION['flash_error'] = 'New password must be at least 8 characters long.';
+        if (($problem = \App\Support\PasswordPolicy::problem($newPassword)) !== null) {
+            $_SESSION['flash_error'] = $problem;
+            header('Location: /profile');
+            exit;
+        }
+        if (hash_equals($currentPassword, $newPassword)) {
+            $_SESSION['flash_error'] = 'Choose a password different from the current one.';
             header('Location: /profile');
             exit;
         }

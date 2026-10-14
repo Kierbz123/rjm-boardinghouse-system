@@ -24,7 +24,7 @@ class StaffController
         $error = match (true) {
             $name === '' || mb_strlen($name) > 150 => 'Enter a name (150 characters max).',
             !filter_var($email, FILTER_VALIDATE_EMAIL) || mb_strlen($email) > 150 => 'Enter a valid email address.',
-            mb_strlen($password) < 8 => 'The temporary password must be at least 8 characters.',
+            \App\Support\PasswordPolicy::problem($password) !== null => \App\Support\PasswordPolicy::problem($password),
             User::findByEmail($email) !== null => 'That email is already in use.',
             default => null,
         };

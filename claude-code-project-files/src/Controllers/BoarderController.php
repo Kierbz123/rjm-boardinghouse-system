@@ -52,8 +52,13 @@ class BoarderController
             header('Location: /admin/boarders');
             exit;
         }
-        if (!filter_var($email, FILTER_VALIDATE_EMAIL) || mb_strlen($password) < 8) {
-            $_SESSION['flash_error'] = 'Enter a valid email and a password of at least 8 characters.';
+        if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+            $_SESSION['flash_error'] = 'Please enter a valid email address.';
+            header('Location: /admin/boarders');
+            exit;
+        }
+        if (($problem = \App\Support\PasswordPolicy::problem($password)) !== null) {
+            $_SESSION['flash_error'] = $problem;
             header('Location: /admin/boarders');
             exit;
         }
@@ -94,11 +99,7 @@ class BoarderController
     /** Our own "why not" messages are shown as written; anything unexpected is logged and replaced. */
     private static function messageFor(\Throwable $e, string $fallback): string
     {
-        if ($e instanceof RuntimeException && !$e instanceof \PDOException) {
-            return $e->getMessage();
-        }
-        \App\Support\Logger::error($e->getMessage() . ' in ' . $e->getFile() . ':' . $e->getLine());
-        return $fallback;
+        return \App\Support\Flash::error($e, $fallback);
     }
 
     /** Assigns an existing boarder to a bed. Rejects if the bed is already occupied — Phase 2 verification. */
@@ -219,7 +220,7 @@ class BoarderController
                     $reasonText = $note !== '' ? $note : 'Updated by administrator';
                     BoarderProfile::updateStatus($id, $status, $adminId ?: null, $reasonText);
                 } catch (\Throwable $e) {
-                    $_SESSION['flash_error'] = $e->getMessage();
+                    $_SESSION['flash_error'] = self::messageFor($e, 'The status could not be changed. Please try again.');
                     header('Location: ' . $redirectUrl);
                     exit;
                 }
@@ -251,7 +252,7 @@ class BoarderController
                 $_SESSION['flash_success'] = 'Resident deleted (no payment or penalty history existed).';
             }
         } catch (\Throwable $e) {
-            $_SESSION['flash_error'] = $e->getMessage();
+            $_SESSION['flash_error'] = self::messageFor($e, 'The resident could not be removed. Please try again.');
         }
 
         header('Location: /admin/boarders');
@@ -384,7 +385,7 @@ class BoarderController
             );
             $_SESSION['flash_success'] = "Move-in/move-out dates updated for {$boarder['name']}.";
         } catch (\Throwable $e) {
-            $_SESSION['flash_error'] = 'Failed to update dates: ' . $e->getMessage();
+            $_SESSION['flash_error'] = self::messageFor($e, 'The dates could not be updated. Please try again.');
         }
 
         header("Location: /admin/boarders/{$id}");

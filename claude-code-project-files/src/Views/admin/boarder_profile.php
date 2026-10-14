@@ -1202,7 +1202,7 @@ input[type="date"].profile-input {
             <?= \App\Support\Csrf::field() ?>
             <div>
                 <label for="reset-new-password" class="block text-xs font-semibold text-neutral-700 mb-1">New temporary password</label>
-                <input id="reset-new-password" name="new_password" type="password" required minlength="8" maxlength="72"
+                <input id="reset-new-password" name="new_password" type="password" data-max-bytes="72" required minlength="8" maxlength="72"
                        autocomplete="new-password" class="input w-full" aria-describedby="reset-password-hint">
                 <p id="reset-password-hint" class="text-[11px] text-neutral-400 mt-1.5">At least 8 characters. Tell the resident in person; it is not sent anywhere.</p>
             </div>

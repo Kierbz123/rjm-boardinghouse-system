@@ -99,6 +99,11 @@ class RoomController
             header('Location: /admin/rooms');
             exit;
         }
+        if ($capacity > 50) {
+            $_SESSION['flash_error'] = 'A room holds at most 50 beds.';
+            header('Location: /admin/rooms');
+            exit;
+        }
         if (mb_strlen($roomNumber) > 20 || mb_strlen($floor) > 20) {
             $_SESSION['flash_error'] = 'Room number and floor must be 20 characters or fewer.';
             header('Location: /admin/rooms');
@@ -132,8 +137,18 @@ class RoomController
             header('Location: /admin/rooms');
             exit;
         }
+        if ($capacity > 50) {
+            $_SESSION['flash_error'] = 'A room holds at most 50 beds.';
+            header('Location: /admin/rooms');
+            exit;
+        }
         if (mb_strlen($roomNumber) > 20 || mb_strlen($floor) > 20) {
             $_SESSION['flash_error'] = 'Room number and floor must be 20 characters or fewer.';
+            header('Location: /admin/rooms');
+            exit;
+        }
+        if (Room::find((int) $id) === null) {
+            $_SESSION['flash_error'] = 'Room not found.';
             header('Location: /admin/rooms');
             exit;
         }
@@ -233,7 +248,7 @@ class RoomController
             $pdo->commit();
         } catch (\Throwable $e) {
             $pdo->rollBack();
-            $_SESSION['flash_error'] = 'Failed to create beds: ' . $e->getMessage();
+            $_SESSION['flash_error'] = \App\Support\Flash::error($e, 'The beds could not be added. Please try again.');
             header('Location: /admin/rooms');
             exit;
         }

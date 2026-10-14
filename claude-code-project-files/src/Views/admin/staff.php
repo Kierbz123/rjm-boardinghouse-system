@@ -23,7 +23,7 @@ $staff = $staff ?? [];
             </div>
             <div>
                 <label for="staff-password" class="block text-xs font-semibold text-neutral-700 mb-1">Temporary password</label>
-                <input id="staff-password" name="password" type="password" required minlength="8" class="input w-full" autocomplete="new-password" aria-describedby="staff-password-hint">
+                <input id="staff-password" name="password" type="password" data-max-bytes="72" required minlength="8" class="input w-full" autocomplete="new-password" aria-describedby="staff-password-hint">
                 <p id="staff-password-hint" class="text-xs text-neutral-500 mt-1">At least 8 characters. They can change it under Profile.</p>
             </div>
             <div class="sm:col-span-3">
@@ -66,7 +66,7 @@ $staff = $staff ?? [];
                                     <?= \App\Support\Csrf::field() ?>
                                     <div>
                                         <label for="staff-reset-<?= (int) $s['id'] ?>" class="block text-xs font-semibold text-neutral-700 mb-1">New temporary password</label>
-                                        <input id="staff-reset-<?= (int) $s['id'] ?>" name="new_password" type="password" required minlength="8" maxlength="72" class="input" autocomplete="new-password">
+                                        <input id="staff-reset-<?= (int) $s['id'] ?>" name="new_password" type="password" data-max-bytes="72" required minlength="8" maxlength="72" class="input" autocomplete="new-password">
                                     </div>
                                     <button type="submit" class="btn btn-primary">Save</button>
                                 </form>

@@ -41,7 +41,11 @@ class AuthController
 
         $email = trim((string) ($_POST['email'] ?? ''));
         $password = (string) ($_POST['password'] ?? '');
-        $auth = self::verifyCredentials($email, $password);
+        // No account has an e-mail past the column size or a password past 72 bytes: answer exactly as for
+        // any wrong login, without touching the database (login_attempts.email is VARCHAR(150)).
+        $auth = mb_strlen($email) > 150 || strlen($password) > 1024
+            ? ['ok' => false, 'error' => 'Invalid email or password.']
+            : self::verifyCredentials($email, $password);
         if (!$auth['ok']) {
             $_SESSION['flash_error'] = $auth['error'];
             $_SESSION['flash_email'] = $email;

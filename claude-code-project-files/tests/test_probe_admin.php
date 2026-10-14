@@ -20,9 +20,9 @@ check(flashHas($admin, $admin->post('/admin/rooms', ['room_number' => 'Z' . uniq
 check(flashHas($admin, $admin->post('/admin/rooms', ['room_number' => 'Z' . uniq(), 'capacity' => 2, 'base_price' => 'abc']), 'Monthly price'), 'non-numeric price refused');
 $huge = 'Z' . uniq();
 $r = $admin->post('/admin/rooms', ['room_number' => $huge, 'capacity' => 99999999999, 'base_price' => 10]);
-knownDefect('F-10', $r->code < 500 && !q1('SELECT COUNT(*) FROM rooms WHERE room_number = ?', [$huge]), 'capacity 99999999999 is refused cleanly', "HTTP {$r->code}");
+check($r->code < 500 && !q1('SELECT COUNT(*) FROM rooms WHERE room_number = ?', [$huge]), 'capacity 99999999999 is refused cleanly', "HTTP {$r->code}");
 $r = $admin->post('/admin/rooms/999999/update', ['room_number' => 'Q' . uniq(), 'capacity' => 2, 'base_price' => 100]);
-knownDefect('F-27', !flashHas($admin, $r, 'updated'), 'updating a room that does not exist does not claim success');
+check(!flashHas($admin, $r, 'updated'), 'updating a room that does not exist does not claim success');
 
 $admin->post('/admin/beds', ['room_id' => $roomId, 'label' => 'Bed A', 'count' => 2]);
 $beds = array_map('intval', array_column(q('SELECT id FROM beds WHERE room_id = ? ORDER BY label', [$roomId]), 'id'));
@@ -43,12 +43,12 @@ check(q1('SELECT status FROM boarder_profiles WHERE user_id = ?', [$one]) === 'p
 check(flashHas($admin, $mk([]), 'already in use'), 'duplicate e-mail refused');
 check(flashHas($admin, $mk(['email' => strtoupper($email)]), 'already in use'), 'duplicate e-mail in other letter case refused');
 check(flashHas($admin, $mk(['email' => 'not-an-email']), 'valid email'), 'invalid e-mail refused');
-check(flashHas($admin, $mk(['email' => 's' . uniq() . '@t.test', 'password' => '1234567']), '8 characters'), 'password under 8 refused');
+check(flashHas($admin, $mk(['email' => 's' . uniq() . '@t.test', 'password' => '1234567']), '8 to 72'), 'password under 8 refused');
 $long = 'l' . uniq() . '@t.test';
 $mk(['email' => $long, 'password' => str_repeat('p', 100) . 'A']);
 $accepted = (bool) q1('SELECT COUNT(*) FROM users WHERE email = ?', [$long]);
 $loginWithDifferentTail = $accepted ? (new Client('long'))->login($long, str_repeat('p', 100) . 'ZZZ')->loc : '';
-knownDefect('F-07', !$accepted || $loginWithDifferentTail !== '/portal/dashboard', 'a password over 72 bytes is refused (or at least never truncated silently)', $accepted ? 'accepted, and a different tail still logs in' : '');
+check(!$accepted || $loginWithDifferentTail !== '/portal/dashboard', 'a password over 72 bytes is refused (or at least never truncated silently)', $accepted ? 'accepted, and a different tail still logs in' : '');
 check(flashHas($admin, $mk(['email' => 'n' . uniq() . '@t.test', 'name' => str_repeat('n', 151)]), '150 characters'), 'name over 150 refused');
 $xss = 'x' . uniq() . '@t.test';
 $mk(['email' => $xss, 'name' => '<script>alert(1)</script>']);

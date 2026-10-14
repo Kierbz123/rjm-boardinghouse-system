@@ -24,6 +24,7 @@ class User
 
     public static function create(string $role, string $name, string $email, string $password): int
     {
+        \App\Support\PasswordPolicy::assert($password); // bcrypt would silently cut anything past 72 bytes
         $hash = password_hash($password, PASSWORD_DEFAULT);
         $stmt = Database::getConnection()->prepare(
             'INSERT INTO users (role, name, email, password_hash) VALUES (?, ?, ?, ?)'
@@ -72,6 +73,7 @@ class User
 
     public static function updatePassword(int $id, string $password): void
     {
+        \App\Support\PasswordPolicy::assert($password);
         $hash = password_hash($password, PASSWORD_DEFAULT);
         $stmt = Database::getConnection()->prepare('UPDATE users SET password_hash = ? WHERE id = ?');
         $stmt->execute([$hash, $id]);

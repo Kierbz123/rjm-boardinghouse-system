@@ -248,10 +248,10 @@ class AssistantController
      */
     private static function readJsonBody(bool $countsAsAiCall = true): ?array
     {
-        $raw   = file_get_contents('php://input');
-        $input = json_decode($raw, true);
+        // Values must be plain text (only "previous", the last question and answer, may be a list).
+        $input = \App\Support\Input::jsonBody(['previous']);
 
-        if (!is_array($input)) {
+        if ($input === null) {
             http_response_code(400);
             echo json_encode(['ok' => false, 'error' => 'Invalid JSON body.']);
             return null;

@@ -90,4 +90,25 @@
         return div.innerHTML;
     }
 
+    // Password fields carry data-max-bytes="72": the hash only reads 72 BYTES, so accented letters and
+    // emoji count for more than one. Show "x / 72" while typing and stop the form with a clear message.
+    document.querySelectorAll('input[data-max-bytes]').forEach(function (input) {
+        var limit = parseInt(input.getAttribute('data-max-bytes'), 10);
+        var counter = document.createElement('span');
+        counter.className = 'text-[11px] text-neutral-500 block mt-1 byte-counter';
+        counter.setAttribute('aria-live', 'polite');
+        // Inside the flex eye-toggle wrapper the counter would sit beside the input, so go after the wrapper.
+        var wrap = input.closest('.password-relative-wrap');
+        (wrap || input).insertAdjacentElement('afterend', counter);
+        function update() {
+            var bytes = new TextEncoder().encode(input.value).length;
+            var tooLong = bytes > limit;
+            counter.textContent = bytes + ' / ' + limit + ' bytes' + (tooLong ? ' — too long: shorten it (accented letters and emoji count as more than one)' : '');
+            counter.style.color = tooLong ? '#b91c1c' : '';
+            input.setCustomValidity(tooLong ? 'The password can be at most ' + limit + ' bytes.' : '');
+        }
+        input.addEventListener('input', update);
+        update();
+    });
+
 })();

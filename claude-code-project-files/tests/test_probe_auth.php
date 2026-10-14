@@ -136,7 +136,7 @@ foreach ($routes as $path) {
         }
     }
 }
-knownDefect('F-10', !$bad, 'array-typed form fields never cause a 500', implode('; ', array_slice($bad, 0, 4)) . (count($bad) > 4 ? ' ...' : ''));
+check(!$bad, 'array-typed form fields never cause a 500', implode('; ', array_slice($bad, 0, 4)) . (count($bad) > 4 ? ' ...' : ''));
 
 foreach (['/admin/boarders/abc', '/admin/boarders/-1', '/admin/boarders/99999999999999999999', '/admin/boarders/0', '/uploads/receipts/../../../.env',
     '/uploads/receipts/..%2f..%2f.env', '/index.php', '/public/index.php', '/src/autoload.php', '/.env', '/storage/uploads', '/logs/app.log',

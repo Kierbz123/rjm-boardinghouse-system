@@ -503,7 +503,7 @@ $stats = $stats ?? [];
                     <label for="current-password" class="block text-caption font-semibold text-neutral-700 uppercase tracking-wider mb-1.5">
                         Current Password <span class="text-red-500">*</span>
                     </label>
-                    <input type="password"
+                    <input type="password" data-max-bytes="72"
                            id="current-password"
                            name="current_password"
                            class="input w-full"
@@ -516,7 +516,7 @@ $stats = $stats ?? [];
                     <label for="new-password" class="block text-caption font-semibold text-neutral-700 uppercase tracking-wider mb-1.5">
                         New Password <span class="text-red-500">*</span>
                     </label>
-                    <input type="password"
+                    <input type="password" data-max-bytes="72"
                            id="new-password"
                            name="new_password"
                            class="input w-full"
@@ -530,7 +530,7 @@ $stats = $stats ?? [];
                     <label for="confirm-password" class="block text-caption font-semibold text-neutral-700 uppercase tracking-wider mb-1.5">
                         Confirm New Password <span class="text-red-500">*</span>
                     </label>
-                    <input type="password"
+                    <input type="password" data-max-bytes="72"
                            id="confirm-password"
                            name="confirm_password"
                            class="input w-full"

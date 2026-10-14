@@ -61,7 +61,7 @@ section('Seeding: random passwords, forced change');
 $scratch = 'rjm_wp01_' . uniq();
 $mysql->exec("CREATE DATABASE `{$scratch}` CHARACTER SET utf8mb4");
 $cleanup[] = fn () => $mysql->exec("DROP DATABASE IF EXISTS `{$scratch}`");
-$noSeedEnv = ['DB_NAME' => $scratch, 'APP_ENV_FILE' => ''];
+$noSeedEnv = ['DB_NAME' => $scratch, 'APP_ENV_FILE' => 'none'];
 $dropSeed = ['SEED_ADMIN_PASSWORD', 'SEED_STAFF_PASSWORD', 'SEED_BOARDER_PASSWORD'];
 phpRun(['database/migrate.php'], $noSeedEnv, $dropSeed);
 [$code, $out] = phpRun(['database/seed.php'], $noSeedEnv, $dropSeed);
@@ -106,7 +106,7 @@ check((int) q1('SELECT must_change_password FROM users WHERE id = ?', [$res['id'
 q('UPDATE users SET must_change_password = 0 WHERE id = ?', [$res['id']]);
 
 section('Before going online');
-$db1 = ['DB_NAME' => $testDb, 'APP_ENV_FILE' => ''];
+$db1 = ['DB_NAME' => $testDb, 'APP_ENV_FILE' => 'none'];
 q('UPDATE users SET must_change_password = 1 WHERE id = ?', [$res['id']]);
 [$code, $out] = phpRun(['bin/pre-online-check.php'], $db1);
 check($code === 1 && str_contains($out, $res['email']), 'the pre-online check lists accounts that still have a default password', trim($out));
@@ -115,7 +115,7 @@ q('UPDATE users SET must_change_password = 0 WHERE id = ?', [$res['id']]);
 check($code === 1 && str_contains($out, 'root'), 'it also objects while the database login is root without a password', trim($out));
 $made = makeDbUser($mysql, $testDb, $cleanup);
 [$dbUser, $dbPass] = $made ?? ['rjm_no_such_login', 'x'];
-$db2 = ['DB_NAME' => $testDb, 'DB_USER' => $dbUser, 'DB_PASS' => $dbPass, 'APP_ENV_FILE' => ''];
+$db2 = ['DB_NAME' => $testDb, 'DB_USER' => $dbUser, 'DB_PASS' => $dbPass, 'APP_ENV_FILE' => 'none'];
 [$code, $out] = phpRun(['bin/pre-online-check.php'], $db2);
 $made ? check($code === 0, 'with no default passwords and a real database login it passes', trim($out)) : skip('the pre-online check passes with a real database login', 'this MariaDB cannot create users (its privilege tables are damaged)');
 
@@ -161,16 +161,16 @@ if ($made) {
     @unlink($envFile);
     file_put_contents($envFile, "DB_HOST=127.0.0.1\nOTHER=keep-me\n");
     $setupArgs = ['bin/setup-db-user.php', "--user={$setupUser}", "--db={$testDb}", "--env-file={$envFile}"];
-    [$code, $out] = phpRun($setupArgs, ['APP_ENV_FILE' => '']);
+    [$code, $out] = phpRun($setupArgs, ['APP_ENV_FILE' => 'none']);
     $written = (string) @file_get_contents($envFile);
     check($code === 0 && str_contains($written, "DB_USER={$setupUser}") && preg_match('/^DB_PASS=\S{24,}$/m', $written) && str_contains($written, 'OTHER=keep-me'), 'the setup script creates the login and writes it to .env, keeping other lines', trim($out));
     check(!str_contains($out, trim(explode('DB_PASS=', $written)[1] ?? 'x')), 'the setup script never prints the password');
     [$code, $out] = phpRun(array_merge($probe, []), ['DB_NAME' => $testDb, 'APP_ENV_FILE' => $envFile], ['DB_USER', 'DB_PASS']);
     $info = json_decode($out, true) ?: [];
     check($code === 0 && str_starts_with($info['who'] ?? '', $setupUser) && empty($info['insecure']), 'the app can then connect with the new login', trim($out));
-    [$code, $out] = phpRun($setupArgs, ['APP_ENV_FILE' => '']);
+    [$code, $out] = phpRun($setupArgs, ['APP_ENV_FILE' => 'none']);
     check($code !== 0 && str_contains($out, '--reset'), 'running it again without --reset refuses to change an existing login');
-    [$code] = phpRun(array_merge($setupArgs, ['--reset']), ['APP_ENV_FILE' => '']);
+    [$code] = phpRun(array_merge($setupArgs, ['--reset']), ['APP_ENV_FILE' => 'none']);
     check($code === 0, '--reset sets a new password');
 } else {
     skip('bin/setup-db-user.php creates the login, writes .env and refuses a second run without --reset', 'this MariaDB cannot create users (its privilege tables are damaged)');

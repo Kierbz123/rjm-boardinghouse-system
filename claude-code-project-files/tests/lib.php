@@ -76,8 +76,17 @@ function db(): PDO
 
 function q(string $sql, array $params = []): array
 {
-    $stmt = db()->prepare($sql);
-    $stmt->execute($params);
+    try {
+        $stmt = db()->prepare($sql);
+        $stmt->execute($params);
+    } catch (PDOException $e) {
+        if (!in_array((int) ($e->errorInfo[1] ?? 0), [2006, 2013], true)) {
+            throw $e;
+        }
+        Database::reconnect(); // the database server restarted mid-run: reconnect once and retry
+        $stmt = db()->prepare($sql);
+        $stmt->execute($params);
+    }
     return $stmt->fetchAll();
 }
 

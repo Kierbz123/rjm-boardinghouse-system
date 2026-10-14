@@ -51,6 +51,10 @@ set_exception_handler(function (\Throwable $e) {
     \App\Support\ErrorPage::render(500);
 });
 
+// Form fields and query values must be plain text: arrays, NUL bytes etc. get a clean 400 here,
+// once, before any route runs (src/Support/Input.php).
+\App\Support\Input::guardRequest();
+
 use App\Support\Router;
 use App\Middleware\AuthMiddleware;
 use App\Middleware\RoleMiddleware;
