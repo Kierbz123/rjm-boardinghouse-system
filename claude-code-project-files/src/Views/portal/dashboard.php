@@ -71,14 +71,14 @@ $tierBadges = [
     <!-- Flash Alerts -->
     <?php if ($error): ?>
         <div class="text-body-sm flex items-center gap-2.5" role="alert" style="background: #fdf1f0; color: #912018; border-radius: 0.875rem; padding: 1rem 1.25rem; border: 1px solid #e88f86;">
-            <span style="font-size:1.125rem;">⚠</span>
+            <?= \App\Support\Icon::svg('alert-triangle', 18) ?>
             <?= htmlspecialchars($error) ?>
         </div>
     <?php endif; ?>
 
     <?php if ($success): ?>
         <div class="text-body-sm flex items-center gap-2.5" role="alert" style="background: #eef6f1; color: #245a3f; border-radius: 0.875rem; padding: 1rem 1.25rem; border: 1px solid #8cc2a2;">
-            <span style="font-size:1.125rem;">✓</span>
+            <?= \App\Support\Icon::svg('check', 18) ?>
             <?= htmlspecialchars($success) ?>
         </div>
     <?php endif; ?>
@@ -88,7 +88,7 @@ $tierBadges = [
         <div class="flex flex-col md:flex-row items-center justify-between gap-5">
             <div class="flex items-start gap-4">
                 <div style="width: 3.25rem; height: 3.25rem; border-radius: 0.875rem; background: #b42318; color: white; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; flex-shrink: 0; box-shadow: 0 2px 6px rgba(220,38,38,0.25);">
-                    🚨
+                    <?= \App\Support\Icon::svg('siren') ?>
                 </div>
                 <div>
                     <h2 class="text-heading-sm font-bold text-neutral-900 flex items-center gap-2.5">
@@ -107,12 +107,23 @@ $tierBadges = [
                         style="background: linear-gradient(135deg, #b42318, #912018); border-radius: 0.75rem; padding: 0.9rem 1.75rem; box-shadow: 0 4px 12px rgba(220,38,38,0.3); transition: all 0.15s ease; border: none;"
                         onmouseover="this.style.boxShadow='0 6px 16px rgba(220,38,38,0.4)'; this.style.transform='translateY(-1px)'"
                         onmouseout="this.style.boxShadow='0 4px 12px rgba(220,38,38,0.3)'; this.style.transform='translateY(0)'">
-                    <span style="font-size: 1.15rem;">🚨</span>
+                    <?= \App\Support\Icon::svg('siren', 18) ?>
                     <span>Trigger Emergency SOS</span>
                 </button>
             </div>
         </div>
         <p id="sos-status" class="text-body-sm text-center font-medium mt-3 empty:hidden"></p>
+        <?php if (!empty($sosContacts)): ?>
+            <div class="mt-4 pt-3 border-t border-red-100 text-body-sm text-neutral-700">
+                <p class="font-semibold">If nobody comes within a few minutes, call:</p>
+                <ul class="mt-1 flex flex-wrap gap-x-5 gap-y-1">
+                    <?php foreach ($sosContacts as $contact): ?>
+                        <li>Call <?= htmlspecialchars($contact['name']) ?>:
+                            <a class="font-semibold underline" href="tel:<?= htmlspecialchars((string) preg_replace('/[^0-9+]/', '', $contact['phone'])) ?>"><?= htmlspecialchars($contact['phone']) ?></a></li>
+                    <?php endforeach; ?>
+                </ul>
+            </div>
+        <?php endif; ?>
     </div>
 
     <!-- KPI Metric Cards -->
@@ -168,7 +179,7 @@ $tierBadges = [
             <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 pb-3 border-b border-amber-200/60">
                 <div class="flex items-center gap-3">
                     <div style="width: 2.75rem; height: 2.75rem; border-radius: 0.75rem; background: #b98a12; color: white; display: flex; align-items: center; justify-content: center; font-size: 1.35rem; flex-shrink: 0; box-shadow: 0 2px 6px rgba(245,158,11,0.25);">
-                        ⚠️
+                        <?= \App\Support\Icon::svg('alert-triangle') ?>
                     </div>
                     <div>
                         <h2 class="text-heading-sm font-bold text-neutral-900 flex items-center gap-2">
@@ -222,7 +233,7 @@ $tierBadges = [
     <?php endif; ?>
 
     <!-- Quick Action Cards Grid -->
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
+    <div class="grid grid-cols-1 xl:grid-cols-3 gap-5">
         <!-- Action 1: Report a Repair -->
         <a href="/portal/maintenance/new"
            class="reveal-card group block relative overflow-hidden"
@@ -231,7 +242,7 @@ $tierBadges = [
            onmouseout="this.style.borderColor='#e6e5e2'; this.style.boxShadow='0 1px 3px rgba(10, 10, 10,0.06)'; this.style.transform='translateY(0)'">
             <div class="flex items-start gap-4">
                 <div style="width: 2.875rem; height: 2.875rem; border-radius: 0.75rem; background: #fbf6e8; color: #9a6700; border: 1px solid #f4e7c2; display: flex; align-items: center; justify-content: center; font-size: 1.25rem; flex-shrink: 0;">
-                    🔧
+                    <?= \App\Support\Icon::svg('wrench') ?>
                 </div>
                 <div style="flex: 1; min-width: 0;">
                     <h3 class="text-heading-sm font-bold text-neutral-900 flex items-center gap-2">
@@ -257,7 +268,7 @@ $tierBadges = [
            onmouseout="this.style.borderColor='#e6e5e2'; this.style.boxShadow='0 1px 3px rgba(10, 10, 10,0.06)'; this.style.transform='translateY(0)'">
             <div class="flex items-start gap-4">
                 <div style="width: 2.875rem; height: 2.875rem; border-radius: 0.75rem; background: #eef6f1; color: #2f6f4e; border: 1px solid #d7ebdf; display: flex; align-items: center; justify-content: center; font-size: 1.25rem; flex-shrink: 0;">
-                    💳
+                    <?= \App\Support\Icon::svg('credit-card') ?>
                 </div>
                 <div style="flex: 1; min-width: 0;">
                     <h3 class="text-heading-sm font-bold text-neutral-900 flex items-center gap-2">
@@ -283,7 +294,7 @@ $tierBadges = [
            onmouseout="this.style.borderColor='#e6e5e2'; this.style.boxShadow='0 1px 3px rgba(10, 10, 10,0.06)'; this.style.transform='translateY(0)'">
             <div class="flex items-start gap-4">
                 <div style="width: 2.875rem; height: 2.875rem; border-radius: 0.75rem; background: #fbf4ef; color: #b15f2c; border: 1px solid #ebc6ac; display: flex; align-items: center; justify-content: center; font-size: 1.25rem; flex-shrink: 0;">
-                    📋
+                    <?= \App\Support\Icon::svg('clipboard') ?>
                 </div>
                 <div style="flex: 1; min-width: 0;">
                     <h3 class="text-heading-sm font-bold text-neutral-900 flex items-center gap-2">
@@ -358,7 +369,7 @@ $tierBadges = [
                                 <tr>
                                     <td colspan="4">
                                         <div style="padding: 2.5rem 1.5rem; text-align: center; color: #9d9b97;">
-                                            <div style="font-size: 1.75rem; margin-bottom: 0.4rem;">🔧</div>
+                                            <span class="empty-icon"><?= \App\Support\Icon::svg('wrench') ?></span>
                                             <p class="font-semibold text-neutral-700 text-body-sm">No repair tickets yet.</p>
                                             <p class="text-caption text-neutral-400" style="margin-top: 0.25rem;">Everything in your room is in working order.</p>
                                         </div>
@@ -425,7 +436,7 @@ $tierBadges = [
                                 <tr>
                                     <td colspan="4">
                                         <div style="padding: 2.5rem 1.5rem; text-align: center; color: #9d9b97;">
-                                            <div style="font-size: 1.75rem; margin-bottom: 0.4rem;">💳</div>
+                                            <span class="empty-icon"><?= \App\Support\Icon::svg('credit-card') ?></span>
                                             <p class="font-semibold text-neutral-700 text-body-sm">No payment records yet.</p>
                                             <p class="text-caption text-neutral-400" style="margin-top: 0.25rem;">Submit your first proof of payment when rent is due.</p>
                                         </div>
@@ -468,7 +479,7 @@ $tierBadges = [
                 <?php if (empty($notifications)): ?>
                     <li>
                         <div style="padding: 2.5rem 1.5rem; text-align: center; color: #9d9b97;">
-                            <div style="font-size: 1.75rem; margin-bottom: 0.4rem;">🔔</div>
+                            <span class="empty-icon"><?= \App\Support\Icon::svg('bell') ?></span>
                             <p class="font-semibold text-neutral-700 text-body-sm">All caught up!</p>
                             <p class="text-caption text-neutral-400" style="margin-top: 0.25rem;">No unread notices or broadcasts at this time.</p>
                         </div>

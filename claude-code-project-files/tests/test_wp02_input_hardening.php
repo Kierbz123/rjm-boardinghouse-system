@@ -1,7 +1,7 @@
 <?php
 /**
  * WP-2 (F-07, F-09, F-10, F-27): malformed input is a clean 400/validation error, never a 500;
- * one shared password rule (8 to 72 BYTES) everywhere; room capacity is bounded; failures
+ * one shared password rule (15 characters to 72 BYTES) everywhere; room capacity is bounded; failures
  * never show database text to users.
  */
 require __DIR__ . '/lib.php';
@@ -80,10 +80,10 @@ check($r->code === 403 || $r->code === 400, 'a non-string csrf_token in JSON is 
 $r = $me->req('POST', '/api/assistant/ask', '{not json', ['Content-Type: application/json']);
 check($r->code === 400, 'broken JSON is a 400');
 
-section('One password rule: 8 to 72 bytes, everywhere');
+section('One password rule: 15 characters to 72 bytes, everywhere');
 $tooLong = str_repeat('p', 73);
 $emoji = str_repeat("\u{1F600}", 20);          // 20 characters but 80 bytes
-$exactly72 = str_repeat('q', 71) . '1';
+$exactly72 = substr(str_repeat("violet harbor lantern quartz ", 3), 0, 72);
 $ok72Email = 'p72' . uniq() . '@t.test';
 $tryCreate = fn (string $password, string $email) => $admin->post('/admin/boarders', ['name' => 'P', 'email' => $email, 'password' => $password]);
 $mk = function (string $password) use ($tryCreate): bool {
@@ -164,8 +164,8 @@ $force = function (string $table, string $check, callable $act) {
     }
 };
 $leaks = fn (string $text) => (bool) preg_match('/SQLSTATE|constraint|CONSTRAINT|chk_force|`|INSERT INTO|Integrity/i', $text);
-$text = $force('penalties', "COALESCE(reason, '') <> 'ZZ-FORCE'", fn () => $staff->flash($staff->post('/staff/penalties/issue', ['boarder_id' => $res2['id'], 'rule_id' => $rule, 'amount' => 5, 'reason' => 'ZZ-FORCE', 'due_date' => date('Y-m-d', strtotime('+5 days'))])));
-check(!$leaks($text) && $text !== '', 'a failing penalty insert shows staff a safe message, not SQL', substr($text, 0, 120));
+$text = $force('penalties', "COALESCE(reason, '') <> 'ZZ-FORCE'", fn () => $admin->flash($admin->post('/admin/penalties/issue', ['boarder_id' => $res2['id'], 'rule_id' => $rule, 'amount' => 5, 'reason' => 'ZZ-FORCE', 'due_date' => date('Y-m-d', strtotime('+5 days'))])));
+check(!$leaks($text) && $text !== '', 'a failing penalty insert shows a safe message, not SQL', substr($text, 0, 120));
 $text = $force('beds', "label <> 'ZZ'", fn () => $admin->flash($admin->post('/admin/beds', ['room_id' => $room['id'], 'label' => 'ZZ', 'count' => 1])));
 check(!$leaks($text) && $text !== '', 'a failing bed insert shows a safe message', substr($text, 0, 120));
 $when = date('Y-m-d', strtotime('-12 days'));

@@ -105,7 +105,7 @@ $totalPages = $totalPages ?? 1;
                                             <a href="/<?= htmlspecialchars(ltrim($h['media_path'], '/')) ?>"
                                                target="_blank"
                                                class="inline-flex items-center gap-1 text-xs font-semibold text-primary-600 hover:text-primary-800 underline">
-                                                <span>📎</span> Media
+                                                <span><?= \App\Support\Icon::svg('paperclip') ?></span> Media
                                             </a>
                                         </div>
                                     <?php endif; ?>
@@ -147,7 +147,7 @@ $totalPages = $totalPages ?? 1;
                             <tr>
                                 <td colspan="8">
                                     <div class="py-12 text-center text-neutral-400">
-                                        <div style="font-size: 2rem; margin-bottom: 0.5rem;">📋</div>
+                                        <span class="empty-icon"><?= \App\Support\Icon::svg('clipboard') ?></span>
                                         <p class="font-semibold text-neutral-700 text-body-sm">No maintenance history.</p>
                                         <p class="text-caption text-neutral-400 mt-0.5">No maintenance requests have been recorded yet.</p>
                                     </div>

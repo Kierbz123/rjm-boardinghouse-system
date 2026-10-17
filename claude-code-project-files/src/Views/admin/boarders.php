@@ -743,16 +743,57 @@ $totalBalancesOwed  = array_sum(array_column($boarders, 'outstanding_balance'));
 
     <?php if ($error): ?>
         <div class="bg-error-50 text-error-700 text-body-sm rounded-lg p-3.5 border border-error-500 flex items-center gap-2.5" role="alert">
-            <span style="font-size:1.1rem; line-height:1;">⚠</span>
+            <?= \App\Support\Icon::svg('alert-triangle', 18) ?>
             <span class="font-medium"><?= htmlspecialchars($error) ?></span>
         </div>
     <?php endif; ?>
 
     <?php if ($success): ?>
         <div class="bg-emerald-50 text-emerald-800 text-body-sm rounded-lg p-3.5 border border-emerald-300 flex items-center gap-2.5" role="alert">
-            <span style="font-size:1.1rem; line-height:1;">✓</span>
+            <?= \App\Support\Icon::svg('check', 18) ?>
             <span class="font-medium"><?= htmlspecialchars($success) ?></span>
         </div>
+    <?php endif; ?>
+
+    <?php if (!empty($conversion['error'])): ?>
+        <div role="alert" style="padding:0.85rem 1rem; border-radius:0.75rem; font-size:0.875rem; background:#fbf6e8; border:1px solid #efdfb4; color:#7a5300;">
+            <?= htmlspecialchars($conversion['error']) ?>
+            <?php if (!empty($conversion['user_id'])): ?>
+                <a href="/admin/boarders/<?= (int) $conversion['user_id'] ?>" style="font-weight:600; text-decoration:underline;">Open their profile</a>
+            <?php endif; ?>
+        </div>
+    <?php elseif (!empty($conversion['inquiry'])): ?>
+        <?php $inq = $conversion['inquiry']; ?>
+        <div role="status" style="padding:0.85rem 1rem; border-radius:0.75rem; font-size:0.875rem; background:#fbf4ef; border:1px solid #efd9c8; color:#7c3f19; display:flex; flex-wrap:wrap; gap:0.35rem 1rem; align-items:baseline; justify-content:space-between;">
+            <span>
+                <strong>Registering inquiry #<?= (int) $inq['id'] ?></strong> —
+                <?= htmlspecialchars($inq['name']) ?> asked about <?= htmlspecialchars($inq['room_type'] ?: 'a room') ?>.
+                Their details are filled in below. Check them, set a temporary password, then press Create Boarder Account.
+                <?php if ($conversion['notice']): ?><br><span style="color:#9a6700;"><?= htmlspecialchars($conversion['notice']) ?></span><?php endif; ?>
+            </span>
+            <span style="white-space:nowrap;">
+                <a href="/admin/inquiries/<?= (int) $inq['id'] ?>" style="font-weight:600; text-decoration:underline;">Back to inquiry</a> ·
+                <a href="/admin/boarders" style="font-weight:600; text-decoration:underline;">Cancel</a>
+            </span>
+        </div>
+        <?php if ($ex = $conversion['existing']): ?>
+            <div role="alert" style="padding:0.85rem 1rem; border-radius:0.75rem; font-size:0.875rem; background:#fbf6e8; border:1px solid #efdfb4; color:#7a5300; display:flex; flex-wrap:wrap; gap:0.5rem 1rem; align-items:center; justify-content:space-between;">
+                <span>
+                    <strong><?= htmlspecialchars($inq['email']) ?> already has an account:</strong>
+                    <?= htmlspecialchars($ex['name']) ?> (<?= htmlspecialchars($ex['role']) ?>). A second account with the same email cannot be created.
+                    <?= $ex['role'] === 'boarder' ? 'If this is the same person, link the inquiry to them instead.' : 'Use a different email below if this is someone else.' ?>
+                </span>
+                <span style="display:flex; gap:0.75rem; align-items:center; white-space:nowrap;">
+                    <?php if ($ex['role'] === 'boarder'): ?>
+                        <a href="/admin/boarders/<?= (int) $ex['id'] ?>" style="font-weight:600; text-decoration:underline;">Open their profile</a>
+                        <form method="post" action="/admin/inquiries/<?= (int) $inq['id'] ?>/link-boarder" style="margin:0;">
+                            <?= \App\Support\Csrf::field() ?>
+                            <button class="btn btn-primary !py-1.5 !px-3 !text-xs font-semibold">Link inquiry to <?= htmlspecialchars($ex['name']) ?></button>
+                        </form>
+                    <?php endif; ?>
+                </span>
+            </div>
+        <?php endif; ?>
     <?php endif; ?>
 
     <!-- KPI Metric Cards (5 Cards) -->
@@ -760,14 +801,14 @@ $totalBalancesOwed  = array_sum(array_column($boarders, 'outstanding_balance'));
         <div class="reveal-card kpi-card metric-accent-primary">
             <div class="kpi-card-header">
                 <span class="kpi-label">Total Residents</span>
-                <span class="kpi-icon">👥</span>
+                <span class="kpi-icon"><?= \App\Support\Icon::svg('users') ?></span>
             </div>
             <div class="kpi-value"><?= $totalBoarders ?></div>
             <div class="kpi-subtext">
                 <?php if ($unassignedBoarders > 0): ?>
-                    <span class="text-amber-600 font-semibold">⚠ <?= $unassignedBoarders ?> unassigned</span>
+                    <span class="text-amber-600 font-semibold"><?= \App\Support\Icon::svg('alert-triangle') ?> <?= $unassignedBoarders ?> unassigned</span>
                 <?php else: ?>
-                    <span class="text-neutral-400">✓ All assigned to beds</span>
+                    <span class="text-neutral-400"><?= \App\Support\Icon::svg('check') ?> All assigned to beds</span>
                 <?php endif; ?>
             </div>
         </div>
@@ -775,7 +816,7 @@ $totalBalancesOwed  = array_sum(array_column($boarders, 'outstanding_balance'));
         <div class="reveal-card kpi-card metric-accent-success">
             <div class="kpi-card-header">
                 <span class="kpi-label">Active Residents</span>
-                <span class="kpi-icon">🟢</span>
+                <span class="kpi-icon"><?= \App\Support\Icon::svg('circle-dot') ?></span>
             </div>
             <div class="kpi-value"><?= $activeBoarders ?></div>
             <div class="kpi-subtext">
@@ -799,7 +840,7 @@ $totalBalancesOwed  = array_sum(array_column($boarders, 'outstanding_balance'));
         <div class="reveal-card kpi-card metric-accent-info">
             <div class="kpi-card-header">
                 <span class="kpi-label">Vacant Beds</span>
-                <span class="kpi-icon">🛏️</span>
+                <span class="kpi-icon"><?= \App\Support\Icon::svg('bed') ?></span>
             </div>
             <div class="kpi-value <?= $vacantBedsCount === 0 ? 'text-error-600' : 'text-neutral-900' ?>">
                 <?= $vacantBedsCount ?>
@@ -835,20 +876,30 @@ $totalBalancesOwed  = array_sum(array_column($boarders, 'outstanding_balance'));
         <div class="boarders-management-grid">
 
             <!-- Card 1: Add Boarder Form -->
-            <form method="post" action="/admin/boarders" class="mgmt-card">
+            <form method="post" action="/admin/boarders" class="mgmt-card" id="add-boarder">
                 <div class="mgmt-card-header">
-                    <span style="font-size:1.15rem; line-height:1;">👤</span>
-                    <h3 class="mgmt-card-title">Add Boarder</h3>
+                    <?= \App\Support\Icon::svg('user', 18) ?>
+                    <h3 class="mgmt-card-title">Add Boarder<?= $addForm['inquiry_id'] ? ' — from inquiry #' . $addForm['inquiry_id'] : '' ?></h3>
                 </div>
                 <?= \App\Support\Csrf::field() ?>
+                <?php if ($addForm['inquiry_id']): ?>
+                    <input type="hidden" name="inquiry_id" value="<?= $addForm['inquiry_id'] ?>">
+                <?php endif; ?>
                 <div class="mgmt-card-body">
+                    <?php if (!empty($conversion['notice'])): ?>
+                        <p role="note" style="font-size:0.75rem; line-height:1.45; background:#fbf6e8; border:1px solid #efdfb4; color:#7a5300; padding:0.6rem 0.75rem; border-radius:0.5rem;"><?= htmlspecialchars($conversion['notice']) ?></p>
+                    <?php endif; ?>
                     <div>
-                        <label class="field-label">Full Name</label>
-                        <input name="name" placeholder="Juan dela Cruz" required class="field-input">
+                        <label for="add-boarder-name" class="field-label">Full Name</label>
+                        <input id="add-boarder-name" name="name" placeholder="Juan dela Cruz" required maxlength="150" class="field-input" value="<?= htmlspecialchars($addForm['name']) ?>">
                     </div>
                     <div>
-                        <label class="field-label">Email Address</label>
-                        <input name="email" type="email" placeholder="boarder@example.com" required class="field-input">
+                        <label for="add-boarder-email" class="field-label">Email Address</label>
+                        <input id="add-boarder-email" name="email" type="email" placeholder="boarder@example.com" required maxlength="150" class="field-input" value="<?= htmlspecialchars($addForm['email']) ?>">
+                    </div>
+                    <div>
+                        <label for="add-boarder-contact" class="field-label">Contact Number <span class="font-normal text-neutral-400">(optional)</span></label>
+                        <input id="add-boarder-contact" name="contact_number" type="tel" placeholder="+63 9XX XXX XXXX" maxlength="20" class="field-input" value="<?= htmlspecialchars($addForm['contact_number']) ?>">
                     </div>
                     <div>
                         <label for="add-boarder-password" class="field-label">Temporary Password</label>
@@ -856,8 +907,8 @@ $totalBalancesOwed  = array_sum(array_column($boarders, 'outstanding_balance'));
                             <input id="add-boarder-password"
                                    name="password"
                                    type="password" data-max-bytes="72"
-                                   placeholder="Min. 8 characters"
-                                   required
+                                   placeholder="At least 15 characters"
+                                   required<?= $addForm['inquiry_id'] ? ' autofocus' : '' ?>
                                    class="field-input password-input-with-toggle">
                             <button type="button"
                                     id="toggle-boarder-password"
@@ -879,7 +930,7 @@ $totalBalancesOwed  = array_sum(array_column($boarders, 'outstanding_balance'));
                         <select id="add_boarder_room" name="room_id" class="field-select">
                             <option value="">— Skip room assignment —</option>
                             <?php foreach ($availableRooms as $r): ?>
-                                <option value="<?= (int) $r['id'] ?>">Room <?= htmlspecialchars($r['room_number']) ?> (<?= count($vacantBedsByRoom[(int)$r['id']] ?? []) ?> vacant)</option>
+                                <option value="<?= (int) $r['id'] ?>" <?= (int) $r['id'] === $addForm['room_id'] ? 'selected' : '' ?>>Room <?= htmlspecialchars($r['room_number']) ?><?= !empty($r['room_type_name']) ? ' · ' . htmlspecialchars($r['room_type_name']) : '' ?> (<?= count($vacantBedsByRoom[(int)$r['id']] ?? []) ?> vacant)</option>
                             <?php endforeach; ?>
                         </select>
                     </div>
@@ -890,7 +941,7 @@ $totalBalancesOwed  = array_sum(array_column($boarders, 'outstanding_balance'));
                         <select id="add_boarder_bed" name="bed_id" class="field-select">
                             <option value="">— Select a room first —</option>
                             <?php foreach ($vacantBeds as $b): ?>
-                                <option value="<?= (int) $b['id'] ?>" data-room-id="<?= (int) $b['room_id'] ?>" style="display:none;">
+                                <option value="<?= (int) $b['id'] ?>" data-room-id="<?= (int) $b['room_id'] ?>" style="display:none;" <?= (int) $b['id'] === $addForm['bed_id'] ? 'selected' : '' ?>>
                                     Room <?= htmlspecialchars($b['room_number']) ?> — <?= htmlspecialchars($b['label']) ?>
                                 </option>
                             <?php endforeach; ?>
@@ -907,7 +958,7 @@ $totalBalancesOwed  = array_sum(array_column($boarders, 'outstanding_balance'));
             <!-- Card 2: Assign Boarder to Bed Form -->
             <form method="post" action="/admin/beds/assign" class="mgmt-card accent-success">
                 <div class="mgmt-card-header">
-                    <span style="font-size:1.15rem; line-height:1;">🛏️</span>
+                    <?= \App\Support\Icon::svg('bed', 18) ?>
                     <h3 class="mgmt-card-title">Assign to Bed</h3>
                 </div>
                 <?= \App\Support\Csrf::field() ?>
@@ -947,21 +998,21 @@ $totalBalancesOwed  = array_sum(array_column($boarders, 'outstanding_balance'));
             <!-- Card 3: Operations Guide -->
             <div class="mgmt-card accent-neutral guide-card-col">
                 <div class="mgmt-card-header">
-                    <span style="font-size:1.15rem; line-height:1;">📋</span>
+                    <?= \App\Support\Icon::svg('clipboard', 18) ?>
                     <h3 class="mgmt-card-title">Operations Guide</h3>
                 </div>
                 <div class="mgmt-card-body">
                     <div class="guide-card-stack">
                         <div class="guide-item-box">
                             <div class="guide-item-title">
-                                <span>🔄</span>
+                                <span><?= \App\Support\Icon::svg('refresh') ?></span>
                                 <span>Automated Bed Synchronization</span>
                             </div>
                             When a resident is archived or marked as <em>moved out</em>, their assigned bed is automatically released back to the vacant inventory.
                         </div>
                         <div class="guide-item-box">
                             <div class="guide-item-title">
-                                <span>🏷️</span>
+                                <span><?= \App\Support\Icon::svg('tag') ?></span>
                                 <span>Status Lifecycle Flow</span>
                             </div>
                             Residents transition across structured stages:
@@ -969,7 +1020,7 @@ $totalBalancesOwed  = array_sum(array_column($boarders, 'outstanding_balance'));
                         </div>
                         <div class="guide-item-box">
                             <div class="guide-item-title">
-                                <span>🔀</span>
+                                <span><?= \App\Support\Icon::svg('arrow-left-right') ?></span>
                                 <span>Seamless Relocation</span>
                             </div>
                             Assigning an active resident to a new bed relocates them instantly while freeing up their prior bed with zero manual cleanup required.
@@ -1025,10 +1076,10 @@ $totalBalancesOwed  = array_sum(array_column($boarders, 'outstanding_balance'));
 
                 <!-- Live Search Box with Verified Padded Field -->
                 <div class="search-wrapper">
-                    <span class="search-icon-fixed">🔍</span>
+                    <span class="search-icon-fixed"><?= \App\Support\Icon::svg('search') ?></span>
                     <input type="text" id="boarder-search" placeholder="Search by name, email, room, bed..."
                            class="search-input" autocomplete="off">
-                    <button type="button" id="clear-search-btn" class="hidden search-clear-fixed" title="Clear search">✕</button>
+                    <button type="button" id="clear-search-btn" class="hidden search-clear-fixed" title="Clear search"><?= \App\Support\Icon::svg('x') ?></button>
                 </div>
             </div>
         </div>
@@ -1081,7 +1132,7 @@ $totalBalancesOwed  = array_sum(array_column($boarders, 'outstanding_balance'));
                                 </div>
                                 <?php if (!empty($b['contact_number'])): ?>
                                     <div class="text-[11px] text-neutral-400 mt-0.5">
-                                        📞 <?= htmlspecialchars($b['contact_number']) ?>
+                                        <?= \App\Support\Icon::svg('phone') ?> <?= htmlspecialchars($b['contact_number']) ?>
                                     </div>
                                 <?php endif; ?>
                                 <?php if (($b['account_status'] ?? '') === 'archived'): ?>
@@ -1154,7 +1205,7 @@ $totalBalancesOwed  = array_sum(array_column($boarders, 'outstanding_balance'));
                                 <div class="edit-drawer-box">
                                     <div class="edit-drawer-header">
                                         <div class="flex items-center gap-2">
-                                            <span style="font-size:1.1rem; line-height:1;">✏️</span>
+                                            <?= \App\Support\Icon::svg('pencil', 18) ?>
                                             <h4 class="text-body-sm font-semibold text-neutral-900">
                                                 Edit Resident Details &mdash; <span class="text-primary-700 font-bold"><?= htmlspecialchars($b['name']) ?></span>
                                             </h4>
@@ -1224,7 +1275,7 @@ $totalBalancesOwed  = array_sum(array_column($boarders, 'outstanding_balance'));
                         <!-- Dynamic filtered empty state -->
                         <tr id="no-match-row" class="hidden">
                             <td colspan="6" class="text-center" style="padding: 3.5rem 1rem;">
-                                <span style="font-size:2.25rem; display:block; margin-bottom:0.75rem;">🔍</span>
+                                <span class="empty-icon"><?= \App\Support\Icon::svg('search') ?></span>
                                 <span class="text-sm font-semibold text-neutral-800 block">No residents match your search or filter</span>
                                 <span class="text-xs text-neutral-500 block mt-1">Try adjusting your search terms or status filter.</span>
                                 <button type="button" id="reset-filters-btn" class="mt-3 inline-flex items-center gap-1 text-xs font-semibold text-primary-700 hover:text-primary-900 hover:underline cursor-pointer">
@@ -1236,7 +1287,7 @@ $totalBalancesOwed  = array_sum(array_column($boarders, 'outstanding_balance'));
                         <?php if (empty($boarders)): ?>
                         <tr>
                             <td colspan="6" class="text-center" style="padding: 3.5rem 1rem;">
-                                <span style="font-size:2.25rem; display:block; margin-bottom:0.75rem;">🏠</span>
+                                <span class="empty-icon"><?= \App\Support\Icon::svg('home') ?></span>
                                 <span class="text-sm font-semibold text-neutral-800 block">No boarders registered yet</span>
                                 <span class="text-xs text-neutral-500 block mt-1">Use the "Add Boarder" form above to register your first resident.</span>
                             </td>
@@ -1250,30 +1301,15 @@ $totalBalancesOwed  = array_sum(array_column($boarders, 'outstanding_balance'));
 </div>
 
 <!-- Double Confirmation Popout Modal -->
-<div id="confirm-modal" style="display:none; position:fixed; top:0; left:0; right:0; bottom:0; z-index:99999; background:rgba(10, 10, 10,0.55); backdrop-filter:blur(4px); -webkit-backdrop-filter:blur(4px); align-items:center; justify-content:center; padding:1rem;" role="dialog" aria-modal="true" aria-labelledby="modal-heading">
-    <div id="confirm-card" style="background:#fff; border-radius:1rem; padding:1.75rem 1.75rem; max-width:23rem; width:100%; margin:0 auto; text-align:center; box-shadow:0 25px 50px -12px rgba(0,0,0,0.25);">
-        
-        <!-- Big Round Icon (!) -->
-        <div id="modal-icon-wrap" style="width:3.5rem; height:3.5rem; border-radius:50%; border:2px solid #3f8a63; color:#2f6f4e; display:flex; align-items:center; justify-content:center; font-size:1.5rem; font-weight:700; margin:0 auto 0.85rem; user-select:none;">
-            !
-        </div>
-
-        <!-- Title -->
-        <h3 id="modal-heading" style="font-size:1.15rem; font-weight:700; color:#0a0a0a; letter-spacing:-0.01em; margin:0 0 0.45rem;">Save Changes?</h3>
-
-        <!-- Description -->
-        <p id="modal-subtext" style="font-size:0.8125rem; color:#6b6b6b; line-height:1.55; margin:0 0 1.5rem; padding:0 0.5rem;">
-            Are you sure you want to proceed?
-        </p>
-
-        <!-- Actions -->
-        <div style="display:flex; align-items:center; justify-content:flex-end; gap:0.75rem; padding-top:0.25rem;">
-            <button type="button" id="modal-cancel" style="padding:0.55rem 1.15rem; border-radius:0.5rem; font-size:0.8125rem; font-weight:600; color:#6b6b6b; background:#f1f0ee; border:1px solid #d4d2ce; cursor:pointer; transition:all 150ms;">
-                Cancel
-            </button>
-            <button type="button" id="modal-confirm" style="color:#fff; font-weight:600; border-radius:0.5rem; padding:0.55rem 1.35rem; font-size:0.8125rem; border:none; cursor:pointer; display:inline-flex; align-items:center; gap:0.375rem; transition:all 150ms; background:linear-gradient(135deg,#3f8a63,#2f6f4e); box-shadow: 0 2px 6px rgba(63, 138, 99,0.3);">
+<div id="confirm-modal" class="modal" style="display:none" role="dialog" aria-modal="true" aria-labelledby="modal-heading">
+    <div id="confirm-card" class="modal-card">
+        <div id="modal-icon-wrap" class="modal-icon"><?= \App\Support\Icon::svg('alert-circle') ?></div>
+        <h3 id="modal-heading" class="modal-title">Save Changes?</h3>
+        <p id="modal-subtext" class="modal-text">Are you sure you want to proceed?</p>
+        <div class="modal-actions">
+            <button type="button" id="modal-cancel" class="btn btn-secondary">Cancel</button>
+            <button type="button" id="modal-confirm" class="btn btn-primary">
                 <span id="modal-confirm-label">Yes</span>
-                <span style="font-size:0.95rem;">&rarr;</span>
             </button>
         </div>
     </div>
@@ -1287,8 +1323,9 @@ $totalBalancesOwed  = array_sum(array_column($boarders, 'outstanding_balance'));
         const bedSelect  = document.getElementById('add_boarder_bed');
         if (roomSelect && bedSelect) {
             const allBedOptions = Array.from(bedSelect.querySelectorAll('option[data-room-id]'));
-            roomSelect.addEventListener('change', function() {
-                const selectedRoomId = this.value;
+            const keptBed = (allBedOptions.find(o => o.selected) || {}).value || '';
+            const fillBeds = function() {
+                const selectedRoomId = roomSelect.value;
                 bedSelect.value = '';
                 if (!selectedRoomId) {
                     bedSelect.innerHTML = '<option value="">— Select a room first —</option>';
@@ -1302,10 +1339,19 @@ $totalBalancesOwed  = array_sum(array_column($boarders, 'outstanding_balance'));
                     matchingBeds.forEach(opt => {
                         const clone = opt.cloneNode(true);
                         clone.style.display = '';
+                        clone.removeAttribute('selected');
                         bedSelect.appendChild(clone);
                     });
                 }
-            });
+            };
+            roomSelect.addEventListener('change', fillBeds);
+            // A room picked by the server (inquiry or a failed submit) shows its beds straight away.
+            if (roomSelect.value) {
+                fillBeds();
+                if (keptBed && bedSelect.querySelector('option[value="' + keptBed + '"]')) {
+                    bedSelect.value = keptBed;
+                }
+            }
         }
 
         // 2. Password visibility toggle
@@ -1372,25 +1418,15 @@ $totalBalancesOwed  = array_sum(array_column($boarders, 'outstanding_balance'));
             if (sub)  sub.textContent  = cfg.desc;
             if (lbl)  lbl.textContent  = cfg.confirmLabel || 'Yes';
 
+            // Removing someone reads as a warning; saving is the ordinary primary action.
             const isDelete = cfg.type === 'delete';
-            if (icon) {
-                icon.style.borderColor = isDelete ? '#d4402f' : '#3f8a63';
-                icon.style.color       = isDelete ? '#b42318' : '#2f6f4e';
-            }
-            if (btn)  btn.style.background = isDelete
-                ? 'linear-gradient(135deg,#d4402f,#b42318)'
-                : 'linear-gradient(135deg,#3f8a63,#2f6f4e)';
+            if (icon) icon.className = 'modal-icon' + (isDelete ? ' modal-icon-danger' : '');
+            if (btn)  btn.className  = 'btn ' + (isDelete ? 'btn-danger-solid' : 'btn-primary');
 
             pendingAction = cfg.onConfirm;
-            modal.style.display = 'flex';
-
-            const card = document.getElementById('confirm-card');
-            if (window.gsap && card) {
-                gsap.fromTo(card,
-                    { opacity: 0, scale: 0.96, y: 8 },
-                    { opacity: 1, scale: 1,   y: 0,  duration: 0.3, ease: 'power3.out' }
-                );
-            }
+            modal.style.display = 'flex'; // .modal-card's CSS entrance plays on open
+            const cancel = document.getElementById('modal-cancel');
+            if (cancel) cancel.focus();
         }
 
         function hideConfirmModal() {

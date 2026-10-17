@@ -248,7 +248,7 @@ function makeRoom(Client $admin, int $capacity = 2, float $price = 3000, int $be
  * Creates a resident through the admin UI, optionally on a bed, optionally active since $daysAgo days.
  * Returns ['id'=>, 'email'=>, 'password'=>, 'client'=> logged-in Client].
  */
-function makeResident(Client $admin, ?int $bedId = null, ?int $daysAgo = null, string $password = 'Tmp#Resident1'): array
+function makeResident(Client $admin, ?int $bedId = null, ?int $daysAgo = null, string $password = 'Tmp-resident-river-lamp'): array
 {
     $email = 'res' . uniq() . '@t.test';
     $fields = ['name' => 'Test Resident', 'email' => $email, 'password' => $password];

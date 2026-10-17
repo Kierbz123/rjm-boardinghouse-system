@@ -268,13 +268,13 @@ check($r['location'] === '/portal/maintenance/new' && str_contains(http('GET', '
 unlink($big);
 check(str_contains(http('GET', '/portal/maintenance/new', $jars['boarder'])['body'], 'up to 20 MB'), 'the repair form states the real limit');
 
-echo "== Staff penalties use the rule's amount (decision 7a) ==\n";
+echo "== Staff cannot issue penalties (owner decision, 15 Oct 2026) ==\n";
 $rule = $pdo->query("SELECT * FROM penalty_rules WHERE active = 1 LIMIT 1")->fetch();
 $token = csrfFrom(http('GET', '/staff/dashboard', $jars['staff'])['body']);
-http('POST', '/staff/penalties/issue', $jars['staff'], ['csrf_token' => $token, 'boarder_id' => 3,
+$r = http('POST', '/staff/penalties/issue', $jars['staff'], ['csrf_token' => $token, 'boarder_id' => 3,
     'rule_id' => $rule['id'], 'amount' => '99999', 'reason' => 'staff-amount-test']);
-$issued = $pdo->query("SELECT amount FROM penalties WHERE reason = 'staff-amount-test'")->fetchColumn();
-check($issued !== false && abs((float) $issued - (float) $rule['amount']) < 0.01, 'staff cannot set a custom amount');
+$issued = $pdo->query("SELECT COUNT(*) FROM penalties WHERE reason = 'staff-amount-test'")->fetchColumn();
+check($r['code'] === 403 && (int) $issued === 0, 'a staff member gets 403 and no penalty is created');
 
 echo "== Admin penalty page: the four action cards ==\n";
 $token = csrfFrom(http('GET', '/admin/penalty-rules', $jars['admin'])['body']);
@@ -317,7 +317,7 @@ $bedA = (int) $q("SELECT id FROM beds WHERE label = 'Bed A' LIMIT 1");
 $bedB = (int) $q("SELECT id FROM beds WHERE label = 'Bed B' LIMIT 1");
 $roomId = (int) $q("SELECT room_id FROM beds WHERE id = {$bedA}");
 $token = csrfFrom(http('GET', '/admin/boarders', $jars['admin'])['body']);
-$add = fn (array $f) => http('POST', '/admin/boarders', $jars['admin'], $f + ['csrf_token' => $token, 'password' => 'Password123']);
+$add = fn (array $f) => http('POST', '/admin/boarders', $jars['admin'], $f + ['csrf_token' => $token, 'password' => 'Quiet-harbor-lamp7']);
 
 // Earlier test files move beds around; start this section from two known-vacant beds.
 App\Models\Bed::vacate($bedA);
@@ -398,14 +398,17 @@ echo "== Staff accounts page (decision 7b) ==\n";
 check(http('GET', '/admin/staff', $jars['admin'])['code'] === 200, 'admin opens Staff Accounts');
 check(http('GET', '/admin/staff', $jars['staff'])['code'] === 403, 'staff cannot manage staff');
 $token = csrfFrom(http('GET', '/admin/staff', $jars['admin'])['body']);
-http('POST', '/admin/staff', $jars['admin'], ['csrf_token' => $token, 'name' => 'New Staff', 'email' => 'newstaff@rjm.test', 'password' => 'StaffTemp123']);
+http('POST', '/admin/staff', $jars['admin'], ['csrf_token' => $token, 'name' => 'New Staff', 'email' => 'newstaff@rjm.test', 'password' => 'Crew-temp-saffron-kite']);
 $newStaff = (int) $q("SELECT id FROM users WHERE email = 'newstaff@rjm.test' AND role = 'staff'");
 check($newStaff > 0, 'admin adds a staff member');
-$staffJar = loginAs('newstaff@rjm.test', 'StaffTemp123');
+$staffJar = loginAs('newstaff@rjm.test', 'Crew-temp-saffron-kite');
+check(http('GET', '/staff/dashboard', $staffJar)['code'] === 302, 'new staff member must first choose their own password');
+http('POST', '/profile/password', $staffJar, ['csrf_token' => csrfFrom(http('GET', '/profile', $staffJar)['body']),
+    'current_password' => 'Crew-temp-saffron-kite', 'new_password' => 'Own-choice-amber-ridge', 'confirm_password' => 'Own-choice-amber-ridge']);
 check(http('GET', '/staff/dashboard', $staffJar)['code'] === 200, 'new staff member can log in');
 http('POST', "/admin/staff/{$newStaff}/status", $jars['admin'], ['csrf_token' => $token, 'status' => 'inactive']);
 check(http('GET', '/staff/dashboard', $staffJar)['code'] === 302, 'deactivating signs them out');
-check(http('GET', '/staff/dashboard', loginAs('newstaff@rjm.test', 'StaffTemp123'))['code'] === 302, 'deactivated staff cannot log in');
+check(http('GET', '/staff/dashboard', loginAs('newstaff@rjm.test', 'Own-choice-amber-ridge'))['code'] === 302, 'deactivated staff cannot log in');
 http('POST', "/admin/staff/{$newStaff}/status", $jars['admin'], ['csrf_token' => $token, 'status' => 'active']);
 check($q("SELECT status FROM users WHERE id = {$newStaff}") === 'active', 'reactivation works');
 http('POST', '/admin/staff/1/status', $jars['admin'], ['csrf_token' => $token, 'status' => 'inactive']);
@@ -418,7 +421,7 @@ $ownerJar = loginAs('boarder@rjm.test', getenv('TEST_BOARDER_PASSWORD'));
 check(http('GET', $receiptPath, $ownerJar)['code'] === 200, 'the boarder who paid can view it');
 check(http('GET', $receiptPath, $jars['admin'])['code'] === 200, 'admins can view it');
 check(http('GET', $receiptPath, $jars['staff'])['code'] === 404, 'staff cannot view receipts');
-check(http('GET', $receiptPath, loginAs('holder@rjm.test', 'Password123'))['code'] === 404, 'another boarder cannot view it');
+check(http('GET', $receiptPath, loginAs('holder@rjm.test', 'Quiet-harbor-lamp7'))['code'] === 404, 'another boarder cannot view it');
 check(http('GET', $receiptPath, null)['code'] === 302, 'anonymous visitors are sent to login');
 check(http('GET', '/uploads/receipts/..%2F..%2F.env', $jars['admin'])['code'] === 404, 'path tricks are refused');
 

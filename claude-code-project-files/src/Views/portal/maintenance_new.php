@@ -60,14 +60,14 @@ $tierBadges = [
     <!-- Flash Alerts -->
     <?php if ($error): ?>
         <div class="text-body-sm flex items-center gap-2.5" role="alert" style="background: #fdf1f0; color: #912018; border-radius: 0.875rem; padding: 1rem 1.25rem; border: 1px solid #e88f86;">
-            <span style="font-size:1.125rem;">⚠</span>
+            <?= \App\Support\Icon::svg('alert-triangle', 18) ?>
             <?= htmlspecialchars($error) ?>
         </div>
     <?php endif; ?>
 
     <?php if ($success): ?>
         <div class="text-body-sm flex items-center gap-2.5" role="alert" style="background: #eef6f1; color: #245a3f; border-radius: 0.875rem; padding: 1rem 1.25rem; border: 1px solid #8cc2a2;">
-            <span style="font-size:1.125rem;">✓</span>
+            <?= \App\Support\Icon::svg('check', 18) ?>
             <?= htmlspecialchars($success) ?>
         </div>
     <?php endif; ?>
@@ -76,7 +76,7 @@ $tierBadges = [
     <?php if (!empty($boarder['room_number'])): ?>
         <div class="card flex items-center justify-between text-xs" style="padding: 1rem 1.25rem; background: #f8f7f5; border: 1px solid #e6e5e2; border-radius: 0.875rem;">
             <div class="flex items-center gap-2.5 text-neutral-700 font-medium">
-                <span>📍</span>
+                <span><?= \App\Support\Icon::svg('map-pin') ?></span>
                 <span>Ticket Origin:</span>
                 <span class="font-bold text-neutral-900 font-mono">
                     Room <?= htmlspecialchars($boarder['room_number']) ?>
@@ -94,7 +94,7 @@ $tierBadges = [
         <div class="lg:col-span-2">
             <form method="post" action="/portal/maintenance" enctype="multipart/form-data" class="form-card accent-neutral" style="padding: 1.5rem 1.625rem 1.75rem; border-radius: 1rem; gap: 1.125rem;">
                 <div class="flex items-center gap-2.5" style="border-bottom: 1px solid #f1f0ee; padding-bottom: 0.875rem;">
-                    <span style="font-size: 1.25rem;">🔧</span>
+                    <?= \App\Support\Icon::svg('wrench', 20) ?>
                     <div>
                         <h2 class="text-heading-sm font-bold text-neutral-900">Repair Ticket Details</h2>
                         <p class="text-caption text-neutral-500" style="margin-top: 0.2rem;">Every submission is analyzed by the AI priority scoring model</p>
@@ -126,10 +126,10 @@ $tierBadges = [
                         </label>
                         <div class="flex items-center gap-2">
                             <button type="button" id="btn-improve-desc" class="ai-action-btn" title="AI will rewrite and structure your description clearly">
-                                <span>✨</span> Improve Description
+                                <span><?= \App\Support\Icon::svg('sparkles') ?></span> Improve Description
                             </button>
                             <button type="button" id="btn-auto-category" class="ai-action-btn" title="Automatically set category from your description">
-                                <span>🏷️</span> Auto-Detect Category
+                                <span><?= \App\Support\Icon::svg('tag') ?></span> Auto-Detect Category
                             </button>
                         </div>
                     </div>
@@ -145,7 +145,7 @@ $tierBadges = [
                     <div id="priority-preview-card" class="priority-preview-card tier-low" style="margin-top: 0.75rem;">
                         <div class="flex items-center justify-between mb-1.5">
                             <div class="flex items-center gap-1.5">
-                                <span style="font-size: 0.95rem;">⚡</span>
+                                <?= \App\Support\Icon::svg('zap', 15) ?>
                                 <span class="text-xs font-bold text-neutral-800">Live AI Urgency Preview</span>
                             </div>
                             <div class="flex items-center gap-2">
@@ -199,7 +199,7 @@ $tierBadges = [
         <div style="display: flex; flex-direction: column; gap: 1.125rem;">
             <div class="card" style="padding: 1.25rem 1.375rem; background: #f8f7f5; border: 1px solid #e6e5e2; border-radius: 0.875rem;">
                 <h3 class="text-xs font-bold uppercase tracking-wider text-neutral-600 flex items-center gap-2" style="margin-bottom: 0.875rem;">
-                    <span>💡</span> Rapid Resolution Tips
+                    <span><?= \App\Support\Icon::svg('lightbulb') ?></span> Rapid Resolution Tips
                 </h3>
                 <ul class="text-neutral-600" style="display: flex; flex-direction: column; gap: 0.75rem; font-size: 0.8125rem; line-height: 1.6;">
                     <li class="flex items-start gap-2.5">
@@ -219,7 +219,7 @@ $tierBadges = [
 
             <div class="card" style="padding: 1.25rem 1.375rem; border: 1px solid #f9dcd9; background: #fdf1f0; border-radius: 0.875rem;">
                 <h3 class="text-xs font-bold flex items-center gap-2" style="color: #7a1b14; margin-bottom: 0.5rem;">
-                    <span>🚨</span> Life-Safety Hazard?
+                    <span><?= \App\Support\Icon::svg('siren') ?></span> Life-Safety Hazard?
                 </h3>
                 <p style="font-size: 0.8125rem; color: #912018; line-height: 1.6;">
                     If this is an immediate emergency (gas leak, active fire, live exposed electrical sparking, major water flooding), do not wait for a maintenance ticket.

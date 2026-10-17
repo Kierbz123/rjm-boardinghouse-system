@@ -80,7 +80,7 @@ check(count(array_filter($hashes, fn ($h) => (int) $h['must_change_password'] ==
 foreach ($published as $old) {
     check(!array_filter($hashes, fn ($h) => password_verify($old, $h['password_hash'])), 'a published demo password does not work on a fresh seed');
 }
-check((int) q1('SELECT COUNT(*) FROM users WHERE role IN ("admin","staff","boarder") AND must_change_password = 1') === 0, 'accounts whose password the installer chose are not forced to change (the test database)');
+check((int) q1('SELECT COUNT(*) FROM users WHERE email IN ("admin@rjm.test","staff@rjm.test","boarder@rjm.test") AND must_change_password = 1') === 0,'accounts whose password the installer chose are not forced to change (the test database)');
 
 section('Forced change at the door');
 $admin = seededClient('admin');
@@ -97,16 +97,19 @@ check($page->code === 200 && stripos($page->body, 'choose a new password') !== f
 check($c->req('POST', '/logout', ['csrf_token' => $c->token()])->loc === '/login', 'signing out is still possible');
 $c = new Client('res2');
 $c->login($res['email'], $res['password']);
-$c->post('/profile/password', ['current_password' => $res['password'], 'new_password' => 'Brand#New123', 'confirm_password' => 'Brand#New123']);
+$c->post('/profile/password', ['current_password' => $res['password'], 'new_password' => 'Brand-new-tulip-orbit', 'confirm_password' => 'Brand-new-tulip-orbit']);
 check((int) q1('SELECT must_change_password FROM users WHERE id = ?', [$res['id']]) === 0 && q1('SELECT password_changed_at FROM users WHERE id = ?', [$res['id']]) !== null, 'choosing a new password clears the flag and records when');
 check($c->get('/portal/dashboard')->code === 200, 'the account can then use the system');
 q('UPDATE users SET must_change_password = 1 WHERE id = ?', [$res['id']]);
-$admin->post("/admin/boarders/{$res['id']}/password", ['new_password' => 'AdminSet#123']);
+$admin->post("/admin/boarders/{$res['id']}/password", ['new_password' => 'Admin-set-cobalt-fern']);
 check((int) q1('SELECT must_change_password FROM users WHERE id = ?', [$res['id']]) === 1, 'an admin reset does not count as the person choosing their own password');
 q('UPDATE users SET must_change_password = 0 WHERE id = ?', [$res['id']]);
 
 section('Before going online');
 $db1 = ['DB_NAME' => $testDb, 'APP_ENV_FILE' => 'none'];
+// Other test files leave accounts on an admin-set temporary password (rightly flagged by the check);
+// clear those so this section sees only what it sets up.
+q('UPDATE users SET must_change_password = 0 WHERE id <> ?', [$res['id']]);
 q('UPDATE users SET must_change_password = 1 WHERE id = ?', [$res['id']]);
 [$code, $out] = phpRun(['bin/pre-online-check.php'], $db1);
 check($code === 1 && str_contains($out, $res['email']), 'the pre-online check lists accounts that still have a default password', trim($out));

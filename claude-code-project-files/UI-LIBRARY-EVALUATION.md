@@ -1,7 +1,7 @@
 # UI/Animation Library Evaluation — RJM Boardinghouse System
 
 ## Decision
-**Tailwind CSS** (visual design system) + **GSAP** (animation/motion layer). Both framework-agnostic, both usable via a CDN `<script>` tag with no build pipeline — compatible with the existing PHP-rendered, vanilla-JS, localhost-only architecture in `ARCHITECTURE.md` without changing it.
+**Tailwind CSS** (visual design system) + **GSAP** (animation/motion layer). Both framework-agnostic and compatible with the PHP-rendered, vanilla-JS, localhost architecture in `ARCHITECTURE.md` without changing it. *As built (Phase 8 and later), neither is loaded from a CDN: GSAP and ScrollTrigger are vendored in `public/assets/js/vendor/`, and Tailwind is compiled once with its CLI into `public/assets/css/app.css`, so the running app makes no outbound request. Node is needed only to rebuild the CSS (see Implementation notes).*
 
 ## Why these two, evaluated against 8 candidates
 Evaluated: Framer Motion/Motion, Three.js, GSAP, Tailwind CSS, Chakra UI, Material-UI, Ant Design, react-spline. Scored for fit with *this* project's actual stack (vanilla HTML/CSS/JS + PHP, no build tooling assumed), not general popularity.
@@ -29,3 +29,12 @@ Evaluated: Framer Motion/Motion, Three.js, GSAP, Tailwind CSS, Chakra UI, Materi
 - GSAP `ScrollTrigger` for dashboard reveal-on-scroll; plain `.to()`/`.from()` tweens for the SOS pulse and maintenance priority badges.
 - Respect `prefers-reduced-motion` via GSAP's `matchMedia()` helper — required by the accessibility floor in `ARCHITECTURE.md` §8.
 - Spend animation budget on one or two signature moments (SOS alert, request-resolved confirmation), not everything — per the `frontend-design` skill's restraint principle.
+
+## Shared UI conventions (15 Oct 2026)
+Use these instead of styling a page from scratch; they live in `public/assets/css/source/input.css` unless noted.
+- **Icons:** `<?= \App\Support\Icon::svg('bell') ?>` (`src/Support/Icon.php`), inline stroke SVGs that take the text's size and colour. No emoji as icons; `tests/test_ui_icons.php` checks both rules. Scripts that build markup use the same paths (see `icon()` in `ai-assistant.js`).
+- **Confirmation dialogs:** `.modal` (backdrop, starts `style="display:none"`, page JS sets `display:flex`) › `.modal-card` › `.modal-icon` (`-danger`/`-success`/`-warning`), `.modal-title`, `.modal-text`, `.modal-actions` with `.btn` buttons. The entrance is CSS and replays on each open; focus the Cancel button on open.
+- **Buttons:** `.btn-primary` (ink) for the main action, `.btn-secondary` beside it, `.btn-danger-solid` only for actions that remove or charge. While a form submits, `app.js` adds `.is-loading` (spinner, no second click) unless the page cancelled the submit.
+- **Empty states:** `.empty-state` with `<span class="empty-icon">icon</span>`; on a `<td>` it stays a table cell so `colspan` works.
+- **Motion:** `--duration-fast` 150ms (hover/press), `--duration-base` 200ms (toggles), `--duration-slow` 300ms (dialogs); curves `--ease-out-soft` and `--ease-spring`. Animate `transform`/`opacity` only; `prefers-reduced-motion` is handled once at the bottom of `input.css`.
+- **Breakpoints with the sidebar:** at `lg` (1024px) the sidebar takes 240px, leaving ~770px. Grids of form cards or wide cards go to 3–4 columns at `xl`, not `lg`.

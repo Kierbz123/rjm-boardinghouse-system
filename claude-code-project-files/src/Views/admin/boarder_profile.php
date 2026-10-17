@@ -508,17 +508,17 @@ input[type="date"].profile-input {
             </div>
             <div class="flex flex-wrap items-center gap-x-5 gap-y-2 text-xs text-neutral-200">
                 <span class="inline-flex items-center gap-1.5">
-                    <span class="text-neutral-400">✉</span>
+                    <span class="text-neutral-400"><?= \App\Support\Icon::svg('mail') ?></span>
                     <a href="mailto:<?= htmlspecialchars($boarder['email']) ?>" class="hover:underline text-white font-medium"><?= htmlspecialchars($boarder['email']) ?></a>
                 </span>
                 <?php if (!empty($boarder['contact_number'])): ?>
                     <span class="inline-flex items-center gap-1.5">
-                        <span class="text-neutral-400">📞</span>
+                        <span class="text-neutral-400"><?= \App\Support\Icon::svg('phone') ?></span>
                         <a href="tel:<?= htmlspecialchars($boarder['contact_number']) ?>" class="hover:underline text-white font-medium"><?= htmlspecialchars($boarder['contact_number']) ?></a>
                     </span>
                 <?php endif; ?>
                 <span class="inline-flex items-center gap-1.5 text-neutral-300">
-                    <span class="text-neutral-400">📅</span>
+                    <span class="text-neutral-400"><?= \App\Support\Icon::svg('calendar') ?></span>
                     Registered <?= date('M j, Y', strtotime($boarder['user_created_at'] ?? 'now')) ?>
                 </span>
             </div>
@@ -535,14 +535,14 @@ input[type="date"].profile-input {
     <!-- Flash Notifications -->
     <?php if ($error): ?>
         <div class="bg-error-50 text-error-700 text-body-sm rounded-xl p-3.5 border border-error-500 flex items-center gap-2.5" role="alert">
-            <span style="font-size:1.15rem;">⚠</span>
+            <?= \App\Support\Icon::svg('alert-triangle', 18) ?>
             <span><?= htmlspecialchars($error) ?></span>
         </div>
     <?php endif; ?>
 
     <?php if ($success): ?>
         <div class="bg-emerald-50 text-emerald-800 text-body-sm rounded-xl p-3.5 border border-emerald-300 flex items-center gap-2.5" role="alert">
-            <span style="font-size:1.15rem;">✓</span>
+            <?= \App\Support\Icon::svg('check', 18) ?>
             <span><?= htmlspecialchars($success) ?></span>
         </div>
     <?php endif; ?>
@@ -561,7 +561,7 @@ input[type="date"].profile-input {
         <div class="reveal-card profile-card">
             <div class="profile-card-header">
                 <div class="profile-card-title-group">
-                    <span class="profile-card-icon">👤</span>
+                    <span class="profile-card-icon"><?= \App\Support\Icon::svg('user') ?></span>
                     <div>
                         <h2 class="text-heading-sm font-semibold text-neutral-900">Personal Details &amp; Residency Status</h2>
                         <p class="text-caption text-neutral-500">Contact information and administrative status lifecycle</p>
@@ -633,7 +633,7 @@ input[type="date"].profile-input {
         <div class="reveal-card profile-card">
             <div class="profile-card-header">
                 <div class="profile-card-title-group">
-                    <span class="profile-card-icon">🛏️</span>
+                    <span class="profile-card-icon"><?= \App\Support\Icon::svg('bed') ?></span>
                     <div>
                         <h2 class="text-heading-sm font-semibold text-neutral-900">Bed &amp; Room Assignment</h2>
                         <p class="text-caption text-neutral-500">Current bed space and accommodation charges</p>
@@ -724,9 +724,14 @@ input[type="date"].profile-input {
                 <h2 class="text-heading-sm font-semibold text-neutral-900">Financial Overview &amp; Balances</h2>
                 <p class="text-caption text-neutral-500">Live canonical breakdown calculated from billing, verified allocations, and penalties</p>
             </div>
-            <a href="/admin/payments" class="profile-btn profile-btn-secondary !py-1 !px-2.5 !text-xs font-semibold">
-                Payments Queue ↗
-            </a>
+            <div class="flex gap-2">
+                <a href="/admin/payments/record?boarder=<?= (int) ($boarder['user_id'] ?? 0) ?>" class="profile-btn profile-btn-secondary !py-1 !px-2.5 !text-xs font-semibold">
+                    Record payment
+                </a>
+                <a href="/admin/payments" class="profile-btn profile-btn-secondary !py-1 !px-2.5 !text-xs font-semibold">
+                    Payments Queue ↗
+                </a>
+            </div>
         </div>
 
         <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
@@ -807,7 +812,7 @@ input[type="date"].profile-input {
     <div class="reveal-card profile-card space-y-4" style="margin-top: 2rem;">
         <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-neutral-100">
             <div class="flex items-center gap-2.5">
-                <span class="profile-card-icon">⚖️</span>
+                <span class="profile-card-icon"><?= \App\Support\Icon::svg('scale') ?></span>
                 <div>
                     <h2 class="text-heading-sm font-semibold text-neutral-900">Penalties &amp; Violations</h2>
                     <p class="text-caption text-neutral-500">Manual penalties, system late fees, and settlement status</p>
@@ -869,7 +874,7 @@ input[type="date"].profile-input {
         <!-- Penalties List / Table -->
         <?php if (empty($penalties)): ?>
             <div class="text-center py-8 text-neutral-400 text-xs">
-                <span style="font-size:1.75rem;display:block;margin-bottom:0.35rem;">✨</span>
+                <span class="empty-icon"><?= \App\Support\Icon::svg('sparkles') ?></span>
                 No penalties or violations recorded for this resident.
             </div>
         <?php else: ?>
@@ -922,7 +927,7 @@ input[type="date"].profile-input {
                                             </button>
                                         </form>
                                     <?php else: ?>
-                                        <span class="text-caption text-neutral-400 font-medium">Settled ✓</span>
+                                        <span class="text-caption text-neutral-400 font-medium">Settled <?= \App\Support\Icon::svg('check') ?></span>
                                     <?php endif; ?>
                                 </td>
                             </tr>
@@ -937,7 +942,7 @@ input[type="date"].profile-input {
     <div class="reveal-card profile-card space-y-4" style="margin-top: 2rem;">
         <div class="flex items-center justify-between pb-3 border-b border-neutral-100">
             <div class="flex items-center gap-2.5">
-                <span class="profile-card-icon">💳</span>
+                <span class="profile-card-icon"><?= \App\Support\Icon::svg('credit-card') ?></span>
                 <div>
                     <h2 class="text-heading-sm font-semibold text-neutral-900">Payment History</h2>
                     <p class="text-caption text-neutral-500">All submitted rent and utility payments for this account</p>
@@ -961,7 +966,7 @@ input[type="date"].profile-input {
 
         <?php if (empty($payments)): ?>
             <div class="text-center py-8 text-neutral-400 text-xs">
-                <span style="font-size:1.75rem;display:block;margin-bottom:0.35rem;">📄</span>
+                <span class="empty-icon"><?= \App\Support\Icon::svg('file-text') ?></span>
                 No payments have been submitted yet by this resident.
             </div>
         <?php else: ?>
@@ -1033,7 +1038,7 @@ input[type="date"].profile-input {
         <div class="reveal-card profile-card space-y-4">
             <div class="flex items-center justify-between pb-3 border-b border-neutral-100">
                 <div class="flex items-center gap-2.5">
-                    <span class="profile-card-icon">🔧</span>
+                    <span class="profile-card-icon"><?= \App\Support\Icon::svg('wrench') ?></span>
                     <h2 class="text-heading-sm font-semibold text-neutral-900">Maintenance Requests</h2>
                 </div>
                 <a href="/staff/maintenance/history" class="text-xs font-semibold text-primary-700 hover:underline">
@@ -1070,7 +1075,7 @@ input[type="date"].profile-input {
         <div class="reveal-card profile-card space-y-4">
             <div class="flex items-center justify-between pb-3 border-b border-neutral-100">
                 <div class="flex items-center gap-2.5">
-                    <span class="profile-card-icon">🚨</span>
+                    <span class="profile-card-icon"><?= \App\Support\Icon::svg('siren') ?></span>
                     <h2 class="text-heading-sm font-semibold text-neutral-900">Reported Incidents</h2>
                 </div>
                 <a href="/staff/incidents/history" class="text-xs font-semibold text-primary-700 hover:underline">
@@ -1167,7 +1172,7 @@ input[type="date"].profile-input {
     <div class="reveal-card profile-card space-y-4" style="margin-top: 2rem;">
         <div class="flex items-center justify-between pb-3 border-b border-neutral-100">
             <div class="flex items-center gap-2.5">
-                <span class="profile-card-icon">📝</span>
+                <span class="profile-card-icon"><?= \App\Support\Icon::svg('square-pen') ?></span>
                 <div>
                     <h2 class="text-heading-sm font-semibold text-neutral-900">Internal Admin Notes (Private Scratchpad)</h2>
                     <p class="text-caption text-neutral-500">Persistent private scratchpad visible only to staff and admins. Not shown to the resident.</p>
@@ -1199,7 +1204,7 @@ input[type="date"].profile-input {
     <!-- Sign-in: the admin sets a temporary password for a resident who forgot theirs -->
     <div class="reveal-card profile-card" style="margin-top: 2rem;">
         <div class="flex items-center gap-2.5 pb-3 border-b border-neutral-100">
-            <span class="profile-card-icon">🔑</span>
+            <span class="profile-card-icon"><?= \App\Support\Icon::svg('key') ?></span>
             <div>
                 <h2 class="text-heading-sm font-semibold text-neutral-900">Reset Sign-in Password</h2>
                 <p class="text-caption text-neutral-500">For a resident who forgot their password. They are signed out everywhere and should change it under Profile.</p>
@@ -1210,9 +1215,9 @@ input[type="date"].profile-input {
             <?= \App\Support\Csrf::field() ?>
             <div>
                 <label for="reset-new-password" class="block text-xs font-semibold text-neutral-700 mb-1">New temporary password</label>
-                <input id="reset-new-password" name="new_password" type="password" data-max-bytes="72" required minlength="8" maxlength="72"
+                <input id="reset-new-password" name="new_password" type="password" data-max-bytes="72" required minlength="15" maxlength="72"
                        autocomplete="new-password" class="input w-full" aria-describedby="reset-password-hint">
-                <p id="reset-password-hint" class="text-[11px] text-neutral-400 mt-1.5">At least 8 characters. Tell the resident in person; it is not sent anywhere.</p>
+                <p id="reset-password-hint" class="text-[11px] text-neutral-400 mt-1.5">At least 15 characters (a short phrase works well), at most 72 bytes. Tell the resident in person; it is not sent anywhere. It works for 72 hours and they must choose their own password when they sign in.</p>
             </div>
             <div class="flex justify-end pt-1">
                 <button type="submit" class="profile-btn profile-btn-primary">
@@ -1225,7 +1230,7 @@ input[type="date"].profile-input {
     <!-- Section 9: Danger Zone -->
     <div class="reveal-card profile-danger-card" style="margin-top: 2rem;">
         <div class="flex items-center gap-2.5 pb-3 border-b border-error-200">
-            <span class="text-xl text-error-600">⚠️</span>
+            <span class="text-xl text-error-600"><?= \App\Support\Icon::svg('alert-triangle') ?></span>
             <div>
                 <h2 class="text-heading-sm font-bold text-error-900">Danger Zone</h2>
                 <p class="text-caption text-error-700">Archive or delete this resident</p>
@@ -1248,7 +1253,7 @@ input[type="date"].profile-input {
 <div id="delete-modal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs hidden" role="dialog" aria-modal="true">
     <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-xl border border-neutral-200 space-y-4">
         <div class="flex items-center gap-3 text-error-600">
-            <span style="font-size:1.75rem;">⚠️</span>
+            <span class="empty-icon"><?= \App\Support\Icon::svg('alert-triangle') ?></span>
             <div>
                 <h3 class="text-heading-sm font-bold text-neutral-900">Confirm Removal</h3>
                 <p class="text-caption text-error-700">Nothing is erased: the resident is archived with all their records, and can be restored</p>

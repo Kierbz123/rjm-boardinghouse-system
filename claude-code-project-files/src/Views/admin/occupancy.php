@@ -36,7 +36,7 @@ $reversedTrend = array_reverse($trend ?? []);
         <div class="reveal-card card p-4 metric-accent-primary">
             <div class="flex items-center justify-between mb-1">
                 <span class="text-caption font-semibold text-neutral-500 uppercase tracking-wider">Current Occupancy</span>
-                <span style="font-size:1.1rem; line-height:1;">📈</span>
+                <?= \App\Support\Icon::svg('trending-up', 18) ?>
             </div>
             <p class="text-3xl font-bold text-neutral-900 mt-1" style="font-variant-numeric: tabular-nums;"><?= $latestPct ?>%</p>
             <p class="text-caption text-neutral-400 mt-1"><?= $latestOccupied ?> of <?= $latestTotal ?> beds filled</p>
@@ -44,7 +44,7 @@ $reversedTrend = array_reverse($trend ?? []);
         <div class="reveal-card card p-4 metric-accent-warning">
             <div class="flex items-center justify-between mb-1">
                 <span class="text-caption font-semibold text-neutral-500 uppercase tracking-wider">Occupied Beds</span>
-                <span style="font-size:1.1rem; line-height:1;">👥</span>
+                <?= \App\Support\Icon::svg('users', 18) ?>
             </div>
             <p class="text-3xl font-bold text-neutral-900 mt-1" style="font-variant-numeric: tabular-nums;"><?= $latestOccupied ?></p>
             <p class="text-caption text-neutral-400 mt-1">Active residents</p>
@@ -52,7 +52,7 @@ $reversedTrend = array_reverse($trend ?? []);
         <div class="reveal-card card p-4 metric-accent-success">
             <div class="flex items-center justify-between mb-1">
                 <span class="text-caption font-semibold text-neutral-500 uppercase tracking-wider">Available Beds</span>
-                <span style="font-size:1.1rem; line-height:1;">🟢</span>
+                <?= \App\Support\Icon::svg('circle-dot', 18) ?>
             </div>
             <p class="text-3xl font-bold <?= $latestVacant === 0 ? 'text-error-600' : 'text-neutral-900' ?> mt-1" style="font-variant-numeric: tabular-nums;"><?= $latestVacant ?></p>
             <p class="text-caption text-neutral-400 mt-1">Vacant capacity</p>
@@ -60,7 +60,7 @@ $reversedTrend = array_reverse($trend ?? []);
         <div class="reveal-card card p-4 metric-accent-info">
             <div class="flex items-center justify-between mb-1">
                 <span class="text-caption font-semibold text-neutral-500 uppercase tracking-wider">30-Day Average</span>
-                <span style="font-size:1.1rem; line-height:1;">📊</span>
+                <?= \App\Support\Icon::svg('bar-chart', 18) ?>
             </div>
             <p class="text-3xl font-bold text-neutral-900 mt-1" style="font-variant-numeric: tabular-nums;"><?= $avgPct ?>%</p>
             <p class="text-caption text-neutral-400 mt-1">Peak: <?= $peakPct ?>% across <?= $totalSnapshots ?> days</p>
@@ -188,7 +188,7 @@ $reversedTrend = array_reverse($trend ?? []);
                         <?php if (empty($trend)): ?>
                             <tr>
                                 <td colspan="5" class="empty-state" style="padding:3.5rem 0;">
-                                    <span style="font-size:2.5rem; margin-bottom:0.5rem;">📈</span>
+                                    <span class="empty-icon"><?= \App\Support\Icon::svg('trending-up') ?></span>
                                     <span class="text-sm font-semibold text-neutral-800">No occupancy snapshots recorded yet</span>
                                     <span class="text-xs text-neutral-500 mt-1">Daily metrics are logged automatically by the system.</span>
                                 </td>

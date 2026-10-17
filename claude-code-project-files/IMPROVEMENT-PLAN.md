@@ -1,6 +1,6 @@
 # Improvement plan — features and pages (front-end, back-end, database)
 
-*Updated 5 October 2026, against the `audit-fixes` branch.*
+*Written 5 October 2026, against the `audit-fixes` branch. Reviewed by the documentation pass on 14 Oct 2026: this is a suggestion list, partly superseded. The work now being done is `../IMPLEMENTATION-PLAN-2026-10-14.md`, built from the 14 Oct audit; where an item below is also a finding there, the work package's status is the truth. Done since this was written: the demo quick-login buttons and published passwords (FE-01, WP-1), admin password reset for residents and staff, the Staff Accounts page, the AI assistant (A0–A5), the online demo mode. The billing rules described next are kept as a record; **`README.md` "How billing works" is the single current description.***
 
 These suggestions add to the fixes already made in batches B0–B7 (see `FINAL-REPORT.md`) and to the audit in `../AUDIT-REPORT.md`. That audit was run on the older `main` branch, so many of its findings are already fixed here. Everything stays within the project's rules: localhost only, no internet calls, no cloud LLM.
 
@@ -31,7 +31,7 @@ These suggestions add to the fixes already made in batches B0–B7 (see `FINAL-R
 ## Per feature and page
 
 ### Login & Profile
-- **Front-end:** **To do, high priority:** remove the demo quick-login buttons. The admin, staff and boarder passwords are still in the login page's HTML (FE-01). **To do:** a password-strength hint; a "last login" line on the profile.
+- **Front-end:** **Done:** the demo quick-login buttons are removed and no password is in the page (FE-01); seeded accounts now get random passwords and must change them (WP-1). **To do:** a password-strength hint (WP-2 adds a 72-byte counter); a "last login" line on the profile.
 - **Back-end:** **Done:** idle timeout, logout of other sessions after a password change, login throttling per email and IP (B1).
 - **Database:** **To do:** `users.last_login_at`. **Done:** `users.status` is used to archive residents.
 
@@ -120,7 +120,7 @@ These suggestions add to the fixes already made in batches B0–B7 (see `FINAL-R
   - **To do:** triggers that block edits and deletes on history tables; a least-privilege database user; a "Backup now" admin button that runs `mysqldump` to a local folder.
 
 ## Suggested order
-1. **Before real use:** remove the demo password buttons (FE-01) and change the demo passwords.
+1. **Before real use:** ~~remove the demo password buttons and change the demo passwords~~ (done, WP-1); run `php bin/setup-db-user.php` so the app stops using MariaDB's `root`.
 2. Add `bed_assignments`, then the bed-card grid and the occupancy chart built on it.
 3. Make the dashboard actionable: clickable cards, "Needs attention", collected vs expected.
 4. Maintenance and SOS improvements: score explanation, rescore, assign, convert to incident.

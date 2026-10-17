@@ -269,7 +269,7 @@ ob_start();
 
                         <?php if (!empty($error)): ?>
                             <div id="form-error-alert" class="bg-red-50 border border-red-200 text-red-700 text-xs rounded-lg px-3.5 py-2.5 mb-4 flex items-start gap-2" role="alert" aria-live="polite">
-                                <span class="font-bold">⚠</span>
+                                <span class="font-bold"><?= \App\Support\Icon::svg('alert-triangle') ?></span>
                                 <span><?= htmlspecialchars($error) ?></span>
                             </div>
                         <?php endif; ?>
@@ -378,7 +378,7 @@ ob_start();
                             </button>
                         </div>
                         <span id="copy-feedback" class="text-[11px] text-emerald-600 font-semibold opacity-0 transition-opacity mt-1">
-                            ✓ Copied to clipboard!
+                            <?= \App\Support\Icon::svg('check') ?> Copied to clipboard!
                         </span>
 
                         <!-- Mobile Tips Badges -->

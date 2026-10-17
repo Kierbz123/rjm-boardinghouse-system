@@ -25,6 +25,7 @@ class AuthMiddleware
             $idle > self::IDLE_TIMEOUT_SECONDS
             || $user === null
             || ($user['status'] ?? 'active') !== 'active'
+            || User::temporaryPasswordExpired($user) // a session opened at hour 71 does not outlive the 72
             || $user['role'] !== ($_SESSION['role'] ?? null)
             || !hash_equals(self::passwordFingerprint($user), (string) ($_SESSION['pw_fp'] ?? ''))
         ) {

@@ -24,10 +24,12 @@ class OllamaClient
     private const MODEL = 'llama3.2:3b';
 
     /** Ollama API endpoint. Always localhost per CLAUDE.md. */
-    private const OLLAMA_URL = 'http://localhost:11434/api/generate';
+    // 127.0.0.1, not "localhost": Ollama listens on IPv4 only, and on Windows "localhost" tries IPv6 (::1) first,
+    // which costs every call a failed connection attempt before the real one.
+    private const OLLAMA_URL = 'http://127.0.0.1:11434/api/generate';
 
     /** Ollama tags endpoint for health check. */
-    private const OLLAMA_TAGS_URL = 'http://localhost:11434/api/tags';
+    private const OLLAMA_TAGS_URL = 'http://127.0.0.1:11434/api/tags';
 
     /** Curl timeout in seconds (30s — cold start on 4GB VRAM can take 10-20s). */
     private const TIMEOUT = 30;
@@ -309,16 +311,19 @@ PROMPT;
     }
 
     /**
-     * Health check: is Ollama running and reachable?
+     * Health check: is Ollama running and reachable? A running local server accepts the connection
+     * in well under a millisecond, so a short connect timeout is plenty, and a stopped one costs at
+     * most half a second instead of two (the dev server serves one request at a time, so this delay
+     * held up every page's other requests).
      */
     public static function isAvailable(): bool
     {
         $ch = curl_init(self::OLLAMA_TAGS_URL);
         curl_setopt_array($ch, [
-            CURLOPT_RETURNTRANSFER => true,
-            CURLOPT_TIMEOUT        => 3,
-            CURLOPT_CONNECTTIMEOUT => 2,
-            CURLOPT_NOBODY         => true,
+            CURLOPT_RETURNTRANSFER    => true,
+            CURLOPT_TIMEOUT_MS        => 1500,
+            CURLOPT_CONNECTTIMEOUT_MS => 500,
+            CURLOPT_NOBODY            => true,
         ]);
         curl_exec($ch);
         $code = curl_getinfo($ch, CURLINFO_HTTP_CODE);

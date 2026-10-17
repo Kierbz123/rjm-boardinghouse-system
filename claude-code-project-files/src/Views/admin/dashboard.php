@@ -27,7 +27,7 @@ $totalOpenRequests = array_sum(array_column($openByTier, 'c'));
         <div class="reveal-card card p-4 metric-accent-warning">
             <div class="flex items-center justify-between mb-1">
                 <span class="text-caption font-semibold text-neutral-500 uppercase tracking-wider">Pending Payments</span>
-                <span style="font-size:1.1rem; line-height:1;">💳</span>
+                <?= \App\Support\Icon::svg('credit-card', 18) ?>
             </div>
             <p class="text-3xl font-bold text-neutral-900 mt-1" style="font-variant-numeric: tabular-nums;"><?= (int) $pendingPayments ?></p>
             <p class="text-caption text-neutral-400 mt-1">Requires review &amp; verification</p>
@@ -36,7 +36,7 @@ $totalOpenRequests = array_sum(array_column($openByTier, 'c'));
         <div class="reveal-card card p-4 <?= $activeSos > 0 ? 'metric-accent-error' : 'metric-accent-primary' ?>">
             <div class="flex items-center justify-between mb-1">
                 <span class="text-caption font-semibold text-neutral-500 uppercase tracking-wider">Active SOS Alerts</span>
-                <span style="font-size:1.1rem; line-height:1;">🚨</span>
+                <?= \App\Support\Icon::svg('siren', 18) ?>
             </div>
             <p class="text-3xl font-bold <?= $activeSos > 0 ? 'text-error-600' : 'text-neutral-900' ?> mt-1" style="font-variant-numeric: tabular-nums;"><?= (int) $activeSos ?></p>
             <p class="text-caption <?= $activeSos > 0 ? 'text-error-600 font-semibold' : 'text-neutral-400' ?> mt-1">
@@ -47,7 +47,7 @@ $totalOpenRequests = array_sum(array_column($openByTier, 'c'));
         <div class="reveal-card card p-4 metric-accent-success">
             <div class="flex items-center justify-between mb-1">
                 <span class="text-caption font-semibold text-neutral-500 uppercase tracking-wider">Occupancy Rate</span>
-                <span style="font-size:1.1rem; line-height:1;">🏠</span>
+                <?= \App\Support\Icon::svg('home', 18) ?>
             </div>
             <p class="text-3xl font-bold text-neutral-900 mt-1" style="font-variant-numeric: tabular-nums;">
                 <?= $occupancy ? $occupancy['occupied_beds'] . '/' . $occupancy['total_beds'] : '—' ?>
@@ -58,7 +58,7 @@ $totalOpenRequests = array_sum(array_column($openByTier, 'c'));
         <div class="reveal-card card p-4 metric-accent-info">
             <div class="flex items-center justify-between mb-1">
                 <span class="text-caption font-semibold text-neutral-500 uppercase tracking-wider">Open Maintenance</span>
-                <span style="font-size:1.1rem; line-height:1;">🛠️</span>
+                <?= \App\Support\Icon::svg('wrench', 18) ?>
             </div>
             <p class="text-3xl font-bold text-neutral-900 mt-1" style="font-variant-numeric: tabular-nums;"><?= $totalOpenRequests ?></p>
             <p class="text-caption text-neutral-400 mt-1">Active tickets in queue</p>
@@ -136,7 +136,7 @@ $totalOpenRequests = array_sum(array_column($openByTier, 'c'));
                             <?php if (empty($collections['debtors'])): ?>
                                 <tr>
                                     <td colspan="4" class="p-6 text-center text-neutral-400 text-xs">
-                                        ✓ Nobody owes anything right now.
+                                        <?= \App\Support\Icon::svg('check') ?> Nobody owes anything right now.
                                     </td>
                                 </tr>
                             <?php endif; ?>
@@ -195,7 +195,7 @@ $totalOpenRequests = array_sum(array_column($openByTier, 'c'));
                             <?php if (empty($openByTier)): ?>
                                 <tr>
                                     <td colspan="2" class="p-6 text-center text-neutral-400 text-xs">
-                                        ✓ No open maintenance requests right now.
+                                        <?= \App\Support\Icon::svg('check') ?> No open maintenance requests right now.
                                     </td>
                                 </tr>
                             <?php endif; ?>

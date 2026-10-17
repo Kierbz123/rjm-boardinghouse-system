@@ -1,8 +1,7 @@
-// Shared application JS. Currently empty on purpose: all page-specific
-// GSAP timelines live inline in their views (see src/Views/admin/dashboard.php,
-// staff/dashboard.php, staff/maintenance_queue.php, portal/dashboard.php).
-// This file is the hook for genuinely cross-page behavior as it emerges,
-// so views don't each need to remember to include a new shared script tag.
+// Shared application JS, loaded on every layout page: the new-notification toast, the
+// password byte counter and the submit-button loading state. Page-specific GSAP timelines
+// live inline in their views (see src/Views/admin/dashboard.php, staff/dashboard.php,
+// staff/maintenance_queue.php, portal/dashboard.php).
 
 // In-app banner when a new notification arrives (data comes from nav.php's poll).
 (function() {
@@ -28,60 +27,35 @@
             lastKnownCount = count;
     });
 
+    // A new notification shows as a toast in the same stack layout.php uses for flash messages
+    // (.toast in input.css); SOS and emergencies use the red marker and stay until dismissed.
     function showInAppNotification(data) {
-        var banner = document.getElementById('poll-notification-banner');
-        if (!banner) {
-            banner = document.createElement('div');
-            banner.id = 'poll-notification-banner';
-            banner.style.cssText = [
-                'position:fixed', 'top:0', 'left:0', 'right:0',
-                'background:linear-gradient(135deg,#0a0a0a 0%,#1f1f1e 100%)',
-                'color:white', 'padding:1rem', 'z-index:9999',
-                'display:none', 'box-shadow:0 4px 12px rgba(0,0,0,0.3)',
-                'animation:pollSlideDown 0.3s ease-out'
-            ].join(';');
-            document.body.appendChild(banner);
-
-            var style = document.createElement('style');
-            style.textContent =
-                '@keyframes pollSlideDown{from{transform:translateY(-100%);opacity:0}to{transform:translateY(0);opacity:1}}' +
-                '@keyframes pollSlideUp{from{transform:translateY(0);opacity:1}to{transform:translateY(-100%);opacity:0}}';
-            document.head.appendChild(style);
+        var stack = document.querySelector('.toast-stack');
+        if (!stack) {
+            stack = document.createElement('div');
+            stack.className = 'toast-stack';
+            stack.setAttribute('aria-live', 'polite');
+            document.body.appendChild(stack);
         }
+        var t = (data.type_label || '').toLowerCase();
+        var urgent = t.indexOf('sos') >= 0 || t.indexOf('emergency') >= 0;
 
-        var icon = getNotificationIcon(data.type_label);
-        banner.innerHTML =
-            '<div style="display:flex;align-items:center;gap:0.75rem;max-width:1200px;margin:0 auto;">' +
-                '<span style="font-size:1.25rem;">' + icon + '</span>' +
-                '<div style="flex:1;">' +
-                    '<div style="font-weight:600;font-size:0.875rem;">' + escapeHtml(data.type_label) + '</div>' +
-                    '<div style="font-size:0.8rem;opacity:0.9;">' + escapeHtml(data.message) + '</div>' +
-                '</div>' +
-                '<button onclick="this.closest(\'#poll-notification-banner\').style.display=\'none\'" ' +
-                    'style="background:rgba(255,255,255,0.1);border:none;color:white;padding:0.5rem 1rem;border-radius:0.375rem;cursor:pointer;font-size:0.75rem;">' +
-                    'Dismiss' +
-                '</button>' +
-            '</div>';
+        var toast = document.createElement('div');
+        toast.className = 'toast ' + (urgent ? 'toast-error' : 'toast-info');
+        toast.setAttribute('role', urgent ? 'alert' : 'status');
+        toast.innerHTML =
+            '<span><strong style="display:block;font-weight:600;">' + escapeHtml(data.type_label) + '</strong>' +
+            '<span style="opacity:0.8;">' + escapeHtml(data.message) + '</span></span>' +
+            '<button type="button" aria-label="Dismiss">&times;</button>';
+        toast.querySelector('button').addEventListener('click', function () { toast.remove(); });
+        stack.appendChild(toast);
 
-        banner.style.display = 'block';
-        banner.style.animation = 'pollSlideDown 0.3s ease-out';
-
-        setTimeout(function() {
-            if (banner && banner.style.display !== 'none') {
-                banner.style.animation = 'pollSlideUp 0.3s ease-out';
-                setTimeout(function() { if (banner) banner.style.display = 'none'; }, 300);
-            }
-        }, 8000);
-    }
-
-    function getNotificationIcon(type) {
-        var t = (type || '').toLowerCase();
-        if (t.indexOf('sos') >= 0 || t.indexOf('emergency') >= 0) return '🚨';
-        if (t.indexOf('maintenance') >= 0 || t.indexOf('repair') >= 0) return '🔧';
-        if (t.indexOf('incident') >= 0) return '⚠️';
-        if (t.indexOf('rent') >= 0 || t.indexOf('payment') >= 0) return '💳';
-        if (t.indexOf('penalty') >= 0) return '⚡';
-        return '🔔';
+        if (!urgent) {
+            setTimeout(function () {
+                toast.classList.add('is-leaving');
+                toast.addEventListener('animationend', function () { toast.remove(); }, { once: true });
+            }, 8000);
+        }
     }
 
     function escapeHtml(str) {
@@ -111,4 +85,28 @@
         update();
     });
 
+})();
+
+// While a form submits, its button shows a spinner and can't be pressed twice (.is-loading in input.css).
+// Checked on the next tick, after every page handler has run, so a submit a page cancelled (its own
+// confirm dialog, a fetch-based form) never gets a spinner. Forms posted by script (form.submit())
+// fire no submit event and are untouched.
+(function () {
+    document.addEventListener('submit', function (e) {
+        var form = e.target;
+        var btn = e.submitter || form.querySelector('button[type="submit"], button:not([type])');
+        if (!btn || !btn.matches('.btn, .btn-danger, .btn-danger-solid')) return;
+        setTimeout(function () {
+            if (e.defaultPrevented || (form.target && form.target !== '_self')) return;
+            btn.classList.add('is-loading');
+            btn.setAttribute('aria-busy', 'true');
+            // Safety net: a response that never navigates (a download, a stalled request) frees the button.
+            setTimeout(clear.bind(null, btn), 10000);
+        }, 0);
+    });
+    function clear(btn) { btn.classList.remove('is-loading'); btn.removeAttribute('aria-busy'); }
+    // Back-button restores from cache with the spinner still showing; clear it.
+    window.addEventListener('pageshow', function () {
+        document.querySelectorAll('.is-loading[aria-busy]').forEach(clear);
+    });
 })();

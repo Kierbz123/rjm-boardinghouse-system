@@ -60,24 +60,35 @@ class PaymentReviewService
         // One transaction for the whole approval: the late fees, the waiver, the status change and the
         // notifications written along the way all commit together or not at all. The payment row is locked
         // FIRST, so two admins approving the same receipt take turns and the second finds it already reviewed.
-        $pdo->beginTransaction();
+        // PaymentRecorder opens the transaction itself (it inserts the payment first); then this joins it and
+        // the caller commits or rolls back.
+        $ownTx = !$pdo->inTransaction();
+        if ($ownTx) {
+            $pdo->beginTransaction();
+        }
         try {
             $lock = $pdo->prepare('SELECT * FROM payments WHERE id = ? FOR UPDATE');
             $lock->execute([$paymentId]);
             $payment = $lock->fetch();
             if (!$payment || !in_array($payment['verification_status'], ['pending', 'flagged'], true)) {
-                $pdo->rollBack();
+                if ($ownTx) {
+                    $pdo->rollBack();
+                }
                 return ['ok' => false, 'error' => "Payment #{$paymentId} has already been reviewed."];
             }
             $result = self::approveLocked($payment, $paymentId, $adminId, $approvedAmount, $waiveReason, $today);
             if (!$result['ok']) {
-                $pdo->rollBack();
+                if ($ownTx) {
+                    $pdo->rollBack();
+                }
                 return $result;
             }
-            $pdo->commit();
+            if ($ownTx) {
+                $pdo->commit();
+            }
             return $result;
         } catch (\Throwable $e) {
-            if ($pdo->inTransaction()) {
+            if ($ownTx && $pdo->inTransaction()) {
                 $pdo->rollBack();
             }
             throw $e;

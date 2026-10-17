@@ -13,7 +13,28 @@ if (PHP_SAPI === 'cli-server') {
     // realpath() throws on a NUL byte (/%00), before the error handler below exists.
     $static = str_contains($path, "\0") ? false : realpath(__DIR__ . $path);
     if ($static !== false && is_file($static) && str_starts_with($static, __DIR__ . DIRECTORY_SEPARATOR) && !str_ends_with($static, '.php')) {
-        return false;
+        // The built-in server sends files without caching headers, so every page re-downloaded the CSS, JS and
+        // fonts one after another on its single worker. These go out with an ETag (a revisit costs a tiny 304);
+        // fonts, and URLs versioned with ?v= (layout.php), are kept outright so the browser doesn't even ask.
+        $types = ['css' => 'text/css; charset=UTF-8', 'js' => 'text/javascript; charset=UTF-8', 'woff2' => 'font/woff2',
+            'woff' => 'font/woff', 'jpg' => 'image/jpeg', 'png' => 'image/png', 'svg' => 'image/svg+xml'];
+        $ext = strtolower(pathinfo($static, PATHINFO_EXTENSION));
+        if (!isset($types[$ext])) {
+            return false;
+        }
+        $etag = '"' . dechex((int) filemtime($static)) . '-' . dechex((int) filesize($static)) . '"';
+        $keep = isset($_GET['v']) || $ext === 'woff2' || $ext === 'woff';
+        header('Cache-Control: ' . ($keep ? 'public, max-age=31536000, immutable' : 'no-cache'));
+        header('ETag: ' . $etag);
+        header('X-Content-Type-Options: nosniff');
+        if (($_SERVER['HTTP_IF_NONE_MATCH'] ?? '') === $etag) {
+            http_response_code(304);
+            return true;
+        }
+        header('Content-Type: ' . $types[$ext]);
+        header('Content-Length: ' . filesize($static));
+        readfile($static);
+        return true;
     }
 }
 
@@ -110,6 +131,10 @@ $router->add('POST', '/admin/inquiries/{id}/status', function ($id) {
     AuthMiddleware::require(); RoleMiddleware::require(['admin']);
     InquiryController::updateStatus($id);
 });
+$router->add('POST', '/admin/inquiries/{id}/link-boarder', function ($id) {
+    AuthMiddleware::require(); RoleMiddleware::require(['admin']);
+    InquiryController::linkBoarder($id);
+});
 $router->add('GET', '/admin/boarders', function () {
     AuthMiddleware::require(); RoleMiddleware::require(['admin']);
     BoarderController::index();
@@ -166,6 +191,10 @@ $router->add('POST', '/admin/staff/{id}/password', function ($id) {
     AuthMiddleware::require(); RoleMiddleware::require(['admin']);
     StaffController::resetPassword($id);
 });
+$router->add('POST', '/admin/staff/{id}/phone', function ($id) {
+    AuthMiddleware::require(); RoleMiddleware::require(['admin']);
+    StaffController::setPhone($id);
+});
 $router->add('GET', '/admin/rooms', function () {
     AuthMiddleware::require(); RoleMiddleware::require(['admin']);
     RoomController::index();
@@ -181,6 +210,10 @@ $router->add('POST', '/admin/rooms/{id}/update', function ($id) {
 $router->add('POST', '/admin/rooms/{id}/delete', function ($id) {
     AuthMiddleware::require(); RoleMiddleware::require(['admin']);
     RoomController::delete($id);
+});
+$router->add('POST', '/admin/room-types/{id}/update', function ($id) {
+    AuthMiddleware::require(); RoleMiddleware::require(['admin']);
+    RoomController::updateType($id);
 });
 $router->add('POST', '/admin/beds', function () {
     AuthMiddleware::require(); RoleMiddleware::require(['admin']);
@@ -209,6 +242,18 @@ $router->add('POST', '/admin/electricity/{id}/delete', function ($id) {
 $router->add('GET', '/admin/payments', function () {
     AuthMiddleware::require(); RoleMiddleware::require(['admin']);
     PaymentController::index();
+});
+$router->add('GET', '/admin/payments/record', function () {
+    AuthMiddleware::require(); RoleMiddleware::require(['admin']); // owner, 15 Oct: money is admin-only
+    PaymentController::recordForm();
+});
+$router->add('POST', '/admin/payments/record', function () {
+    AuthMiddleware::require(); RoleMiddleware::require(['admin']);
+    PaymentController::record();
+});
+$router->add('GET', '/payments/{id}/receipt', function ($id) {
+    AuthMiddleware::require(); // who may see which receipt is decided in the controller
+    PaymentController::receipt($id);
 });
 $router->add('POST', '/admin/payments/{id}/approve', function ($id) {
     AuthMiddleware::require(); RoleMiddleware::require(['admin']);
@@ -301,7 +346,7 @@ $router->add('GET', '/staff/incidents/history', function () {
     IncidentController::history();
 });
 $router->add('POST', '/staff/penalties/issue', function () {
-    AuthMiddleware::require(); RoleMiddleware::require(['staff', 'admin']);
+    AuthMiddleware::require(); RoleMiddleware::require(['admin']); // owner, 15 Oct: staff report, the admin issues
     PenaltyController::issuePenalty();
 });
 $router->add('GET', '/portal/incidents', function () {

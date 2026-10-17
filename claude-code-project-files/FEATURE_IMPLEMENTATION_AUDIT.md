@@ -1,6 +1,7 @@
 # Feature Implementation Audit
 
 **Date:** 10 October 2026
+**Note (documentation pass, 14 Oct 2026):** a dated record. A later, deeper audit (`../FUNCTIONALITY-AUDIT-2026-10-14.md`) found problems this one marked Verified: for example expenses "append-only by design" (no date, receipt or void), "Mark paid" on a penalty (really a waiver with no reason), a future move-out date, and hard deletion of residents without payments. Route and check counts are from 10 Oct (86 routes, 542 checks); the suite has grown since.
 **Scope:** every feature, followed from the screen, through the server, to the row it leaves in the database.
 **Result:** 28 features traced. 27 verified end to end by executed tests; 1 (online demo launcher) verified in parts, with one part that only the owner can run. 9 defects found and fixed. 3 items need an owner decision (section 5).
 

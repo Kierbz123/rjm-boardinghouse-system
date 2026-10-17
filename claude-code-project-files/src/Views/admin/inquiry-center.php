@@ -21,7 +21,7 @@ ob_start();
         <div class="reveal-card card p-4 metric-accent-primary">
             <div class="flex items-center justify-between mb-1">
                 <span class="text-caption font-semibold text-neutral-500 uppercase tracking-wider">Total Inquiries</span>
-                <span style="font-size:1.1rem; line-height:1;">📋</span>
+                <?= \App\Support\Icon::svg('clipboard', 18) ?>
             </div>
             <p class="text-3xl font-bold text-neutral-900 mt-1" style="font-variant-numeric: tabular-nums;"><?= (int) $totalInquiries ?></p>
             <p class="text-caption text-neutral-400 mt-1">All-time submissions</p>
@@ -30,7 +30,7 @@ ob_start();
         <div class="reveal-card card p-4 metric-accent-success">
             <div class="flex items-center justify-between mb-1">
                 <span class="text-caption font-semibold text-neutral-500 uppercase tracking-wider">Today's Inquiries</span>
-                <span style="font-size:1.1rem; line-height:1;">📅</span>
+                <?= \App\Support\Icon::svg('calendar', 18) ?>
             </div>
             <p class="text-3xl font-bold text-neutral-900 mt-1" style="font-variant-numeric: tabular-nums;"><?= (int) $todayInquiries ?></p>
             <p class="text-caption text-emerald-700 mt-1 font-medium">New submissions today</p>
@@ -39,7 +39,7 @@ ob_start();
         <div class="reveal-card card p-4 metric-accent-warning">
             <div class="flex items-center justify-between mb-1">
                 <span class="text-caption font-semibold text-neutral-500 uppercase tracking-wider">Unread Notifications</span>
-                <span style="font-size:1.1rem; line-height:1;">🔔</span>
+                <?= \App\Support\Icon::svg('bell', 18) ?>
             </div>
             <p class="text-3xl font-bold text-neutral-900 mt-1" style="font-variant-numeric: tabular-nums;"><?= (int) $unreadCount ?></p>
             <p class="text-caption text-neutral-400 mt-1">Requires attention</p>
@@ -48,7 +48,7 @@ ob_start();
         <div class="reveal-card card p-4 metric-accent-info">
             <div class="flex items-center justify-between mb-1">
                 <span class="text-caption font-semibold text-neutral-500 uppercase tracking-wider">Staff Member</span>
-                <span style="font-size:1.1rem; line-height:1;">👤</span>
+                <?= \App\Support\Icon::svg('user', 18) ?>
             </div>
             <p class="text-lg font-bold text-neutral-900 mt-1"><?= htmlspecialchars($userName) ?></p>
             <p class="text-caption text-neutral-400 mt-1"><?= htmlspecialchars(ucfirst($userRole)) ?> access</p>
@@ -101,9 +101,9 @@ ob_start();
                         <div class="form-group">
                             <label for="inq-room" style="display: block; font-size: 0.8125rem; font-weight: 600; color: #3b3a38; margin-bottom: 0.35rem;">Preferred Room Tier</label>
                             <select id="inq-room" name="room_type" class="inq-input inq-select" style="width: 100%; padding: 0.625rem 0.875rem; border: 1px solid #d4d2ce; border-radius: 0.5rem; font-size: 0.875rem; transition: border-color 0.15s ease; background-color: white;">
-                                <option value="Solo Executive Room">Solo Executive Room (₱3,500/mo)</option>
-                                <option value="Twin Sharing Scholar Suite" selected>Twin Sharing Scholar Suite (₱2,200/mo)</option>
-                                <option value="Quad Bedspace Sanctuary">Quad Bedspace Sanctuary (₱1,600/mo)</option>
+                                <?php foreach ($roomTypes as $t): ?>
+                                    <option value="<?= htmlspecialchars($t['name']) ?>" <?= $t['is_popular'] ? 'selected' : '' ?>><?= htmlspecialchars($t['name']) ?> (<?= htmlspecialchars(\App\Models\RoomType::priceLabel($t)) ?>)</option>
+                                <?php endforeach; ?>
                                 <option value="General Inquiry / Visit Booking">General Inquiry / Physical Viewing</option>
                             </select>
                         </div>
@@ -133,7 +133,7 @@ ob_start();
                     </button>
 
                     <p class="inquiry-footnote" style="margin-top: 1rem; font-size: 0.75rem; color: #6b6b6b; text-align: center;">
-                        🔒 Submitted by <?= htmlspecialchars($userName) ?> • All data is protected under our privacy standards.
+                        <?= \App\Support\Icon::svg('lock') ?> Submitted by <?= htmlspecialchars($userName) ?> • All data is protected under our privacy standards.
                     </p>
                 </form>
             </div>
@@ -150,7 +150,7 @@ ob_start();
                     <a href="/admin/inquiries/<?= (int) $inq['id'] ?>" class="flex flex-wrap items-center gap-x-4 gap-y-1 px-4 py-3 hover:bg-neutral-50" style="border-bottom:1px solid #e6e5e2;">
                         <span class="font-semibold text-neutral-900 text-sm">#<?= (int) $inq['id'] ?> · <?= htmlspecialchars($inq['name']) ?></span>
                         <span class="text-sm text-neutral-600"><?= htmlspecialchars((string) $inq['room_type']) ?></span>
-                        <span class="text-caption text-neutral-400" style="margin-left:auto;"><?= htmlspecialchars(ucfirst($inq['status'])) ?> · <?= date('M j, g:i a', strtotime($inq['created_at'])) ?></span>
+                        <span class="text-caption text-neutral-400" style="margin-left:auto;"><?= !empty($inq['converted_user_id']) ? 'Registered as boarder' : htmlspecialchars(ucfirst($inq['status'])) ?> · <?= date('M j, g:i a', strtotime($inq['created_at'])) ?></span>
                     </a>
                 <?php endforeach; ?>
             </div>
@@ -171,7 +171,7 @@ ob_start();
             <div class="card inq-notif-panel">
                 <?php if (empty($notifications)): ?>
                     <div class="inq-notif-empty">
-                        <div style="font-size: 2rem; margin-bottom: 0.5rem;">🔔</div>
+                        <span class="empty-icon"><?= \App\Support\Icon::svg('bell') ?></span>
                         <p>No notifications yet</p>
                     </div>
                 <?php else: ?>

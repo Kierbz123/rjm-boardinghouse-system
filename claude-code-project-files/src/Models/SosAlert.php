@@ -65,4 +65,11 @@ class SosAlert
         return $stmt->rowCount() === 1;
     }
 
+    /** Alerts this person acknowledged that nobody has resolved yet (shown when they are deactivated). */
+    public static function openAcknowledgedBy(int $userId): int
+    {
+        $stmt = Database::getConnection()->prepare('SELECT COUNT(*) FROM sos_alerts WHERE acknowledged_by = ? AND status != "resolved"');
+        $stmt->execute([$userId]);
+        return (int) $stmt->fetchColumn();
+    }
 }

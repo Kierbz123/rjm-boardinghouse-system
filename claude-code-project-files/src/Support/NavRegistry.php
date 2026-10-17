@@ -10,6 +10,7 @@ namespace App\Support;
  *         list in public/index.php (the route is still what enforces access)
  * nav   = sidebar section per role; a role in `roles` without an entry here
  *         reaches the page through the assistant only
+ * also  = path prefixes of the page's detail pages, which keep its sidebar entry highlighted
  * words = what people type when they mean this page (English, Tagalog, Bisaya)
  *
  * Order matters: it is the sidebar order, and it breaks ties in find().
@@ -32,7 +33,7 @@ final class NavRegistry
             'words' => ['home', 'overview', 'balance', 'balanse', 'utang', 'owe', 'sos', 'emergency', 'saklolo', 'tabang'],
             'about' => ['en' => 'Your dashboard shows your room, your balance, your requests and the SOS button.',
                 'tl' => 'Makikita sa dashboard mo ang iyong kuwarto, balanse, mga request at ang SOS button.']],
-        ['href' => '/admin/inquiry-center', 'label' => 'Inquiry Center', 'icon' => 'inquiry',
+        ['href' => '/admin/inquiry-center', 'label' => 'Inquiry Center', 'icon' => 'inquiry', 'also' => ['/admin/inquiries/'],
             'roles' => ['admin', 'staff'], 'nav' => ['admin' => 'Overview', 'staff' => 'Overview'],
             'words' => ['inquiry', 'inquiries', 'inquire', 'asked about', 'asking about', 'walk-in', 'walk in', 'applicant', 'nagtanong', 'nangutana'],
             'about' => ['en' => 'The Inquiry Center lists people asking about a room, so you can reply and track them.',
@@ -42,7 +43,7 @@ final class NavRegistry
             'words' => ['occupied', 'how full', 'trend', 'vacancy rate'],
             'about' => ['en' => 'Occupancy shows how full the house is and how that has changed over time.',
                 'tl' => 'Ipinapakita ng Occupancy kung gaano kapuno ang bahay at kung paano ito nagbago.']],
-        ['href' => '/admin/boarders', 'label' => 'Boarders', 'icon' => 'boarders',
+        ['href' => '/admin/boarders', 'label' => 'Boarders', 'icon' => 'boarders', 'also' => ['/admin/boarders/'],
             'roles' => ['admin'], 'nav' => ['admin' => 'Boarding'],
             'words' => ['boarder', 'resident', 'tenant', 'move in', 'move out', 'archive', 'nangungupahan'],
             'about' => ['en' => 'Boarders is the list of residents: add one, open a profile, assign a bed, or archive.',
@@ -62,6 +63,11 @@ final class NavRegistry
             'words' => ['payment', 'receipt', 'approve', 'flagged', 'pending', 'collection', 'reverse', 'bayad', 'resibo'],
             'about' => ['en' => 'Payments lists every payment with its receipt; approve, reject or reverse them here.',
                 'tl' => 'Nasa Payments ang lahat ng bayad at resibo; dito mag-approve, mag-reject o mag-reverse.']],
+        ['href' => '/admin/payments/record', 'label' => 'Record Payment', 'icon' => 'payments',
+            'roles' => ['admin'], 'nav' => ['admin' => 'Finance'],
+            'words' => ['record payment', 'cash', 'walk-in', 'walk in', 'received', 'receipt book', 'bayad cash', 'cash payment'],
+            'about' => ['en' => 'Record Payment is where you enter money taken in person, such as cash, and print the receipt.',
+                'tl' => 'Sa Record Payment mo itinatala ang bayad na personal na tinanggap, tulad ng cash, at pini-print ang resibo.']],
         ['href' => '/admin/expenses', 'label' => 'Expenses', 'icon' => 'expenses',
             'roles' => ['admin'], 'nav' => ['admin' => 'Finance'],
             'words' => ['expense', 'spending', 'spent', 'cost', 'utilities', 'gastos'],
@@ -128,7 +134,7 @@ final class NavRegistry
         $sections = [];
         foreach (self::PAGES as $page) {
             if (isset($page['nav'][$role])) {
-                $sections[$page['nav'][$role]][] = ['href' => $page['href'], 'label' => $page['label'], 'icon' => $page['icon']];
+                $sections[$page['nav'][$role]][] = ['href' => $page['href'], 'label' => $page['label'], 'icon' => $page['icon'], 'also' => $page['also'] ?? []];
             }
         }
         return $sections;

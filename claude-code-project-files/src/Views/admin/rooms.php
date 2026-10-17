@@ -27,14 +27,14 @@ $occupancyRate = $totalBeds > 0 ? round(($occupiedBeds / $totalBeds) * 100) : 0;
 
     <?php if ($error): ?>
         <div class="bg-error-50 text-error-700 text-body-sm rounded-lg p-3.5 border border-error-500 flex items-center gap-2.5" role="alert">
-            <span style="font-size:1.1rem; line-height:1;">⚠</span>
+            <?= \App\Support\Icon::svg('alert-triangle', 18) ?>
             <span class="font-medium"><?= htmlspecialchars($error) ?></span>
         </div>
     <?php endif; ?>
 
     <?php if ($success): ?>
         <div class="bg-emerald-50 text-emerald-800 text-body-sm rounded-lg p-3.5 border border-emerald-300 flex items-center gap-2.5" role="alert">
-            <span style="font-size:1.1rem; line-height:1;">✓</span>
+            <?= \App\Support\Icon::svg('check', 18) ?>
             <span class="font-medium"><?= htmlspecialchars($success) ?></span>
         </div>
     <?php endif; ?>
@@ -44,7 +44,7 @@ $occupancyRate = $totalBeds > 0 ? round(($occupiedBeds / $totalBeds) * 100) : 0;
         <div class="reveal-card card p-4 metric-accent-primary">
             <div class="flex items-center justify-between mb-1">
                 <span class="text-caption font-semibold text-neutral-500 uppercase tracking-wider">Total Rooms</span>
-                <span style="font-size:1.1rem; line-height:1;">🏢</span>
+                <?= \App\Support\Icon::svg('building', 18) ?>
             </div>
             <p class="text-3xl font-bold text-neutral-900 mt-1" style="font-variant-numeric: tabular-nums;"><?= $totalRooms ?></p>
             <p class="text-caption text-neutral-400 mt-1">Configured units</p>
@@ -52,7 +52,7 @@ $occupancyRate = $totalBeds > 0 ? round(($occupiedBeds / $totalBeds) * 100) : 0;
         <div class="reveal-card card p-4 metric-accent-info">
             <div class="flex items-center justify-between mb-1">
                 <span class="text-caption font-semibold text-neutral-500 uppercase tracking-wider">Total Capacity</span>
-                <span style="font-size:1.1rem; line-height:1;">🛏️</span>
+                <?= \App\Support\Icon::svg('bed', 18) ?>
             </div>
             <p class="text-3xl font-bold text-neutral-900 mt-1" style="font-variant-numeric: tabular-nums;"><?= $totalBeds ?></p>
             <p class="text-caption text-neutral-400 mt-1">Total bed slots</p>
@@ -60,7 +60,7 @@ $occupancyRate = $totalBeds > 0 ? round(($occupiedBeds / $totalBeds) * 100) : 0;
         <div class="reveal-card card p-4 metric-accent-warning">
             <div class="flex items-center justify-between mb-1">
                 <span class="text-caption font-semibold text-neutral-500 uppercase tracking-wider">Occupied Beds</span>
-                <span style="font-size:1.1rem; line-height:1;">👥</span>
+                <?= \App\Support\Icon::svg('users', 18) ?>
             </div>
             <p class="text-3xl font-bold text-neutral-900 mt-1" style="font-variant-numeric: tabular-nums;"><?= $occupiedBeds ?></p>
             <p class="text-caption text-amber-600 mt-1 font-semibold"><?= $occupancyRate ?>% filled</p>
@@ -68,10 +68,70 @@ $occupancyRate = $totalBeds > 0 ? round(($occupiedBeds / $totalBeds) * 100) : 0;
         <div class="reveal-card card p-4 metric-accent-success">
             <div class="flex items-center justify-between mb-1">
                 <span class="text-caption font-semibold text-neutral-500 uppercase tracking-wider">Vacant Beds</span>
-                <span style="font-size:1.1rem; line-height:1;">🟢</span>
+                <?= \App\Support\Icon::svg('circle-dot', 18) ?>
             </div>
             <p class="text-3xl font-bold <?= $vacantBeds === 0 ? 'text-error-600' : 'text-neutral-900' ?> mt-1" style="font-variant-numeric: tabular-nums;"><?= $vacantBeds ?></p>
             <p class="text-caption text-neutral-400 mt-1">Ready for occupancy</p>
+        </div>
+    </div>
+
+    <!-- Room Types: the offerings advertised on the website ("Choose how you live") -->
+    <div id="room-types">
+        <div class="section-header">
+            <h2>Room Types</h2>
+            <span class="text-caption text-neutral-500 font-medium bg-neutral-100 px-3 py-1 rounded-full">What the website offers</span>
+        </div>
+        <p class="text-body-sm text-neutral-500 mb-3">These are the offerings shown on the public page and in the inquiry forms. Link each physical room to its type in Room Configurations below: the type then sets that room's capacity and what each resident is billed, and saving an offering updates all its rooms. Vacant beds are counted from linked rooms only.</p>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+            <?php foreach ($roomTypes as $t): ?>
+            <div class="card p-4" style="display:flex; flex-direction:column; gap:0.6rem;">
+                <div class="flex items-center justify-between gap-2">
+                    <span class="text-caption font-semibold text-neutral-500 uppercase tracking-wider"><?= htmlspecialchars($t['capacity_label']) ?></span>
+                    <?php if ($t['badge']): ?><span class="text-caption font-semibold" style="background:#fbf4ef; color:#b15f2c; padding:0.15rem 0.6rem; border-radius:999px;"><?= htmlspecialchars($t['badge']) ?></span><?php endif; ?>
+                </div>
+                <h3 class="text-body font-semibold text-neutral-900"><?= htmlspecialchars($t['name']) ?></h3>
+                <p class="text-neutral-900 font-semibold font-mono"><?= htmlspecialchars(\App\Models\RoomType::priceLabel($t)) ?></p>
+                <p class="text-caption text-neutral-500"><?= (int) $t['capacity'] === 1 ? 'Exclusive: 1 bed per room' : (int) $t['capacity'] . ' beds per room' ?> · each resident billed ₱<?= number_format(\App\Models\RoomType::ratePerBed($t), 2) ?> / month</p>
+                <ul class="text-body-sm text-neutral-600" style="list-style:disc; padding-left:1.1rem;">
+                    <?php foreach ($t['feature_list'] as $feature): ?><li><?= htmlspecialchars($feature) ?></li><?php endforeach; ?>
+                </ul>
+                <p class="text-caption <?= (int) $t['room_count'] === 0 ? 'text-amber-600' : 'text-neutral-500' ?> font-semibold">
+                    <?php if ((int) $t['room_count'] === 0): ?>
+                        No physical room linked yet, so nothing of this type can be assigned.
+                    <?php else: ?>
+                        <?= (int) $t['room_count'] ?> room<?= (int) $t['room_count'] !== 1 ? 's' : '' ?> · <?= (int) $t['bed_count'] ?> bed<?= (int) $t['bed_count'] !== 1 ? 's' : '' ?> · <?= (int) $t['vacant_bed_count'] ?> vacant
+                    <?php endif; ?>
+                </p>
+                <details>
+                    <summary class="text-caption font-semibold text-neutral-600" style="cursor:pointer;">Edit offering</summary>
+                    <form method="post" action="/admin/room-types/<?= (int) $t['id'] ?>/update" style="display:flex; flex-direction:column; gap:0.5rem; margin-top:0.6rem;">
+                        <?= \App\Support\Csrf::field() ?>
+                        <label class="block text-caption font-semibold text-neutral-600">Name
+                            <input name="name" value="<?= htmlspecialchars($t['name']) ?>" required maxlength="100" class="input"></label>
+                        <label class="block text-caption font-semibold text-neutral-600">Who it is for
+                            <input name="capacity_label" value="<?= htmlspecialchars($t['capacity_label']) ?>" required maxlength="60" class="input"></label>
+                        <label class="block text-caption font-semibold text-neutral-600">Residents per room <span class="font-normal text-neutral-400">(beds each room of this type holds)</span>
+                            <input name="capacity" type="number" min="1" max="50" value="<?= (int) $t['capacity'] ?>" required class="input font-mono"></label>
+                        <div class="flex items-center gap-1.5">
+                            <label class="block text-caption font-semibold text-neutral-600" style="flex:1;">Price (₱ / month)
+                                <input name="price" type="number" step="0.01" min="0" value="<?= htmlspecialchars($t['price']) ?>" required class="input font-mono"></label>
+                            <label class="block text-caption font-semibold text-neutral-600" style="flex:1;">Charged
+                                <select name="price_unit" class="input">
+                                    <option value="room" <?= $t['price_unit'] === 'room' ? 'selected' : '' ?>>per room</option>
+                                    <option value="bed" <?= $t['price_unit'] === 'bed' ? 'selected' : '' ?>>per bed</option>
+                                </select></label>
+                        </div>
+                        <label class="block text-caption font-semibold text-neutral-600">Badge <span class="font-normal text-neutral-400">(optional)</span>
+                            <input name="badge" value="<?= htmlspecialchars($t['badge'] ?? '') ?>" maxlength="40" class="input"></label>
+                        <label class="text-caption font-semibold text-neutral-600 flex items-center gap-1.5">
+                            <input type="checkbox" name="is_popular" value="1" <?= $t['is_popular'] ? 'checked' : '' ?>> Highlight as most popular</label>
+                        <label class="block text-caption font-semibold text-neutral-600">Features <span class="font-normal text-neutral-400">(one per line; the website shows the first 3)</span>
+                            <textarea name="features" rows="5" required class="input"><?= htmlspecialchars(implode("\n", $t['feature_list'])) ?></textarea></label>
+                        <button class="btn btn-primary w-full !py-2 !text-xs font-semibold">Save offering</button>
+                    </form>
+                </details>
+            </div>
+            <?php endforeach; ?>
         </div>
     </div>
 
@@ -85,7 +145,7 @@ $occupancyRate = $totalBeds > 0 ? round(($occupiedBeds / $totalBeds) * 100) : 0;
             <!-- Card 1: Add Room Form -->
             <form method="post" action="/admin/rooms" class="form-card">
                 <div class="flex items-center gap-2 pb-2 border-b border-neutral-100">
-                    <span style="font-size:1.1rem; line-height:1;">🏠</span>
+                    <?= \App\Support\Icon::svg('home', 18) ?>
                     <h3 class="text-body font-semibold text-neutral-900">Add Room</h3>
                 </div>
                 <?= \App\Support\Csrf::field() ?>
@@ -98,12 +158,21 @@ $occupancyRate = $totalBeds > 0 ? round(($occupiedBeds / $totalBeds) * 100) : 0;
                     <input name="floor" placeholder="e.g. 1" class="input">
                 </div>
                 <div>
-                    <label class="block text-caption font-semibold text-neutral-600 mb-1">Capacity</label>
-                    <input name="capacity" type="number" min="1" value="2" required class="input">
+                    <label class="block text-caption font-semibold text-neutral-600 mb-1">Room Type <span class="font-normal text-neutral-400">(sets capacity and rent)</span></label>
+                    <select name="room_type_id" class="input" data-room-type>
+                        <option value="">— Not one of the offerings —</option>
+                        <?php foreach ($roomTypes as $t): ?>
+                            <option value="<?= (int) $t['id'] ?>" data-capacity="<?= (int) $t['capacity'] ?>" data-rate="<?= \App\Models\RoomType::ratePerBed($t) ?>"><?= htmlspecialchars($t['name']) ?></option>
+                        <?php endforeach; ?>
+                    </select>
                 </div>
                 <div>
-                    <label class="block text-caption font-semibold text-neutral-600 mb-1">Monthly Base Price (₱)</label>
-                    <input name="base_price" type="number" step="0.01" value="3500" required class="input font-mono font-semibold">
+                    <label class="block text-caption font-semibold text-neutral-600 mb-1">Capacity</label>
+                    <input name="capacity" type="number" min="1" max="50" value="2" required class="input">
+                </div>
+                <div>
+                    <label class="block text-caption font-semibold text-neutral-600 mb-1">Monthly Rent per Bed (₱)</label>
+                    <input name="base_price" type="number" step="0.01" min="0" value="3500" required class="input font-mono font-semibold">
                 </div>
                 <button class="btn btn-primary w-full !py-2 !text-xs font-semibold">
                     Create Room Unit
@@ -113,7 +182,7 @@ $occupancyRate = $totalBeds > 0 ? round(($occupiedBeds / $totalBeds) * 100) : 0;
             <!-- Card 2: Add Bed Form -->
             <form method="post" action="/admin/beds" class="form-card accent-success">
                 <div class="flex items-center gap-2 pb-2 border-b border-neutral-100">
-                    <span style="font-size:1.1rem; line-height:1;">🛏️</span>
+                    <?= \App\Support\Icon::svg('bed', 18) ?>
                     <h3 class="text-body font-semibold text-neutral-900">Add Bed</h3>
                 </div>
                 <?= \App\Support\Csrf::field() ?>
@@ -146,7 +215,7 @@ $occupancyRate = $totalBeds > 0 ? round(($occupiedBeds / $totalBeds) * 100) : 0;
             <!-- Card 3: Assign Boarder to Bed Form -->
             <form method="post" action="/admin/beds/assign" class="form-card accent-neutral">
                 <div class="flex items-center gap-2 pb-2 border-b border-neutral-100">
-                    <span style="font-size:1.1rem; line-height:1;">🔗</span>
+                    <?= \App\Support\Icon::svg('link', 18) ?>
                     <h3 class="text-body font-semibold text-neutral-900">Assign Boarder</h3>
                 </div>
                 <?= \App\Support\Csrf::field() ?>
@@ -188,7 +257,7 @@ $occupancyRate = $totalBeds > 0 ? round(($occupiedBeds / $totalBeds) * 100) : 0;
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-5 items-start">
             <form method="post" action="/admin/electricity" class="form-card" data-testid="electricity-form">
                 <div class="flex items-center gap-2 pb-2 border-b border-neutral-100">
-                    <span style="font-size:1.1rem; line-height:1;">⚡</span>
+                    <?= \App\Support\Icon::svg('zap', 18) ?>
                     <h3 class="text-body font-semibold text-neutral-900">Enter a Room's Bill</h3>
                 </div>
                 <?= \App\Support\Csrf::field() ?>
@@ -275,20 +344,21 @@ $occupancyRate = $totalBeds > 0 ? round(($occupiedBeds / $totalBeds) * 100) : 0;
         <div class="card overflow-hidden">
             <?php if (empty($rooms)): ?>
             <div class="empty-state" style="padding:3.5rem 0;">
-                <span style="font-size:2.5rem; margin-bottom: 0.5rem;">🏠</span>
+                <span class="empty-icon"><?= \App\Support\Icon::svg('home') ?></span>
                 <span class="text-sm font-semibold text-neutral-800">No rooms configured yet</span>
                 <span class="text-xs text-neutral-500 mt-1">Use the "Add Room" form above to configure your first room.</span>
             </div>
             <?php else: ?>
             <div class="overflow-x-auto">
-                <table class="w-full text-body-sm" style="min-width: 680px;">
+                <table class="w-full text-body-sm" style="min-width: 860px;">
                     <thead>
                         <tr>
-                            <th style="width: 18%;">Room #</th>
-                            <th style="width: 16%;">Floor</th>
-                            <th style="width: 18%;">Capacity</th>
-                            <th style="width: 26%;">Base Price / mo</th>
-                            <th style="width: 22%; text-align: right;">Actions</th>
+                            <th style="width: 13%;">Room #</th>
+                            <th style="width: 11%;">Floor</th>
+                            <th style="width: 22%;">Room Type</th>
+                            <th style="width: 15%;">Capacity</th>
+                            <th style="width: 20%;">Rent per Bed / mo</th>
+                            <th style="width: 19%; text-align: right;">Actions</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -307,8 +377,16 @@ $occupancyRate = $totalBeds > 0 ? round(($occupiedBeds / $totalBeds) * 100) : 0;
                                        class="input input-sm" style="width:4.5rem;" placeholder="—" title="Floor">
                             </td>
                             <td>
+                                <select form="room-update-<?= (int)$r['id'] ?>" name="room_type_id" data-room-type class="input input-sm" style="max-width:12rem;" title="Room type">
+                                    <option value="">— None —</option>
+                                    <?php foreach ($roomTypes as $t): ?>
+                                        <option value="<?= (int) $t['id'] ?>" data-capacity="<?= (int) $t['capacity'] ?>" data-rate="<?= \App\Models\RoomType::ratePerBed($t) ?>" <?= (int) ($r['room_type_id'] ?? 0) === (int) $t['id'] ? 'selected' : '' ?>><?= htmlspecialchars($t['name']) ?></option>
+                                    <?php endforeach; ?>
+                                </select>
+                            </td>
+                            <td>
                                 <div class="flex items-center gap-1.5">
-                                    <input form="room-update-<?= (int)$r['id'] ?>" name="capacity" type="number" min="1" value="<?= (int) $r['capacity'] ?>"
+                                    <input form="room-update-<?= (int)$r['id'] ?>" name="capacity" type="number" min="1" max="50" value="<?= (int) $r['capacity'] ?>" <?= $r['room_type_id'] ? 'readonly' : '' ?>
                                            class="input input-sm font-semibold" style="width:4.5rem;" title="Capacity">
                                     <span class="text-caption text-neutral-400">beds</span>
                                 </div>
@@ -316,7 +394,7 @@ $occupancyRate = $totalBeds > 0 ? round(($occupiedBeds / $totalBeds) * 100) : 0;
                             <td>
                                 <div class="flex items-center gap-1.5">
                                     <span class="text-neutral-500 font-semibold text-xs">₱</span>
-                                    <input form="room-update-<?= (int)$r['id'] ?>" name="base_price" type="number" step="0.01" value="<?= htmlspecialchars($r['base_price']) ?>"
+                                    <input form="room-update-<?= (int)$r['id'] ?>" name="base_price" type="number" step="0.01" min="0" value="<?= htmlspecialchars($r['base_price']) ?>" <?= $r['room_type_id'] ? 'readonly' : '' ?>
                                            class="input input-sm font-semibold font-mono" style="width:7.5rem;" title="Base price">
                                 </div>
                             </td>
@@ -381,24 +459,31 @@ $occupancyRate = $totalBeds > 0 ? round(($occupiedBeds / $totalBeds) * 100) : 0;
                             $roomBeds = $bedsByRoom[$r['id']]['beds'] ?? [];
                             $roomOccupied = count(array_filter($roomBeds, fn($b) => $b['status'] === 'occupied'));
                             $roomVacant = count($roomBeds) - $roomOccupied;
-                            $roomCapacity = count($roomBeds);
+                            $roomCapacity = (int) $r['capacity'];
+                            $roomBedCount = count($roomBeds);
                         ?>
                         <!-- Main Room Row -->
                         <tr class="room-main-row transition-colors cursor-pointer" id="room-row-<?= (int) $r['id'] ?>" data-id="<?= (int) $r['id'] ?>" title="Click row to view bed slots">
                             <td class="font-bold text-neutral-900">
                                 <span class="inline-flex items-center gap-1.5">
-                                    <span style="font-size:0.95rem;">🚪</span>
+                                    <?= \App\Support\Icon::svg('door-open', 15) ?>
                                     Room <?= htmlspecialchars($r['room_number']) ?>
                                 </span>
+                                <span class="block text-caption font-normal text-neutral-500"><?= htmlspecialchars($r['room_type_name'] ?? 'No room type') ?></span>
                             </td>
-                            <td class="text-neutral-700 font-medium"><?= $roomCapacity ?> bed<?= $roomCapacity !== 1 ? 's' : '' ?></td>
+                            <td class="text-neutral-700 font-medium">
+                                <?= $roomBedCount ?> of <?= $roomCapacity ?> bed<?= $roomCapacity !== 1 ? 's' : '' ?>
+                                <?php if ($roomBedCount < $roomCapacity): ?><span class="block text-caption text-amber-600"><?= $roomCapacity - $roomBedCount ?> not set up yet</span><?php endif; ?>
+                            </td>
                             <td>
                                 <span class="badge badge-info font-medium" style="font-variant-numeric: tabular-nums;">
-                                    <?= $roomOccupied ?> / <?= $roomCapacity ?> occupied
+                                    <?= $roomOccupied ?> / <?= $roomBedCount ?> occupied
                                 </span>
                             </td>
                             <td>
-                                <?php if ($roomVacant > 0): ?>
+                                <?php if ($roomBedCount === 0): ?>
+                                    <span class="badge badge-info">No beds yet</span>
+                                <?php elseif ($roomVacant > 0): ?>
                                     <span class="badge badge-success"><?= $roomVacant ?> Vacant</span>
                                 <?php else: ?>
                                     <span class="badge badge-warning">Fully Occupied</span>
@@ -424,9 +509,9 @@ $occupancyRate = $totalBeds > 0 ? round(($occupiedBeds / $totalBeds) * 100) : 0;
                                 <div class="bg-white rounded-xl border border-neutral-200 p-4 shadow-xs">
                                     <div class="flex items-center justify-between pb-3 mb-3 border-b border-neutral-100">
                                         <div class="flex items-center gap-2">
-                                            <span style="font-size:1.1rem; line-height: 1;">🛏️</span>
+                                            <?= \App\Support\Icon::svg('bed', 18) ?>
                                             <h4 class="text-body-sm font-semibold text-neutral-900">
-                                                Beds in Room <?= htmlspecialchars($r['room_number']) ?> &mdash; <span class="text-primary-700 font-bold"><?= $roomCapacity ?> bed<?= $roomCapacity !== 1 ? 's' : '' ?></span>
+                                                Beds in Room <?= htmlspecialchars($r['room_number']) ?> &mdash; <span class="text-primary-700 font-bold"><?= $roomBedCount ?> of <?= $roomCapacity ?> bed<?= $roomCapacity !== 1 ? 's' : '' ?></span>
                                             </h4>
                                         </div>
                                         <span class="text-caption text-neutral-400">Click row above to close</span>
@@ -583,6 +668,24 @@ $occupancyRate = $totalBeds > 0 ? round(($occupiedBeds / $totalBeds) * 100) : 0;
         countInput.addEventListener('change', updatePreview);
     }
 })();
+
+/* ── A room type sets the room's capacity and rent: fill them in and lock them while one is chosen ── */
+document.querySelectorAll('select[data-room-type]').forEach((select) => {
+    const scope = select.form ?? select.closest('form');
+    const field = (name) => select.getAttribute('form')
+        ? document.querySelector(`[form="${select.getAttribute('form')}"][name="${name}"]`)
+        : scope.querySelector(`[name="${name}"]`);
+    const capacity = field('capacity'), rate = field('base_price');
+    const sync = () => {
+        const opt = select.selectedOptions[0];
+        const typed = Boolean(opt && opt.value);
+        if (typed) { capacity.value = opt.dataset.capacity; rate.value = opt.dataset.rate; }
+        capacity.readOnly = rate.readOnly = typed;
+        capacity.title = rate.title = typed ? 'Set by the room type' : '';
+    };
+    select.addEventListener('change', sync);
+    sync();
+});
 
 /* ── Beds Toggle Drawer ── */
 document.addEventListener('DOMContentLoaded', () => {

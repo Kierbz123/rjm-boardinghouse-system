@@ -3,6 +3,8 @@
 **Date:** 14 Oct 2026  **Branch:** `claude/intelligent-archimedes-ngimxc`  **Mode:** audit and planning only — **no source file, migration or live record was changed.**
 **Stack audited:** PHP 8.2.12 (no framework) · MariaDB (XAMPP) · server-rendered views · Windows 11.
 
+> **Status of this document (added by the documentation pass):** this is a dated snapshot, taken before any fix. Do not read it as current behaviour. The fixes are tracked in `IMPLEMENTATION-PLAN-2026-10-14.md`, whose status table is the live record; so far **F-01 and F-02 are fixed** (WP-1, commit `f634f33`: the launcher now refuses instead of warning, `.env` is loaded, seeded passwords are random and `database/check-demo-passwords.php` no longer exists). All other findings were still open when this note was written. The work-package numbers and test ids here are the ones the plan uses; the **migration numbers in §4 are superseded** by the plan (numbers are assigned in order of use from `0031`). The "Branch" above is where the audit ran; the fixes are on `fix/functionality-audit-2026-10`.
+
 Every statement below carries one of three evidence labels:
 
 | Label | Meaning |

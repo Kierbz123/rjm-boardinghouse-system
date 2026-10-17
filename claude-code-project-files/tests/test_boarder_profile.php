@@ -67,7 +67,7 @@ $bed2Id = Bed::create($roomId, 'Bed X2');
 
 // Create Dedicated Test Boarder
 $testEmail = 'prof_tester_' . time() . '@rjm.test';
-$testBoarderId = User::create('boarder', 'Profile Tester', $testEmail, 'TestPass123!');
+$testBoarderId = User::create('boarder', 'Profile Tester', $testEmail, 'Test-garnet-isle-pass');
 BoarderProfile::create($testBoarderId, $roomId, $bed1Id);
 Bed::assign($bed1Id, $testBoarderId);
 

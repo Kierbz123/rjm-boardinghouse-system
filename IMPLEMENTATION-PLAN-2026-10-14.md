@@ -4,6 +4,27 @@
 **Source of findings:** `FUNCTIONALITY-AUDIT-2026-10-14.md` (F-01…F-31, WP-1…WP-20). **Scope approved:** all of it.
 **Live DB backup taken before any work:** `claude-code-project-files/database/backups/rjm_boardinghouse-pre-fixes-20261014-111458.sql` (+ `uploads-pre-fixes-20261014-111458/`). Git-ignored.
 
+## Status
+
+*Last updated 14 Oct 2026 by the documentation pass, from `git log` and the working tree. Update this table in the same commit as each package.*
+
+| Package | State | Commit / note |
+|---|---|---|
+| WP-0 test and migration infrastructure | **Done** | `8d407fc`. `migrate.php --status / --rollback`, `.down.sql`, trigger files; `tests/lib.php`; random test passwords; second test server; audit probes as `tests/test_probe_*.php` |
+| WP-1 credentials (F-01, F-02) | **Done**, with 4 checks skipped | `f634f33`. Migration `0031`; seed prints random passwords once; forced change at first sign-in; `.env` loader; `bin/setup-db-user.php`; launcher refuses (`bin/pre-online-check.php`). **Not yet applied to the live database**: it migrates when `start-system.bat` next runs. **Not run yet by the owner:** `bin/setup-db-user.php`; this machine's MariaDB cannot create users (`mysql.global_priv` reports "Read page with wrong checksum"), so those 4 checks are explicit SKIPs and the script has not been proven here |
+| WP-2 input hardening | **Done** | `b20e4fd`. One input guard in the front controller (clean 400), one password rule, capacity 1–50 (migration `0033`), no SQL text on screen |
+| WP-3 dates and scheduled move-out | **Done** | `524b414`. Migration `0034` (settings, audit_log, date triggers); `property_opening_date` is a **placeholder `2026-01-01`**: owner to confirm |
+| WP-4 archive-only residents | **Done** | `2c78927`. Migration `0035` |
+| WP-8 atomic approval, read-only GETs | **Done** | `8b6b47f`. No migration |
+| WP-6 cash and walk-in payments | **Done** | Migration `0036_manual_payments`. `PaymentRecorder` records through the same approval as an online receipt; form at `/admin/payments/record` (**admin only**); printable receipt at `/payments/{id}/receipt` (admin and the resident who paid). Test `tests/test_wp06_manual_payments.php` |
+| WP-5, 7, 10, 9, 11–18, 20 | Not started | WP-5 next |
+| Staff Accounts audit (part of WP-14) | Done, uncommitted, suite rerun pending | `../STAFF-ACCOUNTS-AUDIT-2026-10-14.md`. Password rule now 15 characters to 72 bytes plus a guessability check, for every account. Admin-set passwords (new staff, any admin reset) are temporary: they must be replaced at first sign-in and expire after 72 h. Staff actions are written to `audit_log` and shown as a per-person history; there is a "Last sign-in" column. Migration `0042_temporary_passwords_and_last_login`. Test `tests/test_staff_accounts.php`. Still open: admin-created *residents* are not yet marked temporary (S-24); role scopes (Q-1) |
+| WP-19 CCTV claim | Not started | Landing page still says "Live CCTV · no curfew" (fix is part of WP-10) |
+
+Differences from the plan as written below: `database/check-demo-passwords.php` was deleted (it held the published passwords) and replaced by `bin/pre-online-check.php`, which checks `users.must_change_password` instead; `DEMO-ACCOUNTS.txt` (repository root, untracked) is now a pointer to `DEMO-ACCOUNTS.md`. Migration numbers used so far: `0031` only. The migration numbers in the audit's own roadmap (`FUNCTIONALITY-AUDIT-2026-10-14.md` §4) are superseded by §3 below.
+
+Open items that still need the owner (from §2 and §5): real payment account details, the real opening date, running `bin/setup-db-user.php`, and the manual checks in §5.
+
 ## 1. Working rules
 
 | Rule | How |
@@ -22,8 +43,11 @@
 | Opening date / future limit | Setting `property_opening_date` (admin-editable), **default `2026-01-01` — a placeholder; you did not give the real date.** Future limit = today + 12 months. |
 | Payment details | Stored in a settings table; **hidden on Pay Rent until you save real details.** I have none to enter. |
 | Pending residents | Auto-activate on move-in date; admin notified. |
-| Expenses | Staff may record; stay **pending** until an admin approves; only approved expenses count in ledger/dashboard. |
-| Cash payments | Admin **and staff** may record. Staff-recorded payments count immediately (same as online once approved) but notify all admins and are flagged "recorded by staff" so an admin can reverse them. *My call — say so if you want staff entries to need approval.* |
+| Expenses | **Admin only** (owner decision, 15 Oct; replaces "staff may record, pending until approved"). `/admin/expenses` was already admin-only; WP-12 must not add a staff path. Approval states still apply to the admin's own entries if WP-12 keeps them. |
+| Penalties | **Admin only** (owner decision, 15 Oct). `POST /staff/penalties/issue` is 403 for staff and the staff dashboard form is gone; staff log rule violations as incidents. |
+| Staff phone / SOS backup | Staff accounts carry an optional phone (migration `0043_staff_phone`), set on the Staff Accounts page. Residents see "Call <name>: <number>" for active staff beside the SOS button. No SMS (no outbound calls). The on-duty person keeps the staff dashboard open at the front desk; the phone is the backup. |
+| Staff records retention | 5 years after the person leaves (owner decision, 15 Oct). Stated on the Staff Accounts page and on staff Profile pages. Automatic deletion is not built yet (candidate for WP-17's retention job). Temporary-password window stays 72 h. |
+| Cash payments | **Admin only** (owner decision, 15 Oct, confirmed to me in chat; replaces the earlier "admin and staff"). Staff cannot open the form, post to it, or open a receipt. A wrongly entered payment is reversed with the existing Reject button. |
 | CCTV | Claim removed from the landing page (all 5 places). Page stays in the backlog. |
 | Reminders | 3 days before, on the due date, 3 days after; in-app + e-mail. |
 | **E-mail** | `CLAUDE.md` forbids e-mail without an explicit change to the localhost-only rule; I am treating your decision as that change and will update the rule. E-mail is queued in an `email_outbox` table and **nothing leaves the machine until an admin enables SMTP in Settings** (off by default). I cannot test against a real mail server; tests use a local fake SMTP server. |
@@ -111,7 +135,8 @@ For every package: **Files** · **Migration** · **UI** · **Tests** (all red fi
 * **WP-11:** time-decay ordering; assignment + notes (`maintenance_notes`, migration `0038`); resident cancel; reopen needs reason; "AI" wording → rule-based.
 * **WP-12:** `expenses` gets `expense_date`, `category` list, receipt upload, `status` (pending/approved/rejected/void), approver, reasons (migration `0039`); staff entries pending; reports count approved only.
 * **WP-13:** use `inquiries.status`; paged list, filters, status buttons, convert-to-resident prefill (migration `0040` adds `handled_by/handled_at/note`).
-  **Part 1 done (14 Oct):** the notification's View Details opens `/admin/inquiries/{id}` (admin only: full message, contacts, move-in date, staff notes, source) with a new/contacted/closed status form; inquiry notifications carry `entity_type='inquiry'` + `entity_id`, and migration `0032_link_inquiry_notifications` relinks the old ones. Still to do: paged list, filters, convert-to-resident, `handled_by/handled_at/note`.
+  **Part 1 done (14 Oct):** the notification's View Details opens `/admin/inquiries/{id}` (admin only: full message, contacts, move-in date, staff notes, source) with a new/contacted/closed status form; inquiry notifications carry `entity_type='inquiry'` + `entity_id`, and migration `0032_link_inquiry_notifications` relinks the old ones.
+  **Part 2 done (14 Oct), uncommitted:** convert-to-resident. Inquiry page → "Convert to Boarder" → `/admin/boarders?inquiry={id}` prefills Add Boarder (name, e-mail, phone → contact number, first room of the requested type with a vacant bed; never the bed or a password); nothing is saved until the admin submits; the submit links `inquiries.converted_user_id` (UNIQUE, row-locked) and closes the inquiry in the same transaction; a failed submit keeps what was typed. The three advertised offerings moved from `LandingController` into a `room_types` table (`rooms.room_type_id` links a physical room to one); the landing page, the walk-in inquiry form and Rooms & Beds (new "Room Types" section, edit offering, type per room) read it. Sidebar keeps Inquiry Center / Boarders highlighted on their detail pages. Migration `0040_room_types_and_inquiry_conversion` (so `handled_by/handled_at/note` moves to the next free number). Test: `tests/test_inquiry_conversion.php`. **Decision for WP-10 / F-21:** the advertised price is set on the room type (admin-editable), not derived from `rooms.base_price` (the billing rate); the `test_probe_ops` F-21 price probe still expects derivation and stays `[KNOWN]` until the owner picks one. Still to do: paged list, filters, `handled_by/handled_at/note`. **15 Oct, owner request ("make everything consistent and in sync"):** a room linked to a type now takes the type's capacity and rent (per-bed price, or per-room price split by capacity); Rooms & Beds locks those fields while a type is chosen, the type editor gained "Residents per room" and saving a type updates all its rooms (current and later rent cycles; past cycles keep their billed rate); Beds Directory shows beds set up against the room's capacity. So the advertised price and the billing rate now agree for typed rooms; the F-21 probe (rooms → website) stays `[KNOWN]` because the sync runs the other way (type → rooms). Test: `tests/test_room_type_sync.php`.
 * **WP-14:** edit staff, create admin, last-admin guard, staff delete only if no records.
 * **WP-15:** `sos_alerts.resolved_by/resolution_note/is_false_alarm`, SOS history page, toasts, incident `people_involved`/`room_id` (migration `0041`).
 * **Tests:** one test file each, red first (ordering, cancel rules, approval gating, status workflow, last-admin refusal, SOS lifecycle fields).

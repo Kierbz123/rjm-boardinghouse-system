@@ -1,32 +1,46 @@
 # Feature Spec — RJM Boardinghouse System
-Read the section(s) relevant to the phase you're on (see `PHASES.md`). Not preloaded every session — only `CLAUDE.md` is.
+What each feature should do. `CLAUDE.md` is the only file loaded every session; read the section you need.
 
-## 1. Smart AI Repair Priority System
-- Boarder submits: description, category (electrical/plumbing/structural/appliance/other), photo and/or video, room/bed reference.
-- Local scoring logic (Python service): weighted rule engine —
-  - Keyword severity dictionary (e.g. "fire", "flood", "gas", "exposed wire" → high severity; "squeaky", "cosmetic" → low)
+## Implementation status (as of the 14 Oct 2026 audit)
+
+Source: `../FUNCTIONALITY-AUDIT-2026-10-14.md`. Finding ids (F-xx) and work packages (WP-n) are defined there and in `../IMPLEMENTATION-PLAN-2026-10-14.md`. "Built" means it works end to end in the running system and is covered by `php tests/run.php`; the gaps listed are what the spec below asks for and the system does not yet do.
+
+| # | Feature | Status | Gaps against this spec |
+|---|---|---|---|
+| 1 | Repair priority | Built (rule-based PHP) | No time-decay; no staff assignment or notes; resident cannot cancel; labelled "AI" although it is a keyword table (F-18, WP-11) |
+| 2 | SOS and incidents | Built | No resolver / false-alarm record, no SOS history page, no "people involved" on incidents (F-23, WP-15). No in-system CCTV page (see §2) |
+| 3 | Command Center | Built | Occupancy card can show a stale snapshot; status pills are static text (F-12, F-26) |
+| 4 | Expense logging | Partly | Admin-only (spec says staff); no date field, no receipt upload, no edit or void (F-19, WP-12) |
+| 5 | Ledger export | Built (CSV only) | No PDF; payments counted by submission date unlike the dashboard (F-11, WP-7) |
+| 6 | Occupancy trend | Partly | A snapshot is taken only when an admin opens a page, so days are missing (F-12) |
+| 7 | Payment proof and review | Built | No cash / walk-in payment entry (F-13, WP-6); payment account numbers on the Pay Rent page are fixed text (F-14, WP-10) |
+| 8 | Bed mapping | Built | A list, not a card grid; no `bed_assignments` history |
+| 9 | Penalties | Built | Late-fee check and reminders are manual (no scheduler); "Mark paid" is really a waiver with no reason (F-06, WP-5); reminders can be sent twice (F-15) |
+| 10 | Status life | Partly | No automatic transitions (pending → active, scheduled move-out); a future move-out date moves the resident out at once (F-05, F-17, WP-3, WP-9) |
+| 11 | Notifications | Built | In-app only; e-mail is planned behind an off-by-default queue (WP-9); no paging or pruning (F-28) |
+
+## 1. Smart Repair Priority System
+- Boarder submits: description, category (electrical/plumbing/structural/appliance/other), photo and/or video, room/bed reference (the room comes from the resident's profile).
+- Local scoring logic (`src/Services/ScoringClient.php`, plain PHP, no external call): weighted rule engine —
+  - Keyword severity dictionary matched as whole words (e.g. "fire", "flood", "gas leak", "exposed wire" → high severity; "squeaky", "cosmetic" → low)
   - Category base-severity weight
   - Media presence bonus (a request with photo/video ranks above an identical one without)
-  - Time-decay: an unresolved request's priority score ticks up the longer it waits
+  - Time-decay: an unresolved request's priority score ticks up the longer it waits — **specified, not yet built** (F-18)
   - Output: numeric priority score → mapped to **Critical / High / Medium / Low**
-- Maintenance Staff queue is sorted by score, not submission time, with the score/tier visibly shown.
-- **Optional libraries (offline-compatible, pip-installable — vet stars/last-commit/license before depending on any of them):**
-  - Rule/weighted-scoring engine instead of hand-rolling one: **GoRules Zen Engine** (`pip install zen-engine`) or **simple-rule-engine** (`pip install simpleruleengine`).
-  - Queue ordering: Python's stdlib `heapq` / `queue.PriorityQueue` — genuinely enough, no package needed.
-  - **Skip anything built around an external LLM API call** (e.g. Gemini-based triage tools) — breaks the no-outbound-calls rule in `CLAUDE.md` regardless of how good the triage logic is.
-  - Real photo/video damage detection (YOLO/CNN-based) is a legitimate *stretch goal*, not the default: runs fully offline once weights are downloaded, but pulls in PyTorch/YOLO and is a large scope increase. Ship the rule-based version first.
+- Maintenance Staff queue is sorted by tier then oldest first, with the score/tier visibly shown.
+- Never call an external LLM API for scoring (breaks the no-outbound-calls rule in `CLAUDE.md`). The optional local Ollama model only powers separate helper buttons (improve description, suggest category, analyse ticket, summarise queue). Real photo/video damage detection is a stretch goal, not planned.
 
 ## 2. Emergency SOS & Incident Reporting
 - Boarder taps a single SOS button → creates an alert with boarder identity, **room/bed location**, and timestamp; visible (poll or refresh) to Admin/Staff dashboards with highest visual urgency.
 - Staff can separately log **incidents** (not just SOS-triggered) with type, description, people involved, and resolution notes — a historical safety record independent of live alerts.
 - SOS alerts need a status lifecycle: `active → acknowledged → resolved`, with who and when.
-- House security as advertised on the landing page: **live CCTV covers the entire boardinghouse; there is no curfew.** An in-system camera page with motion sensing, people-per-hour counts and face snapshots (a phone as the camera for the demo) is planned in `CCTV-PEOPLE-COUNTER-PLAN.md`, pending owner decisions.
+- House security as advertised on the landing page: **live CCTV covers the entire boardinghouse; there is no curfew.** The camera is a physical installation; the system has no camera page. An in-system page with motion sensing, people-per-hour counts and face snapshots (a phone as the camera for the demo) is only a plan (`CCTV-PEOPLE-COUNTER-PLAN.md`), pending owner decisions. The 14 Oct plan removes the "Live CCTV" claim from the landing page until such a feature exists (WP-10 / WP-19); at the time of writing the claim is still there.
 
 ## 3. Cross-Module Command Center (Admin Dashboard)
 - One screen aggregating: pending payments, open maintenance requests by priority, active SOS/incidents, occupancy snapshot, recent expenses. Read/aggregate view over the other modules — build it after they exist (Phase 6), not before.
 
 ## 4. Expense Logging
-- Staff log operating expenses: category (repairs/utilities/supplies/other), amount, date, note, receipt upload (optional). Feeds the Ledger Export and the Command Center.
+- Staff log operating expenses: category (repairs/utilities/supplies/other), amount, date, note, receipt upload (optional). Feeds the Ledger Export and the Command Center. *Today only an admin can record one, with a free-text category and no date or receipt field; the 14 Oct plan adds staff entry that waits for admin approval, a date, receipts and voiding (WP-12).*
 
 ## 5. Financial Ledger Export
 - Compiles rent payments + expenses + penalties into an exportable record (CSV and/or PDF) for a date range. A report *generated from* existing tables, not a separately-entered dataset.
@@ -56,9 +70,9 @@ Read the section(s) relevant to the phase you're on (see `PHASES.md`). Not prelo
 - A triggered check (on admin login and/or a manual "run penalty check" button — no cron guarantee on localhost) applies rules and logs the resulting penalty.
 
 ## 10. Status Life System
-- Each boarder has a status: `pending → active → (optional: on-notice) → moved-out`, updated by triggering events (move-in date reached, move-out logged, unresolved severe penalty) plus manual admin override.
+- Each boarder has a status: `pending → active → (optional: on-notice) → moved-out`, updated by triggering events (move-in date reached, move-out logged, unresolved severe penalty) plus manual admin override. *Today the admin changes status by hand; the automatic transitions are not built (F-17, WP-3, WP-9).*
 - Status changes are logged (who/when/why) — part of the boarder's history, not just a current flag.
 
 ## 11. All-Around Notification System
 - Cross-cutting: rent due reminders, maintenance status updates, SOS/incident alerts, penalty notices, payment verification results.
-- Build **last** (Phase 7) since it depends on events from every other module existing first. In-app notification bell + table is enough; SMS/email is out of scope (and would break localhost-only anyway).
+- Built last (original Phase 7) since it depends on events from every other module. The in-app bell + table is what exists today. SMS is out of scope. **E-mail:** the owner approved it on 14 Oct 2026 as a queue that sends nothing until an admin enables SMTP in Settings (WP-9, not built); until that lands `CLAUDE.md`'s no-e-mail rule still stands.

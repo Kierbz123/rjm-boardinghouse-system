@@ -27,7 +27,61 @@ class BoarderController
         $boarders = BoarderProfile::all($showArchived);
         $rooms = Room::all();
         $beds = Bed::all();
+
+        // What the admin typed before a failed submit wins over the inquiry it came from.
+        $old = $_SESSION['old_boarder_input'] ?? [];
+        unset($_SESSION['old_boarder_input']);
+        $conversion = self::conversionFor((int) ($_GET['inquiry'] ?? $old['inquiry_id'] ?? 0), $rooms, $beds);
+        $addForm = [
+            'name'           => $old['name'] ?? $conversion['inquiry']['name'] ?? '',
+            'email'          => $old['email'] ?? $conversion['inquiry']['email'] ?? '',
+            'contact_number' => $old['contact_number'] ?? $conversion['inquiry']['phone'] ?? '',
+            'room_id'        => (int) ($old['room_id'] ?? $conversion['room_id'] ?? 0),
+            'bed_id'         => (int) ($old['bed_id'] ?? 0),
+            'inquiry_id'     => isset($conversion['inquiry']) ? (int) $conversion['inquiry']['id'] : 0,
+        ];
         require __DIR__ . '/../Views/admin/boarders.php';
+    }
+
+    /**
+     * Opening /admin/boarders?inquiry=N only fills the Add Boarder form for review; nothing is
+     * created until the admin submits it. The inquiry is read from the database, never the URL.
+     * Picks the first room of the requested type that has a vacant bed; the bed is left to the admin.
+     */
+    private static function conversionFor(int $inquiryId, array $rooms, array $beds): ?array
+    {
+        if ($inquiryId <= 0) {
+            return null;
+        }
+        $inquiry = \App\Models\Inquiry::find($inquiryId);
+        if ($inquiry === null) {
+            return ['error' => "Inquiry #{$inquiryId} was not found."];
+        }
+        if ($inquiry['converted_user_id'] !== null) {
+            return ['error' => "Inquiry #{$inquiryId} was already registered as "
+                . ($inquiry['converted_user_name'] ?? 'a boarder') . '.', 'user_id' => (int) $inquiry['converted_user_id']];
+        }
+
+        $requested = trim((string) $inquiry['room_type']);
+        $type = $requested !== '' ? \App\Models\RoomType::findByName($requested) : null;
+        $roomId = null;
+        if ($type !== null) {
+            $vacantRoomIds = array_map('intval', array_column(array_filter($beds, fn ($b) => $b['status'] === 'vacant'), 'room_id'));
+            foreach ($rooms as $r) {
+                if ((int) $r['room_type_id'] === (int) $type['id'] && in_array((int) $r['id'], $vacantRoomIds, true)) {
+                    $roomId = (int) $r['id'];
+                    break;
+                }
+            }
+        }
+        $notice = match (true) {
+            $type === null => "\"{$requested}\" is not one of the room types, so no room was picked. Choose one below if you want to assign a room now.",
+            $roomId === null => "No {$type['name']} has a vacant bed right now. Choose another room, or link a room to this type on Rooms & Beds.",
+            default => null,
+        };
+        // Emails are unique: if this person already has an account, say so before the admin fills in a password.
+        $existing = $inquiry['email'] ? User::findByEmail((string) $inquiry['email']) : null;
+        return ['inquiry' => $inquiry, 'room_type' => $type, 'room_id' => $roomId, 'notice' => $notice, 'existing' => $existing];
     }
 
     public static function create(): void
@@ -40,40 +94,45 @@ class BoarderController
 
         $name = trim((string) ($_POST['name'] ?? ''));
         $email = trim((string) ($_POST['email'] ?? ''));
+        $contact = trim((string) ($_POST['contact_number'] ?? ''));
         $password = (string) ($_POST['password'] ?? '');
         $bedId = !empty($_POST['bed_id']) ? (int) $_POST['bed_id'] : null;
+        $inquiryId = max(0, (int) ($_POST['inquiry_id'] ?? 0));
+
+        // A failed submit goes back to the form with what was typed (never the password)
+        // and, when it came from an inquiry, still linked to it.
+        $fail = function (string $message) use ($name, $email, $contact, $bedId, $inquiryId): never {
+            $_SESSION['flash_error'] = $message;
+            $_SESSION['old_boarder_input'] = ['name' => $name, 'email' => $email, 'contact_number' => $contact,
+                'room_id' => (int) ($_POST['room_id'] ?? 0), 'bed_id' => (int) $bedId, 'inquiry_id' => $inquiryId];
+            header('Location: /admin/boarders' . ($inquiryId > 0 ? "?inquiry={$inquiryId}" : ''));
+            exit;
+        };
 
         if ($name === '' || $email === '' || $password === '') {
-            $_SESSION['flash_error'] = 'Name, email, and password are all required.';
-            header('Location: /admin/boarders');
-            exit;
+            $fail('Name, email, and password are all required.');
         }
         if (mb_strlen($name) > 150 || mb_strlen($email) > 150) {
-            $_SESSION['flash_error'] = 'Name and email must be 150 characters or fewer.';
-            header('Location: /admin/boarders');
-            exit;
+            $fail('Name and email must be 150 characters or fewer.');
         }
         if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-            $_SESSION['flash_error'] = 'Please enter a valid email address.';
-            header('Location: /admin/boarders');
-            exit;
+            $fail('Please enter a valid email address.');
+        }
+        if ($contact !== '' && !preg_match('/^[0-9+()\-\s]{7,20}$/', $contact)) {
+            $fail('Please enter a valid contact number.');
         }
         if (($problem = \App\Support\PasswordPolicy::problem($password)) !== null) {
-            $_SESSION['flash_error'] = $problem;
-            header('Location: /admin/boarders');
-            exit;
+            $fail($problem);
         }
 
         // Bug found during Phase 8 QA pass: creating a boarder with an email that
         // already exists threw an uncaught PDO integrity-constraint exception
         // (caught only by the generic 500 handler). Check first, fail gracefully.
         if (User::findByEmail($email) !== null) {
-            $_SESSION['flash_error'] = 'That email is already in use.';
-            header('Location: /admin/boarders');
-            exit;
+            $fail('That email is already in use.');
         }
 
-        // Account, bed and profile are created together or not at all.
+        // Account, bed, profile and the inquiry's conversion are saved together or not at all.
         $pdo = Database::getConnection();
         $pdo->beginTransaction();
         try {
@@ -84,15 +143,18 @@ class BoarderController
                 $roomId = (int) $bed['room_id'];
                 Bed::assign($bedId, $userId);
             }
-            BoarderProfile::create($userId, $roomId, $bedId);
+            BoarderProfile::create($userId, $roomId, $bedId, $contact !== '' ? $contact : null);
+            if ($inquiryId > 0) {
+                \App\Models\Inquiry::markConverted($inquiryId, $userId);
+            }
             $pdo->commit();
-            $_SESSION['flash_success'] = "Added {$name}.";
         } catch (\Throwable $e) {
             if ($pdo->inTransaction()) {
                 $pdo->rollBack();
             }
-            $_SESSION['flash_error'] = self::messageFor($e, 'The resident could not be added. Please try again.');
+            $fail(self::messageFor($e, 'The resident could not be added. Please try again.'));
         }
+        $_SESSION['flash_success'] = "Added {$name}." . ($inquiryId > 0 ? " Inquiry #{$inquiryId} is marked as registered." : '');
         header('Location: /admin/boarders');
         exit;
     }

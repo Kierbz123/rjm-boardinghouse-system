@@ -8,7 +8,9 @@ class Room
 {
     public static function all(): array
     {
-        return Database::getConnection()->query('SELECT * FROM rooms ORDER BY room_number')->fetchAll();
+        return Database::getConnection()->query(
+            'SELECT r.*, t.name AS room_type_name FROM rooms r LEFT JOIN room_types t ON t.id = r.room_type_id ORDER BY r.room_number'
+        )->fetchAll();
     }
 
     public static function find(int $id): ?array
@@ -18,21 +20,21 @@ class Room
         return $stmt->fetch() ?: null;
     }
 
-    public static function create(string $roomNumber, ?string $floor, int $capacity, float $basePrice): int
+    public static function create(string $roomNumber, ?string $floor, int $capacity, float $basePrice, ?int $roomTypeId = null): int
     {
         $stmt = Database::getConnection()->prepare(
-            'INSERT INTO rooms (room_number, floor, capacity, base_price) VALUES (?, ?, ?, ?)'
+            'INSERT INTO rooms (room_number, floor, room_type_id, capacity, base_price) VALUES (?, ?, ?, ?, ?)'
         );
-        $stmt->execute([$roomNumber, $floor, $capacity, $basePrice]);
+        $stmt->execute([$roomNumber, $floor, $roomTypeId, $capacity, $basePrice]);
         return (int) Database::getConnection()->lastInsertId();
     }
 
-    public static function update(int $id, string $roomNumber, ?string $floor, int $capacity, float $basePrice): void
+    public static function update(int $id, string $roomNumber, ?string $floor, int $capacity, float $basePrice, ?int $roomTypeId = null): void
     {
         $stmt = Database::getConnection()->prepare(
-            'UPDATE rooms SET room_number = ?, floor = ?, capacity = ?, base_price = ? WHERE id = ?'
+            'UPDATE rooms SET room_number = ?, floor = ?, room_type_id = ?, capacity = ?, base_price = ? WHERE id = ?'
         );
-        $stmt->execute([$roomNumber, $floor, $capacity, $basePrice, $id]);
+        $stmt->execute([$roomNumber, $floor, $roomTypeId, $capacity, $basePrice, $id]);
     }
 
     /**

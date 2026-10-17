@@ -26,14 +26,14 @@ $readCount = $totalCount - $unreadCount;
 
     <?php if ($error): ?>
         <div class="bg-error-50 text-error-700 text-body-sm rounded-lg p-3 border border-error-500 flex items-center gap-2" role="alert">
-            <span style="font-size:1rem;">⚠</span>
+            <?= \App\Support\Icon::svg('alert-triangle', 16) ?>
             <?= htmlspecialchars($error) ?>
         </div>
     <?php endif; ?>
 
     <?php if ($success): ?>
         <div class="bg-emerald-50 text-emerald-800 text-body-sm rounded-lg p-3 border border-emerald-300 flex items-center gap-2" role="alert">
-            <span style="font-size:1rem;">✓</span>
+            <?= \App\Support\Icon::svg('check', 16) ?>
             <?= htmlspecialchars($success) ?>
         </div>
     <?php endif; ?>
@@ -80,7 +80,7 @@ $readCount = $totalCount - $unreadCount;
                     <?= \App\Support\Csrf::field() ?>
                     <button type="submit"
                             class="btn btn-secondary !py-1.5 !px-3 !text-xs inline-flex items-center gap-1.5 shadow-xs cursor-pointer">
-                        <span>✓</span>
+                        <span><?= \App\Support\Icon::svg('check') ?></span>
                         <span>Mark All as Read</span>
                     </button>
                 </form>
@@ -95,7 +95,7 @@ $readCount = $totalCount - $unreadCount;
                     All (<?= $totalCount ?>)
                 </button>
                 <button type="button" class="btn btn-secondary !py-1 !px-2.5 !text-xs notif-filter-btn" data-filter="pinned">
-                    📌 Pinned (<?= $pinnedCount ?>)
+                    <?= \App\Support\Icon::svg('pin') ?> Pinned (<?= $pinnedCount ?>)
                 </button>
                 <button type="button" class="btn btn-secondary !py-1 !px-2.5 !text-xs notif-filter-btn" data-filter="unread">
                     Unread (<?= $unreadCount ?>)
@@ -104,16 +104,16 @@ $readCount = $totalCount - $unreadCount;
                     Read (<?= $readCount ?>)
                 </button>
                 <button type="button" class="btn btn-secondary !py-1 !px-2.5 !text-xs notif-filter-btn" data-filter="sos">
-                    🚨 SOS
+                    <?= \App\Support\Icon::svg('siren') ?> SOS
                 </button>
                 <button type="button" class="btn btn-secondary !py-1 !px-2.5 !text-xs notif-filter-btn" data-filter="maintenance">
-                    🔧 Maintenance
+                    <?= \App\Support\Icon::svg('wrench') ?> Maintenance
                 </button>
                 <button type="button" class="btn btn-secondary !py-1 !px-2.5 !text-xs notif-filter-btn" data-filter="billing">
-                    💳 Billing
+                    <?= \App\Support\Icon::svg('credit-card') ?> Billing
                 </button>
                 <button type="button" class="btn btn-secondary !py-1 !px-2.5 !text-xs notif-filter-btn" data-filter="inquiry">
-                    📋 Inquiry
+                    <?= \App\Support\Icon::svg('clipboard') ?> Inquiry
                 </button>
             </div>
             <div class="relative flex-1 sm:max-w-xs min-w-[200px]">
@@ -122,7 +122,7 @@ $readCount = $totalCount - $unreadCount;
                        placeholder="Search notifications..."
                        class="input input-sm w-full"
                        style="padding-left: 2rem;">
-                <span style="position:absolute;left:0.625rem;top:50%;transform:translateY(-50%);color:#9d9b97;font-size:0.875rem;">🔍</span>
+                <span style="position:absolute;left:0.625rem;top:50%;transform:translateY(-50%);color:#9d9b97;font-size:0.875rem;"><?= \App\Support\Icon::svg('search') ?></span>
             </div>
         </div>
 
@@ -171,7 +171,7 @@ $readCount = $totalCount - $unreadCount;
                                         <span class="id-tag">#<?= (int) $n['id'] ?></span>
                                         <?php if ($isPinned): ?>
                                             <span class="badge badge-warning font-semibold text-[10px]">
-                                                📌 Pinned
+                                                <?= \App\Support\Icon::svg('pin') ?> Pinned
                                             </span>
                                         <?php endif; ?>
                                         <?php if (!$isRead): ?>
@@ -207,7 +207,7 @@ $readCount = $totalCount - $unreadCount;
                                     <button type="submit"
                                             class="btn <?= $isPinned ? 'btn-primary' : 'btn-secondary' ?> !py-1 !px-2.5 !text-xs cursor-pointer shadow-xs"
                                             title="<?= $isPinned ? 'Unpin this notification' : 'Pin to top as important' ?>">
-                                        <?= $isPinned ? '📌 Pinned' : '📍 Pin' ?>
+                                        <?= \App\Support\Icon::svg('pin') ?> <?= $isPinned ? 'Pinned' : 'Pin' ?>
                                     </button>
                                 </form>
 
@@ -218,7 +218,7 @@ $readCount = $totalCount - $unreadCount;
                                     <button type="submit"
                                             class="btn btn-secondary !py-1 !px-2.5 !text-xs cursor-pointer shadow-xs"
                                             title="<?= $isRead ? 'Mark as unread' : 'Mark as read' ?>">
-                                        <?= $isRead ? '↺ Unread' : '✓ Read' ?>
+                                        <?= \App\Support\Icon::svg($isRead ? 'rotate-ccw' : 'check') ?> <?= $isRead ? 'Unread' : 'Read' ?>
                                     </button>
                                 </form>
 
@@ -228,8 +228,8 @@ $readCount = $totalCount - $unreadCount;
                                     <?= \App\Support\Csrf::field() ?>
                                     <button type="submit"
                                             class="btn-danger !py-1 !px-2 !text-xs cursor-pointer"
-                                            title="Delete notification">
-                                        ✕
+                                            title="Delete notification" aria-label="Delete notification">
+                                        <?= \App\Support\Icon::svg('x') ?>
                                     </button>
                                 </form>
                             </div>
@@ -239,7 +239,7 @@ $readCount = $totalCount - $unreadCount;
 
                 <?php if (empty($notifications)): ?>
                     <div class="empty-state" style="padding:4rem 0;">
-                        <span style="font-size:2.5rem;">🔔</span>
+                        <span class="empty-icon"><?= \App\Support\Icon::svg('bell') ?></span>
                         <span class="text-sm font-semibold text-neutral-800 mt-2 block">No notifications yet</span>
                         <span class="text-xs text-neutral-500 mt-0.5 block">When activities, repairs, or emergency alerts occur, they will be logged here.</span>
                     </div>
@@ -247,7 +247,7 @@ $readCount = $totalCount - $unreadCount;
 
                 <!-- Client-side filter no match row -->
                 <div id="no-filter-match" class="empty-state hidden" style="padding:3.5rem 0;">
-                    <span style="font-size:2rem;">🔍</span>
+                    <span class="empty-icon"><?= \App\Support\Icon::svg('search') ?></span>
                     <span class="text-sm font-medium text-neutral-600 mt-2 block">No notifications match your current filter or search query.</span>
                 </div>
             </div>

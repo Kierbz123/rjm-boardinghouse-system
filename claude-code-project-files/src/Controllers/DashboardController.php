@@ -66,17 +66,6 @@ class DashboardController
                 ORDER BY sos_alerts.created_at DESC
                 LIMIT 50")->fetchAll();
 
-        $activeBoarders = $pdo->query('
-            SELECT bp.user_id, u.name, r.room_number, b.label AS bed_label
-            FROM boarder_profiles bp
-            JOIN users u ON u.id = bp.user_id
-            LEFT JOIN rooms r ON r.id = bp.room_id
-            LEFT JOIN beds b ON b.id = bp.bed_id
-            WHERE bp.status = "active"
-            ORDER BY r.room_number ASC, u.name ASC
-        ')->fetchAll();
-        $activeRules = \App\Models\PenaltyRule::allActive();
-
         require __DIR__ . '/../Views/staff/dashboard.php';
     }
 
@@ -106,6 +95,7 @@ class DashboardController
         $maintenanceRequests = $stmt->fetchAll();
 
         $balanceDetails = \App\Services\BillingService::calculateBalance($userId, $pdo, true);
+        $sosContacts = \App\Models\User::activeStaffPhones(); // the backup beside the SOS button
 
         require __DIR__ . '/../Views/portal/dashboard.php';
     }

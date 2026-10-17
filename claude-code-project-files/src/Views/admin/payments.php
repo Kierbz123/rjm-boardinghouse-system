@@ -22,6 +22,7 @@ $totalCollected = array_sum(array_map(
         <div>
             <h1>Payments &amp; Collections</h1>
             <p>Rent tracking, proof-of-payment verifications &amp; ledger records</p>
+            <a href="/admin/payments/record" class="btn btn-primary mt-3 inline-block">Record a payment taken in person</a>
         </div>
         <span class="badge badge-success" style="background:rgba(255,255,255,0.12); color:#8cc2a2; border:1px solid rgba(255,255,255,0.18); padding:0.4rem 0.85rem; font-size:0.75rem;">
             <span style="width:0.45rem;height:0.45rem;border-radius:50%;background:#5fae84;display:inline-block;margin-right:0.4rem;"></span>
@@ -31,14 +32,14 @@ $totalCollected = array_sum(array_map(
 
     <?php if ($error): ?>
         <div class="bg-error-50 text-error-700 text-body-sm rounded-lg p-3.5 border border-error-500 flex items-center gap-2.5" role="alert">
-            <span style="font-size:1.1rem; line-height:1;">⚠</span>
+            <?= \App\Support\Icon::svg('alert-triangle', 18) ?>
             <span class="font-medium"><?= htmlspecialchars($error) ?></span>
         </div>
     <?php endif; ?>
 
     <?php if ($success): ?>
         <div class="bg-emerald-50 text-emerald-800 text-body-sm rounded-lg p-3.5 border border-emerald-300 flex items-center gap-2.5" role="alert">
-            <span style="font-size:1.1rem; line-height:1;">✓</span>
+            <?= \App\Support\Icon::svg('check', 18) ?>
             <span class="font-medium"><?= htmlspecialchars($success) ?></span>
         </div>
     <?php endif; ?>
@@ -48,7 +49,7 @@ $totalCollected = array_sum(array_map(
         <div class="reveal-card card p-4 metric-accent-primary">
             <div class="flex items-center justify-between mb-1">
                 <span class="text-caption font-semibold text-neutral-500 uppercase tracking-wider">Total Recorded</span>
-                <span style="font-size:1.1rem; line-height:1;">📑</span>
+                <?= \App\Support\Icon::svg('file-text', 18) ?>
             </div>
             <p class="text-3xl font-bold text-neutral-900 mt-1" style="font-variant-numeric: tabular-nums;"><?= $totalPayments ?></p>
             <p class="text-caption text-neutral-400 mt-1">Transactions logged</p>
@@ -68,7 +69,7 @@ $totalCollected = array_sum(array_map(
         <div class="reveal-card card p-4 metric-accent-success">
             <div class="flex items-center justify-between mb-1">
                 <span class="text-caption font-semibold text-neutral-500 uppercase tracking-wider">Verified / Approved</span>
-                <span style="font-size:1.1rem; line-height:1;">✓</span>
+                <?= \App\Support\Icon::svg('check', 18) ?>
             </div>
             <p class="text-3xl font-bold text-neutral-900 mt-1" style="font-variant-numeric: tabular-nums;"><?= $verifiedPaymentsCount ?></p>
             <p class="text-caption text-neutral-400 mt-1">Confirmed payments</p>
@@ -96,7 +97,7 @@ $totalCollected = array_sum(array_map(
                 <a href="/admin/ledger/export"
                    class="btn btn-secondary !py-1.5 !px-3.5 !text-xs inline-flex items-center gap-1.5 shadow-xs font-semibold"
                    title="Export detailed financial ledger with user names, descriptions, and proper formatting">
-                    <span>📊</span>
+                    <span><?= \App\Support\Icon::svg('bar-chart') ?></span>
                     <span>Export Ledger</span>
                 </a>
             </div>
@@ -125,7 +126,7 @@ $totalCollected = array_sum(array_map(
                        placeholder="Search boarder or period..."
                        class="input input-sm w-full"
                        style="padding-left: 2.25rem !important; padding-right: 1rem !important; height: 2.25rem;">
-                <span style="position:absolute;left:0.75rem;top:50%;transform:translateY(-50%);color:#9d9b97;font-size:0.875rem;pointer-events:none;">🔍</span>
+                <span style="position:absolute;left:0.75rem;top:50%;transform:translateY(-50%);color:#9d9b97;font-size:0.875rem;pointer-events:none;"><?= \App\Support\Icon::svg('search') ?></span>
             </div>
         </div>
 
@@ -192,7 +193,7 @@ $totalCollected = array_sum(array_map(
                                     <div class="flex items-center gap-1.5">
                                         <span class="font-bold text-neutral-900">₱<?= number_format($claimedVal, 2) ?></span>
                                         <?php if ($discrepancy): ?>
-                                            <span class="text-amber-600 text-caption font-bold" title="Differs from the ₱<?= number_format($expectedVal, 2) ?> owed when submitted — check the receipt">⚠</span>
+                                            <span class="text-amber-600 text-caption font-bold" title="Differs from the ₱<?= number_format($expectedVal, 2) ?> owed when submitted — check the receipt"><?= \App\Support\Icon::svg('alert-triangle') ?></span>
                                         <?php endif; ?>
                                     </div>
                                     <div class="text-caption text-neutral-500">
@@ -203,7 +204,7 @@ $totalCollected = array_sum(array_map(
                                     </div>
                                     <?php if (!empty($p['reference_also_on'])): ?>
                                         <div class="text-caption font-semibold" style="color: #8a4b08;" data-testid="reference-reused">
-                                            ⚠ Same reference as payment <?= implode(', ', array_map(fn ($rid) => '#' . (int) $rid, $p['reference_also_on'])) ?>
+                                            <?= \App\Support\Icon::svg('alert-triangle') ?> Same reference as payment <?= implode(', ', array_map(fn ($rid) => '#' . (int) $rid, $p['reference_also_on'])) ?>
                                         </div>
                                     <?php endif; ?>
                                     <?php if ($p['approved_amount'] !== null && abs((float) $p['approved_amount'] - $claimedVal) > 0.004): ?>
@@ -237,8 +238,13 @@ $totalCollected = array_sum(array_map(
                                            rel="noopener noreferrer"
                                            class="btn btn-secondary !py-0.5 !px-2 !text-[11px] inline-flex items-center gap-1"
                                            title="Open uploaded proof receipt">
-                                            <span>🧾</span>
+                                            <span><?= \App\Support\Icon::svg('receipt') ?></span>
                                             <span>Receipt</span>
+                                        </a>
+                                    <?php elseif (!empty($p['receipt_number']) && in_array($status, \App\Services\BillingService::APPROVED, true)): ?>
+                                        <a href="/payments/<?= (int) $p['id'] ?>/receipt" target="_blank" rel="noopener"
+                                           class="btn btn-secondary !py-0.5 !px-2 !text-[11px] inline-flex items-center gap-1" title="Open the printable receipt">
+                                            <span><?= \App\Support\Icon::svg('receipt') ?></span><span><?= htmlspecialchars($p['receipt_number']) ?></span>
                                         </a>
                                     <?php else: ?>
                                         <span class="text-neutral-400 text-caption italic">No upload</span>
@@ -295,7 +301,7 @@ $totalCollected = array_sum(array_map(
                         <?php if (empty($payments)): ?>
                             <tr id="empty-state-row">
                                 <td colspan="8" class="empty-state" style="padding:3.5rem 0;">
-                                    <span style="font-size:2rem;">💳</span>
+                                    <span class="empty-icon"><?= \App\Support\Icon::svg('credit-card') ?></span>
                                     <span class="text-xs font-medium text-neutral-500 mt-1 block">No payment records found.</span>
                                 </td>
                             </tr>
@@ -304,7 +310,7 @@ $totalCollected = array_sum(array_map(
                         <!-- Client-side filter no results row -->
                         <tr id="no-filter-match-row" class="hidden">
                             <td colspan="8" class="empty-state" style="padding:3rem 0;">
-                                <span style="font-size:1.75rem;">🔍</span>
+                                <span class="empty-icon"><?= \App\Support\Icon::svg('search') ?></span>
                                 <span class="text-xs font-medium text-neutral-500 mt-1 block">No transactions match your current search or filter.</span>
                             </td>
                         </tr>
@@ -322,44 +328,14 @@ $totalCollected = array_sum(array_map(
     border-color: #0a0a0a !important;
 }
 
-/* Payment Confirmation Modal Styling (matching logout modal) */
-@keyframes paymentModalFadeIn {
-    0% { opacity: 0; }
-    100% { opacity: 1; }
-}
-#payment-approve-modal {
-    animation: paymentModalFadeIn 180ms ease-out forwards;
-}
-#payment-reject-modal {
-    animation: paymentModalFadeIn 180ms ease-out forwards;
-}
-#payment-modal-cancel:hover,
-#payment-modal-cancel-reject:hover {
-    background-color: #f1f0ee !important;
-    color: #0a0a0a !important;
-}
-#payment-modal-confirm-approve:hover {
-    filter: brightness(1.08);
-    box-shadow: 0 4px 12px rgba(22, 163, 74, 0.25);
-}
-#payment-modal-confirm-reject:hover {
-    filter: brightness(1.08);
-    box-shadow: 0 4px 12px rgba(220, 38, 38, 0.25);
-}
-#payment-modal-confirm-approve:active,
-#payment-modal-confirm-reject:active {
-    transform: scale(0.97);
-}
 </style>
 
 <!-- Payment Approve Confirmation Modal (matching logout modal design) -->
-<div id="payment-approve-modal" style="display:none; position:fixed; top:0; left:0; right:0; bottom:0; z-index:99999; background:rgba(10, 10, 10,0.55); backdrop-filter:blur(4px); -webkit-backdrop-filter:blur(4px); align-items:center; justify-content:center; padding:1rem;" role="dialog" aria-modal="true" aria-labelledby="payment-approve-heading">
-    <div id="payment-approve-card" style="background: rgb(255, 255, 255); border-radius: 1rem; padding: 1.5rem 1.75rem; max-width: 22rem; width: 100%; margin: 0px auto; text-align: center; box-shadow: rgba(0, 0, 0, 0.25) 0px 25px 50px -12px;">
-        <div id="payment-approve-icon-wrap" style="width: 3.5rem; height: 3.5rem; border-radius: 50%; border: 2px solid #2f6f4e; color: #245a3f; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; font-weight: 700; margin: 0px auto 0.75rem; user-select: none;">
-            ✓
-        </div>
-        <h3 id="payment-approve-heading" style="font-size: 1.1rem; font-weight: 700; color: #0a0a0a; letter-spacing: -0.01em; margin: 0 0 0.375rem;">Approve Payment?</h3>
-        <p id="payment-approve-subtext" style="font-size: 0.8rem; color: #6b6b6b; line-height: 1.6; margin: 0 0 1.5rem; padding: 0 0.5rem;">Are you sure you want to approve this payment? This will mark it as verified.</p>
+<div id="payment-approve-modal" class="modal" style="display:none" role="dialog" aria-modal="true" aria-labelledby="payment-approve-heading">
+    <div id="payment-approve-card" class="modal-card">
+        <div id="payment-approve-icon-wrap" class="modal-icon modal-icon-success"><?= \App\Support\Icon::svg('check') ?></div>
+        <h3 id="payment-approve-heading" class="modal-title">Approve Payment?</h3>
+        <p id="payment-approve-subtext" class="modal-text">Are you sure you want to approve this payment? This will mark it as verified.</p>
         <p id="payment-approve-details" style="font-size: 0.75rem; color: #9d9b97; line-height: 1.5; margin: 0 0 0.75rem; padding: 0 0.5rem; font-style: italic;"></p>
         <p id="payment-approve-amounts" style="font-size: 0.8rem; color: #3f3f3f; line-height: 1.5; margin: 0 0 0.75rem;"></p>
         <p id="payment-approve-over" role="alert" hidden style="font-size: 0.75rem; color: #8a4b08; background: #fff7e6; border-radius: 0.5rem; padding: 0.5rem; margin: 0 0 0.75rem;">
@@ -379,39 +355,27 @@ $totalCollected = array_sum(array_map(
                       placeholder="Reason, e.g. GCash was down on the 5th."></textarea>
             <p id="payment-approve-waive-error" role="alert" hidden style="font-size: 0.75rem; color: #912018; margin: 0.25rem 0 0;">Please write a short reason (at least 3 characters).</p>
         </div>
-        <div style="display: flex; align-items: center; justify-content: flex-end; gap: 0.75rem; padding-top: 0.25rem;">
-            <button type="button" id="payment-modal-cancel" style="padding: 0.5rem 1rem; border-radius: 0.75rem; font-size: 0.75rem; font-weight: 600; color: #6b6b6b; background: transparent; border: none; cursor: pointer; transition: all 150ms;">
-                Cancel
-            </button>
-            <button type="button" id="payment-modal-confirm-approve" style="color: rgb(255, 255, 255); font-weight: 600; border-radius: 0.75rem; padding: 0.5rem 1.25rem; font-size: 0.75rem; border: none; cursor: pointer; display: inline-flex; align-items: center; gap: 0.375rem; transition: 150ms; background: linear-gradient(135deg, #2f6f4e, #245a3f);">
-                <span>Yes</span>
-                <span style="font-size: 0.95rem;">&rarr;</span>
-            </button>
+        <div class="modal-actions">
+            <button type="button" id="payment-modal-cancel" class="btn btn-secondary">Cancel</button>
+            <button type="button" id="payment-modal-confirm-approve" class="btn btn-primary">Approve</button>
         </div>
     </div>
 </div>
 
 <!-- Payment Reject Confirmation Modal (matching logout modal design) -->
-<div id="payment-reject-modal" style="display:none; position:fixed; top:0; left:0; right:0; bottom:0; z-index:99999; background:rgba(10, 10, 10,0.55); backdrop-filter:blur(4px); -webkit-backdrop-filter:blur(4px); align-items:center; justify-content:center; padding:1rem;" role="dialog" aria-modal="true" aria-labelledby="payment-reject-heading">
-    <div id="payment-reject-card" style="background: rgb(255, 255, 255); border-radius: 1rem; padding: 1.5rem 1.75rem; max-width: 22rem; width: 100%; margin: 0px auto; text-align: center; box-shadow: rgba(0, 0, 0, 0.25) 0px 25px 50px -12px;">
-        <div id="payment-reject-icon-wrap" style="width: 3.5rem; height: 3.5rem; border-radius: 50%; border: 2px solid rgb(239, 68, 68); color: rgb(220, 38, 38); display: flex; align-items: center; justify-content: center; font-size: 1.5rem; font-weight: 700; margin: 0px auto 0.75rem; user-select: none;">
-            ✕
-        </div>
-        <h3 id="payment-reject-heading" style="font-size: 1.1rem; font-weight: 700; color: #0a0a0a; letter-spacing: -0.01em; margin: 0 0 0.375rem;">Reject Payment?</h3>
-        <p id="payment-reject-subtext" style="font-size: 0.8rem; color: #6b6b6b; line-height: 1.6; margin: 0 0 1rem; padding: 0 0.5rem;">The resident is notified with your reason so they can fix the receipt and upload it again.</p>
+<div id="payment-reject-modal" class="modal" style="display:none" role="dialog" aria-modal="true" aria-labelledby="payment-reject-heading">
+    <div id="payment-reject-card" class="modal-card">
+        <div id="payment-reject-icon-wrap" class="modal-icon modal-icon-danger"><?= \App\Support\Icon::svg('x') ?></div>
+        <h3 id="payment-reject-heading" class="modal-title">Reject Payment?</h3>
+        <p id="payment-reject-subtext" class="modal-text" style="margin-bottom: 1rem;">The resident is notified with your reason so they can fix the receipt and upload it again.</p>
         <p id="payment-reject-details" style="font-size: 0.75rem; color: #9d9b97; line-height: 1.5; margin: 0 0 1rem; padding: 0 0.5rem; font-style: italic;"></p>
         <label for="payment-reject-reason" style="display: block; text-align: left; font-size: 0.75rem; font-weight: 600; color: #3f3f3f; margin-bottom: 0.25rem;">Reason (shown to the resident)</label>
         <textarea id="payment-reject-reason" rows="3" maxlength="160" class="input w-full" style="font-size: 0.8rem; margin-bottom: 0.25rem;"
                   placeholder="e.g. Amount on the receipt is ₱3,000, not ₱3,500. / Receipt is blurry."></textarea>
         <p id="payment-reject-reason-error" role="alert" hidden style="text-align: left; font-size: 0.75rem; color: #912018; margin: 0 0 0.75rem;">Please write a short reason (at least 3 characters).</p>
-        <div style="display: flex; align-items: center; justify-content: flex-end; gap: 0.75rem; padding-top: 0.25rem;">
-            <button type="button" id="payment-modal-cancel-reject" style="padding: 0.5rem 1rem; border-radius: 0.75rem; font-size: 0.75rem; font-weight: 600; color: #6b6b6b; background: transparent; border: none; cursor: pointer; transition: all 150ms;">
-                Cancel
-            </button>
-            <button type="button" id="payment-modal-confirm-reject" style="color: rgb(255, 255, 255); font-weight: 600; border-radius: 0.75rem; padding: 0.5rem 1.25rem; font-size: 0.75rem; border: none; cursor: pointer; display: inline-flex; align-items: center; gap: 0.375rem; transition: 150ms; background: linear-gradient(135deg, rgb(239, 68, 68), rgb(220, 38, 38));">
-                <span>Yes</span>
-                <span style="font-size: 0.95rem;">&rarr;</span>
-            </button>
+        <div class="modal-actions">
+            <button type="button" id="payment-modal-cancel-reject" class="btn btn-secondary">Cancel</button>
+            <button type="button" id="payment-modal-confirm-reject" class="btn btn-danger-solid">Reject</button>
         </div>
     </div>
 </div>

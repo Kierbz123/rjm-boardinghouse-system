@@ -1,5 +1,7 @@
 # Final System Health Check
 ### RJM Boardinghouse Rent, Maintenance and Security Management System
+> **Historical report (September 2026, the original stack).** It reviews `ScoringClient` / `VerificationClient` as connectors to a Python service, which was removed in batch B6; table and class counts are from that time. Current coverage: `php tests/run.php`; latest audit: `../FUNCTIONALITY-AUDIT-2026-10-14.md`.
+
 Bottom-up debugging pass: Database → Backend → Auth/Authorization → API → Frontend → UI → End-to-end. This is a distinct pass from `QA-VALIDATION-REPORT.md` (which was role/workflow-based) — this one traces layer-by-layer and specifically targets integration seams between layers, since that's where the previous pass's methodology was less likely to catch problems.
 
 ---

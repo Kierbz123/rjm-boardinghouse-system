@@ -18,7 +18,7 @@ Built as a capstone project. Runs entirely on your own machine: no cloud hosting
    C:\xampp\mysql\bin\mysql -uroot -e "CREATE DATABASE IF NOT EXISTS rjm_boardinghouse CHARACTER SET utf8mb4;"
    ```
 3. Double-click **`start-system.bat`** in the repository root. It checks PHP and MySQL, applies any new migrations, starts the app and opens `http://127.0.0.1:8000`.
-4. First time only, create the demo accounts: `C:\xampp\php\php.exe database\seed.php` (run inside `claude-code-project-files`).
+4. First time only, create the demo accounts: `C:\xampp\php\php.exe database\seed.php` (run inside `claude-code-project-files`). It prints a random password for each account **once**; note them down (see "Demo accounts").
 
 Keep the "web server" window open while you use the system; close it to stop.
 
@@ -28,9 +28,12 @@ Keep the "web server" window open while you use the system; close it to stop.
 # 1. database (use a dedicated user if your root account can't log in over TCP)
 mysql -uroot -e "CREATE DATABASE IF NOT EXISTS rjm_boardinghouse CHARACTER SET utf8mb4;"
 
-# 2. connection settings — the app reads real environment variables (it does NOT load .env)
+# 2. connection settings — real environment variables win; any that are unset are read
+#    from the git-ignored .env file in this folder (see .env.example). With neither, the
+#    app logs in as root with no password (XAMPP's default) and warns about it.
 export DB_HOST=127.0.0.1 DB_PORT=3306 DB_NAME=rjm_boardinghouse DB_USER=root DB_PASS=
 # optional: APP_TIMEZONE (default Asia/Manila)
+# recommended once: php bin/setup-db-user.php creates a dedicated login and writes it to .env
 
 # 3. schema + demo data
 php database/migrate.php
@@ -40,7 +43,7 @@ php database/seed.php
 php -d upload_max_filesize=20M -d post_max_size=25M -S 127.0.0.1:8000 -t public public/index.php
 ```
 
-`database/migrate.php` records what it applied in a `schema_migrations` table, so it is safe to run on every start.
+`database/migrate.php` records what it applied in a `schema_migrations` table, so it is safe to run on every start. `php database/migrate.php --status` lists applied and pending migrations; `--rollback[=N]` undoes the last N (only migrations with a `.down.sql` file, which starts at `0031`).
 
 ## Demo accounts
 
@@ -53,8 +56,9 @@ There is no public sign-up. Admins create boarders (Boarders page) and staff (St
 - Rent is charged **every 30 days, counted from the move-in date** (to the move-out date), and is **due 30 days after each period starts**: move in on 20 Oct, pay on 19 Nov, 19 Dec, 18 Jan, and so on. Unpaid rent carries over.
 - Each 30-day period is charged in full. Only a **last period cut short by a move-out is prorated by days** (10 days stayed = 10/30 of the rent).
 - **Electricity:** each room has its own submeter. The admin enters the room's bill (Admin → Rooms & Beds → Electricity Bills) and it is **divided equally among the residents staying in the room**; each share is due on that resident's next rent due date.
-- *Run Penalty Check* (Admin → Penalties) adds at most **one late fee per boarder per rule per 30-day period**; re-running only updates it to today's days late. Electricity shares carry no late fee.
-- Boarders submit a receipt photo; **every payment waits for an admin** (it is flagged if the amount differs from what is owed). Approved payments are applied oldest-first: rent, then electricity, then penalties. Overpayment becomes credit. An admin can **reverse** an approved payment and the balance is recalculated.
+- *Run Penalty Check* (Admin → Penalties) adds at most **one late fee per boarder per rule per 30-day period**, starting the day after that period's own due date (so never in a resident's first 30 days); re-running only updates it to today's days late. Electricity shares carry no late fee.
+- Late days stop counting on the day a receipt is **submitted** (for the periods it pays, oldest first), so review time is never charged; a receipt sent on or before the due date means no fee, and a rejected receipt makes those periods late again. When approving, the admin sees the late fee and may **waive** it with a required reason, which is recorded and shown to the resident.
+- Residents pay by GCash, Maya or bank transfer and upload the receipt photo (JPG/PNG/WEBP, up to 20 MB); **every payment waits for an admin** (it is flagged ⚠ if the amount differs from what is owed). When approving, the admin types the amount the receipt actually shows; that is what is credited. Approved payments are applied oldest-first: rent, then electricity, then penalties. Overpayment becomes credit. Rejecting needs a reason, which the resident sees. An admin can **reverse** an approved payment and the balance is recalculated.
 - A finished period keeps the room price it was billed at, even if the room price changes later.
 
 ## Walkthrough for a demo
@@ -96,7 +100,7 @@ For that run only, the launcher sets two things on the server it starts: `APP_BA
 Limits to know:
 
 - The site is online only while that window is open and this computer has internet. The address is new every time, so share it after starting.
-- Anyone who has the address can reach the sign-in page. The launcher warns when a demo account still has its published password; change them for anything longer than a short demo.
+- Anyone who has the address can reach the sign-in page. So the launcher **refuses to start** (and tells you what to fix) while any account still has its seeded password, or while the app is logged in to MariaDB as `root` without a password (fix: `php bin\setup-db-user.php`, once, from `claude-code-project-files`). It also refuses when it cannot check, for example if the database is down.
 - PHP's built-in server answers one request at a time. A few people browsing is fine; an AI helper reply makes everyone else wait until it finishes.
 - People on the same Wi-Fi share one address for the sign-in limit (20 failed attempts in 15 minutes).
 - Five wrong passwords for one email lock that account for 15 minutes, whoever typed them. Someone who has the address and knows a demo email could keep it locked; sign in before sharing the address, or use accounts with private emails.
@@ -108,7 +112,7 @@ Before a presentation: run it once at home and open the address on a phone using
 
 This system is designed for a single machine (localhost). To move it:
 1. Copy the repository, create the database, and run `php database/migrate.php` (and `seed.php` only for a demo).
-2. Change the demo passwords, and use a database user with a password instead of `root`.
+2. Make sure every demo account has chosen its own password, and use a database user with a password instead of `root` (`php bin/setup-db-user.php` creates one and writes it to `.env`).
 3. Uploaded receipts and repair photos are in `claude-code-project-files/storage/uploads/` (outside the web root) — back that folder up with the database (`mysqldump rjm_boardinghouse`).
 4. If you put it behind Apache instead of `php -S`, point the site's DocumentRoot at `claude-code-project-files/public` (never the repository root) and serve it over HTTPS; session cookies then become `Secure` automatically.
 
@@ -119,19 +123,43 @@ claude-code-project-files/
   public/            index.php (routes + front controller), assets/
   src/Controllers/   thin HTTP handlers
   src/Models/        database access (PDO, prepared statements only)
-  src/Services/      billing, penalties, scoring, notifications, ledger, AI client
+  src/Services/      billing, penalties, scoring, notifications, ledger, assistant, AI client
   src/Views/         server-rendered pages (admin/, staff/, portal/, shared/)
   database/          migrations/, migrate.php, seed.php, backups/ (git-ignored)
   storage/uploads/   receipts and repair photos (private, git-ignored)
-  tests/             run.php + test_*.php
-  bin/               go-online.ps1 (temporary public tunnel, started by start-online.bat)
+  tests/             run.php, lib.php + test_*.php
+  bin/               go-online.ps1 (temporary public tunnel, started by start-online.bat),
+                     pre-online-check.php (its safety check), setup-db-user.php (dedicated DB login)
   logs/              app.log, and online-address.log while the online launcher runs (git-ignored)
 ```
 
-`ARCHITECTURE.md`, `FEATURES.md` and `PROJECT_STRUCTURE.md` describe the original design; `PHASES.md`, `QA-VALIDATION-REPORT.md` and `DEBUGGING-REPORT.md` are the build history. `CLAUDE.md` and `.claude/` are instructions for AI-assisted development only.
+Full tree and where new files go: `PROJECT_STRUCTURE.md`.
+
+## Documentation
+
+| Read | For |
+|---|---|
+| `README.md` (this file) | Setup, billing rules, demo, going online, deploying |
+| `DEMO-ACCOUNTS.md` | The demo accounts, what each role can do, resetting passwords |
+| `FEATURES.md` | What each of the 11 features should do, and which parts are built |
+| `ARCHITECTURE.md` | How the system is put together: requests, services, schema |
+| `PROJECT_STRUCTURE.md` | Folder layout, and the map of every document with its status |
+| `../IMPLEMENTATION-PLAN-2026-10-14.md` | The work in progress (audit fixes) and its status |
+| `../FUNCTIONALITY-AUDIT-2026-10-14.md` | The latest audit: what works, what does not |
+| `AI-ASSISTANT-PLAN.md`, `CCTV-PEOPLE-COUNTER-PLAN.md`, `IMPROVEMENT-PLAN.md` | Plans (the assistant is built; CCTV is not; the improvement list is partly superseded) |
+| `PHASES.md`, `FINAL-REPORT.md`, `QA-VALIDATION-REPORT.md`, `DEBUGGING-REPORT.md`, `FEATURE_IMPLEMENTATION_AUDIT.md`, `../AUDIT-REPORT.md` | History: dated reports on earlier states of the system. The early ones describe a Python service that has since been removed |
+
+`CLAUDE.md`, `../AGENTS.md` and `.claude/` are instructions for AI-assisted development only.
 
 ## Known limitations
 
-- No automatic scheduler: late-fee checks and rent reminders are run from the Admin panel.
+Current as of the 14 Oct 2026 audit; each is tracked with a finding id in `../FUNCTIONALITY-AUDIT-2026-10-14.md` and a work package in `../IMPLEMENTATION-PLAN-2026-10-14.md`.
+
+- No automatic scheduler: late-fee checks and rent reminders are run from the Admin panel, and pressing the reminder button twice sends two reminders (F-15, WP-9).
 - Receipt verification is a human decision; the system only flags amount mismatches (no OCR).
+- There is no way to record a cash or walk-in payment; money enters only through an uploaded receipt (F-13, WP-6).
+- The landing page's prices, contact details and "Live CCTV" claim are fixed text, not read from the database, and the payment account numbers on the Pay Rent page are fixed in the view; there is no camera feature (F-14, F-21, WP-10).
+- No date range check on move-in/move-out dates, and a future move-out date moves the resident out immediately (F-03, F-05, WP-3).
+- Removing a resident who has no payments also erases their repair, incident and SOS history (F-04, WP-4).
+- No backup or restore tool: back up with `mysqldump` and copy `storage/uploads/` by hand (F-30, WP-17).
 - The login page's "open on your phone" QR code only works from a phone when the system is started with `start-online.bat` (see "Going online for a demo"); `start-system.bat` serves on `127.0.0.1` (this machine only) by design.

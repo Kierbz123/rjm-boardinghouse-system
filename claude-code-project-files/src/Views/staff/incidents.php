@@ -27,14 +27,14 @@ $resolvedCount = count(array_filter($incidents ?? [], fn($i) => !empty($i['resol
 
     <?php if ($error): ?>
         <div class="bg-error-50 text-error-700 text-body-sm rounded-lg p-3 border border-error-500 flex items-center gap-2" role="alert">
-            <span style="font-size:1rem;">⚠</span>
+            <?= \App\Support\Icon::svg('alert-triangle', 16) ?>
             <?= htmlspecialchars($error) ?>
         </div>
     <?php endif; ?>
 
     <?php if ($success): ?>
         <div class="bg-emerald-50 text-emerald-800 text-body-sm rounded-lg p-3 border border-emerald-300 flex items-center gap-2" role="alert">
-            <span style="font-size:1rem;">✓</span>
+            <?= \App\Support\Icon::svg('check', 16) ?>
             <?= htmlspecialchars($success) ?>
         </div>
     <?php endif; ?>
@@ -115,7 +115,7 @@ $resolvedCount = count(array_filter($incidents ?? [], fn($i) => !empty($i['resol
                                                             class="btn btn-secondary !py-0.5 !px-2 !text-[11px] font-semibold note-toggle-btn cursor-pointer inline-flex items-center gap-1 shadow-2xs"
                                                             data-id="<?= (int) $i['id'] ?>"
                                                             title="View resolution notes">
-                                                        <span>📝</span> Note
+                                                        <span><?= \App\Support\Icon::svg('square-pen') ?></span> Note
                                                     </button>
                                                 <?php endif; ?>
                                             </div>
@@ -151,7 +151,7 @@ $resolvedCount = count(array_filter($incidents ?? [], fn($i) => !empty($i['resol
                                             <div class="note-drawer-box bg-white rounded-xl border border-neutral-200 p-4 shadow-xs">
                                                 <div class="flex items-center justify-between pb-2 mb-2.5 border-b border-neutral-100">
                                                     <div class="flex items-center gap-2">
-                                                        <span style="font-size:1rem;">📝</span>
+                                                        <?= \App\Support\Icon::svg('square-pen', 16) ?>
                                                         <h4 class="text-body-sm font-semibold text-neutral-900">
                                                             Resolution Notes &mdash;
                                                             <span class="text-primary-700 font-bold"><?= htmlspecialchars($i['type']) ?></span>
@@ -174,7 +174,7 @@ $resolvedCount = count(array_filter($incidents ?? [], fn($i) => !empty($i['resol
                                 <tr>
                                     <td colspan="5">
                                         <div class="py-12 text-center text-neutral-400">
-                                            <div style="font-size: 2rem; margin-bottom: 0.5rem;">📋</div>
+                                            <span class="empty-icon"><?= \App\Support\Icon::svg('clipboard') ?></span>
                                             <p class="font-semibold text-neutral-700 text-body-sm">No incidents logged.</p>
                                             <p class="text-caption text-neutral-400 mt-0.5">Facility records are clear of security or rule incidents.</p>
                                         </div>
@@ -191,7 +191,7 @@ $resolvedCount = count(array_filter($incidents ?? [], fn($i) => !empty($i['resol
         <div>
             <form method="post" action="/staff/incidents" class="form-card accent-neutral space-y-4">
                 <div class="flex items-center gap-2 border-b border-neutral-100 pb-3">
-                    <span class="text-lg">📝</span>
+                    <span class="text-lg"><?= \App\Support\Icon::svg('square-pen') ?></span>
                     <div>
                         <h2 class="text-heading-sm font-bold text-neutral-900"><?= $isStaff ? 'Log Incident' : 'Report Incident' ?></h2>
                         <p class="text-caption text-neutral-500"><?= $isStaff ? 'Facility & rule compliance tracking' : 'Report missing pet, uniform, or disturbance' ?></p>
@@ -207,11 +207,11 @@ $resolvedCount = count(array_filter($incidents ?? [], fn($i) => !empty($i['resol
 
                     <!-- Quick suggestion chips -->
                     <div class="flex items-center gap-1.5 flex-wrap mb-2">
-                        <button type="button" class="incident-chip" style="font-size: 0.65rem !important; padding: 0.18rem 0.45rem !important; line-height: 1 !important;" data-type="Missing Pet">🐾 Missing Pet</button>
-                        <button type="button" class="incident-chip" style="font-size: 0.65rem !important; padding: 0.18rem 0.45rem !important; line-height: 1 !important;" data-type="Missing Uniform">👔 Missing Uniform</button>
-                        <button type="button" class="incident-chip" style="font-size: 0.65rem !important; padding: 0.18rem 0.45rem !important; line-height: 1 !important;" data-type="Lost Belonging">🔑 Lost Belonging</button>
-                        <button type="button" class="incident-chip" style="font-size: 0.65rem !important; padding: 0.18rem 0.45rem !important; line-height: 1 !important;" data-type="Noise Disturbance">📢 Noise Disturbance</button>
-                        <button type="button" class="incident-chip" style="font-size: 0.65rem !important; padding: 0.18rem 0.45rem !important; line-height: 1 !important;" data-type="Safety Concern">⚠️ Safety Concern</button>
+                        <button type="button" class="incident-chip" style="font-size: 0.65rem !important; padding: 0.18rem 0.45rem !important; line-height: 1 !important;" data-type="Missing Pet"><?= \App\Support\Icon::svg('paw-print') ?> Missing Pet</button>
+                        <button type="button" class="incident-chip" style="font-size: 0.65rem !important; padding: 0.18rem 0.45rem !important; line-height: 1 !important;" data-type="Missing Uniform"><?= \App\Support\Icon::svg('shirt') ?> Missing Uniform</button>
+                        <button type="button" class="incident-chip" style="font-size: 0.65rem !important; padding: 0.18rem 0.45rem !important; line-height: 1 !important;" data-type="Lost Belonging"><?= \App\Support\Icon::svg('key') ?> Lost Belonging</button>
+                        <button type="button" class="incident-chip" style="font-size: 0.65rem !important; padding: 0.18rem 0.45rem !important; line-height: 1 !important;" data-type="Noise Disturbance"><?= \App\Support\Icon::svg('megaphone') ?> Noise Disturbance</button>
+                        <button type="button" class="incident-chip" style="font-size: 0.65rem !important; padding: 0.18rem 0.45rem !important; line-height: 1 !important;" data-type="Safety Concern"><?= \App\Support\Icon::svg('alert-triangle') ?> Safety Concern</button>
                     </div>
 
                     <input id="incident-type"

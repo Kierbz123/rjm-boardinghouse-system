@@ -18,6 +18,12 @@ $stats = $stats ?? [];
     </div>
     <?php endif; ?>
 
+    <?php if ($role === 'staff'): ?>
+    <div class="rounded-xl border border-neutral-200 bg-neutral-50 text-neutral-700 px-4 py-3 text-sm">
+        <strong>How long your records are kept.</strong> If your account is deactivated, it and the record of the repairs, incidents and SOS alerts you handled are kept for 5 years after you leave; only the administrator can see them. Deletion after 5 years will be added later; until then nothing is deleted. Your phone number (set by the administrator) is shown to residents beside the SOS button.
+    </div>
+    <?php endif; ?>
+
     <!-- Page Banner -->
     <div class="page-banner" style="background: linear-gradient(135deg, #0a0a0a 0%, #1f1f1e 100%); border-radius: 1rem; padding: 1.5rem 1.75rem; box-shadow: 0 4px 16px rgba(10, 10, 10,0.15);">
         <div>
@@ -48,14 +54,14 @@ $stats = $stats ?? [];
     <!-- Flash Notifications -->
     <?php if ($error): ?>
         <div class="text-body-sm flex items-center gap-2.5" role="alert" style="background: #fdf1f0; color: #912018; border-radius: 0.875rem; padding: 1.125rem 1.375rem; border: 1px solid #e88f86; box-shadow: 0 1px 3px rgba(220,38,38,0.06);">
-            <span style="font-size: 1.2rem; line-height: 1;">⚠</span>
+            <?= \App\Support\Icon::svg('alert-triangle', 19) ?>
             <span class="font-medium"><?= htmlspecialchars($error) ?></span>
         </div>
     <?php endif; ?>
 
     <?php if ($success): ?>
         <div class="text-body-sm flex items-center gap-2.5" role="alert" style="background: #eef6f1; color: #245a3f; border-radius: 0.875rem; padding: 1.125rem 1.375rem; border: 1px solid #8cc2a2; box-shadow: 0 1px 3px rgba(22,101,52,0.06);">
-            <span style="font-size: 1.2rem; line-height: 1;">✓</span>
+            <?= \App\Support\Icon::svg('check', 19) ?>
             <span class="font-medium"><?= htmlspecialchars($success) ?></span>
         </div>
     <?php endif; ?>
@@ -254,11 +260,11 @@ $stats = $stats ?? [];
                     <span class="font-semibold">Submit Rent Payment</span>
                 </a>
                 <a href="/portal/maintenance/new" class="btn btn-secondary !py-2.5 !px-4.5 !text-xs !rounded-xl inline-flex items-center gap-2 shadow-xs hover:border-neutral-400 transition-all">
-                    <span>🔧</span>
+                    <span><?= \App\Support\Icon::svg('wrench') ?></span>
                     <span class="font-semibold">Report a Maintenance Issue</span>
                 </a>
                 <a href="/portal/dashboard" class="btn btn-secondary !py-2.5 !px-4.5 !text-xs !rounded-xl inline-flex items-center gap-2 shadow-xs hover:border-neutral-400 transition-all">
-                    <span>🏠</span>
+                    <span><?= \App\Support\Icon::svg('home') ?></span>
                     <span class="font-semibold">Go to Resident Portal</span>
                 </a>
             </div>
@@ -285,28 +291,28 @@ $stats = $stats ?? [];
             <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-5">
                 <div style="background: #ffffff; border: 1px solid #e6e5e2; border-radius: 0.875rem; padding: 1.25rem 1.375rem; box-shadow: 0 1px 3px rgba(10, 10, 10,0.04); display: flex; flex-direction: column; gap: 0.5rem;">
                     <div style="width: 2.5rem; height: 2.5rem; border-radius: 0.625rem; background: #fbf4ef; display: flex; align-items: center; justify-content: center; font-size: 1.25rem; margin-bottom: 0.25rem;">
-                        👥
+                        <?= \App\Support\Icon::svg('users') ?>
                     </div>
                     <h3 class="text-body-sm font-bold text-neutral-900">Resident Lifecycle</h3>
                     <p class="text-caption text-neutral-500 leading-relaxed">Full CRUD over boarders, beds, and statuses</p>
                 </div>
                 <div style="background: #ffffff; border: 1px solid #e6e5e2; border-radius: 0.875rem; padding: 1.25rem 1.375rem; box-shadow: 0 1px 3px rgba(10, 10, 10,0.04); display: flex; flex-direction: column; gap: 0.5rem;">
                     <div style="width: 2.5rem; height: 2.5rem; border-radius: 0.625rem; background: #eef6f1; display: flex; align-items: center; justify-content: center; font-size: 1.25rem; margin-bottom: 0.25rem;">
-                        💳
+                        <?= \App\Support\Icon::svg('credit-card') ?>
                     </div>
                     <h3 class="text-body-sm font-bold text-neutral-900">Financial Ledger</h3>
                     <p class="text-caption text-neutral-500 leading-relaxed">Rent payments, expense vouchers, penalty rules</p>
                 </div>
                 <div style="background: #ffffff; border: 1px solid #e6e5e2; border-radius: 0.875rem; padding: 1.25rem 1.375rem; box-shadow: 0 1px 3px rgba(10, 10, 10,0.04); display: flex; flex-direction: column; gap: 0.5rem;">
                     <div style="width: 2.5rem; height: 2.5rem; border-radius: 0.625rem; background: #fbf6e8; display: flex; align-items: center; justify-content: center; font-size: 1.25rem; margin-bottom: 0.25rem;">
-                        🛏️
+                        <?= \App\Support\Icon::svg('bed') ?>
                     </div>
                     <h3 class="text-body-sm font-bold text-neutral-900">Room Management</h3>
                     <p class="text-caption text-neutral-500 leading-relaxed">Bed allocations, floor assignments, pricing</p>
                 </div>
                 <div style="background: #ffffff; border: 1px solid #e6e5e2; border-radius: 0.875rem; padding: 1.25rem 1.375rem; box-shadow: 0 1px 3px rgba(10, 10, 10,0.04); display: flex; flex-direction: column; gap: 0.5rem;">
                     <div style="width: 2.5rem; height: 2.5rem; border-radius: 0.625rem; background: #fbf4ef; display: flex; align-items: center; justify-content: center; font-size: 1.25rem; margin-bottom: 0.25rem;">
-                        🛡️
+                        <?= \App\Support\Icon::svg('shield-check') ?>
                     </div>
                     <h3 class="text-body-sm font-bold text-neutral-900">System Security</h3>
                     <p class="text-caption text-neutral-500 leading-relaxed">Strict CSRF tokens, secure session headers</p>
@@ -316,19 +322,19 @@ $stats = $stats ?? [];
             <!-- Quick Action Links Cluster with Generous Spacing and NO straight divider line -->
             <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 0.75rem; margin-top: 1.75rem;">
                 <a href="/admin/boarders" class="btn btn-secondary !py-2.5 !px-4.5 !text-xs !rounded-xl inline-flex items-center gap-2 shadow-xs hover:border-neutral-400 transition-all">
-                    <span>👥</span>
+                    <span><?= \App\Support\Icon::svg('users') ?></span>
                     <span class="font-semibold">Boarders Directory</span>
                 </a>
                 <a href="/admin/rooms" class="btn btn-secondary !py-2.5 !px-4.5 !text-xs !rounded-xl inline-flex items-center gap-2 shadow-xs hover:border-neutral-400 transition-all">
-                    <span>🛏️</span>
+                    <span><?= \App\Support\Icon::svg('bed') ?></span>
                     <span class="font-semibold">Rooms &amp; Beds</span>
                 </a>
                 <a href="/admin/payments" class="btn btn-secondary !py-2.5 !px-4.5 !text-xs !rounded-xl inline-flex items-center gap-2 shadow-xs hover:border-neutral-400 transition-all">
-                    <span>💰</span>
+                    <span><?= \App\Support\Icon::svg('wallet') ?></span>
                     <span class="font-semibold">Payments Queue</span>
                 </a>
                 <a href="/admin/dashboard" class="btn btn-primary !py-2.5 !px-4.5 !text-xs !rounded-xl inline-flex items-center gap-2 shadow-xs transition-all">
-                    <span>📊</span>
+                    <span><?= \App\Support\Icon::svg('bar-chart') ?></span>
                     <span class="font-semibold">Admin Dashboard</span>
                 </a>
             </div>
@@ -355,28 +361,28 @@ $stats = $stats ?? [];
             <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-5">
                 <div style="background: #ffffff; border: 1px solid #e6e5e2; border-radius: 0.875rem; padding: 1.25rem 1.375rem; box-shadow: 0 1px 3px rgba(10, 10, 10,0.04); display: flex; flex-direction: column; gap: 0.5rem;">
                     <div style="width: 2.5rem; height: 2.5rem; border-radius: 0.625rem; background: #fbf4ef; display: flex; align-items: center; justify-content: center; font-size: 1.25rem; margin-bottom: 0.25rem;">
-                        🔧
+                        <?= \App\Support\Icon::svg('wrench') ?>
                     </div>
                     <h3 class="text-body-sm font-bold text-neutral-900">Maintenance Queue</h3>
                     <p class="text-caption text-neutral-500 leading-relaxed"><?= (int) ($stats['active_queue'] ?? 0) ?> active repair task<?= ($stats['active_queue'] ?? 0) !== 1 ? 's' : '' ?> awaiting resolution</p>
                 </div>
                 <div style="background: #ffffff; border: 1px solid #e6e5e2; border-radius: 0.875rem; padding: 1.25rem 1.375rem; box-shadow: 0 1px 3px rgba(10, 10, 10,0.04); display: flex; flex-direction: column; gap: 0.5rem;">
                     <div style="width: 2.5rem; height: 2.5rem; border-radius: 0.625rem; background: #fdf1f0; display: flex; align-items: center; justify-content: center; font-size: 1.25rem; margin-bottom: 0.25rem;">
-                        🚨
+                        <?= \App\Support\Icon::svg('siren') ?>
                     </div>
                     <h3 class="text-body-sm font-bold text-neutral-900">Emergency SOS</h3>
                     <p class="text-caption text-neutral-500 leading-relaxed"><?= (int) ($stats['active_sos'] ?? 0) ?> alert broadcast<?= ($stats['active_sos'] ?? 0) !== 1 ? 's' : '' ?> on file</p>
                 </div>
                 <div style="background: #ffffff; border: 1px solid #e6e5e2; border-radius: 0.875rem; padding: 1.25rem 1.375rem; box-shadow: 0 1px 3px rgba(10, 10, 10,0.04); display: flex; flex-direction: column; gap: 0.5rem;">
                     <div style="width: 2.5rem; height: 2.5rem; border-radius: 0.625rem; background: #fbf6e8; display: flex; align-items: center; justify-content: center; font-size: 1.25rem; margin-bottom: 0.25rem;">
-                        📋
+                        <?= \App\Support\Icon::svg('clipboard') ?>
                     </div>
                     <h3 class="text-body-sm font-bold text-neutral-900">Incident Logging</h3>
                     <p class="text-caption text-neutral-500 leading-relaxed"><?= (int) ($stats['open_incidents'] ?? 0) ?> unresolved incident report<?= ($stats['open_incidents'] ?? 0) !== 1 ? 's' : '' ?></p>
                 </div>
                 <div style="background: #ffffff; border: 1px solid #e6e5e2; border-radius: 0.875rem; padding: 1.25rem 1.375rem; box-shadow: 0 1px 3px rgba(10, 10, 10,0.04); display: flex; flex-direction: column; gap: 0.5rem;">
                     <div style="width: 2.5rem; height: 2.5rem; border-radius: 0.625rem; background: #fbf4ef; display: flex; align-items: center; justify-content: center; font-size: 1.25rem; margin-bottom: 0.25rem;">
-                        🛡️
+                        <?= \App\Support\Icon::svg('shield-check') ?>
                     </div>
                     <h3 class="text-body-sm font-bold text-neutral-900">Facility Checks</h3>
                     <p class="text-caption text-neutral-500 leading-relaxed">Daily security, CCTV &amp; boardinghouse inspection</p>
@@ -386,15 +392,15 @@ $stats = $stats ?? [];
             <!-- Quick Action Links Cluster with Generous Spacing and NO straight divider line -->
             <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 0.75rem; margin-top: 1.75rem;">
                 <a href="/staff/maintenance" class="btn btn-secondary !py-2.5 !px-4.5 !text-xs !rounded-xl inline-flex items-center gap-2 shadow-xs hover:border-neutral-400 transition-all">
-                    <span>🔧</span>
+                    <span><?= \App\Support\Icon::svg('wrench') ?></span>
                     <span class="font-semibold">Maintenance Queue</span>
                 </a>
                 <a href="/staff/incidents" class="btn btn-secondary !py-2.5 !px-4.5 !text-xs !rounded-xl inline-flex items-center gap-2 shadow-xs hover:border-neutral-400 transition-all">
-                    <span>📋</span>
+                    <span><?= \App\Support\Icon::svg('clipboard') ?></span>
                     <span class="font-semibold">Incidents Log</span>
                 </a>
                 <a href="/staff/dashboard" class="btn btn-primary !py-2.5 !px-4.5 !text-xs !rounded-xl inline-flex items-center gap-2 shadow-xs transition-all">
-                    <span>📊</span>
+                    <span><?= \App\Support\Icon::svg('bar-chart') ?></span>
                     <span class="font-semibold">Staff Dashboard</span>
                 </a>
             </div>
@@ -477,7 +483,7 @@ $stats = $stats ?? [];
 
             <div class="flex items-center justify-end pt-3">
                 <button type="submit" class="btn btn-primary !py-2.5 !px-5 !text-xs font-semibold shadow-xs cursor-pointer inline-flex items-center gap-1.5">
-                    <span>✓</span>
+                    <span><?= \App\Support\Icon::svg('check') ?></span>
                     <span>Save Profile Changes</span>
                 </button>
             </div>
@@ -521,8 +527,8 @@ $stats = $stats ?? [];
                            name="new_password"
                            class="input w-full"
                            style="border-radius: 0.625rem; padding: 0.65rem 0.875rem; font-size: 0.875rem;"
-                           placeholder="Min. 8 characters"
-                           minlength="8"
+                           placeholder="At least 15 characters"
+                           minlength="15"
                            required />
                 </div>
 
@@ -536,7 +542,7 @@ $stats = $stats ?? [];
                            class="input w-full"
                            style="border-radius: 0.625rem; padding: 0.65rem 0.875rem; font-size: 0.875rem;"
                            placeholder="Re-type new password"
-                           minlength="8"
+                           minlength="15"
                            required />
                 </div>
             </div>
@@ -546,13 +552,13 @@ $stats = $stats ?? [];
                     ℹ
                 </div>
                 <div class="leading-relaxed pt-0.5">
-                    <strong class="text-neutral-800 font-semibold">Password Requirements:</strong> Passwords must contain at least 8 characters. We recommend combining letters, numbers, and special symbols for maximum security.
+                    <strong class="text-neutral-800 font-semibold">Password Requirements:</strong> Use at least 15 characters; a short phrase of unrelated words is easy to remember and hard to guess. No symbols or numbers are required. At most 72 bytes: accented letters and emoji take more than one. Avoid your name, your e-mail and the boarding house name.
                 </div>
             </div>
 
             <div class="flex items-center justify-end pt-2">
                 <button type="submit" class="btn btn-secondary !py-2.5 !px-5 !text-xs font-semibold shadow-xs cursor-pointer inline-flex items-center gap-1.5">
-                    <span>🔒</span>
+                    <span><?= \App\Support\Icon::svg('lock') ?></span>
                     <span>Update Password</span>
                 </button>
             </div>

@@ -18,26 +18,23 @@ $navSections = [$role => \App\Support\NavRegistry::sidebar($role)];
 // Helper to check if a section contains the currently active route
 function sectionHasActiveRoute(array $items, string $currentPath): bool {
     foreach ($items as $item) {
-        if ($item['href'] === $currentPath) return true;
+        if (navItemIsActive($item, $currentPath)) return true;
     }
     return false;
 }
 
-// Inline SVG Icon Renderer (stroke-width 2, 18-20px)
+// The page itself, or one of its detail pages (e.g. /admin/inquiries/12 under Inquiry Center).
+function navItemIsActive(array $item, string $currentPath): bool {
+    if ($item['href'] === $currentPath) return true;
+    foreach ($item['also'] ?? [] as $prefix) {
+        if (str_starts_with($currentPath, $prefix)) return true;
+    }
+    return false;
+}
+
+// Sidebar icons come from the app's one icon set (App\Support\Icon), at 18px.
 function renderNavSvg(string $icon): string {
-    return match ($icon) {
-        'dashboard' => '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="7" height="9" x="3" y="3" rx="1"/><rect width="7" height="5" x="14" y="3" rx="1"/><rect width="7" height="9" x="14" y="12" rx="1"/><rect width="7" height="5" x="3" y="16" rx="1"/></svg>',
-        'inquiry' => '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>',
-        'occupancy' => '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="m19 9-5 5-4-4-3 3"/></svg>',
-        'boarders' => '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>',
-        'rooms' => '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 4v16"/><path d="M2 8h18a2 2 0 0 1 2 2v10"/><path d="M2 17h20"/><path d="M6 8v9"/></svg>',
-        'payments' => '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="20" height="14" x="2" y="5" rx="2"/><line x1="2" x2="22" y1="10" y2="10"/></svg>',
-        'expenses' => '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 2v20l2-1 2 1 2-1 2 1 2-1 2 1 2-1 2 1V2l-2 1-2-1-2 1-2-1-2 1-2-1-2 1Z"/><path d="M16 8h-6a2 2 0 1 0 0 4h4a2 2 0 1 1 0 4H8"/><path d="M12 6v12"/></svg>',
-        'penalties' => '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m16 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z"/><path d="m2 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z"/><path d="M7 21h10"/><path d="M12 3v18"/><path d="M3 7h2c2 0 5-1 7-2 2 1 5 2 7 2h2"/></svg>',
-        'maintenance' => '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>',
-        'incidents' => '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><line x1="12" x2="12" y1="8" y2="12"/><line x1="12" x2="12.01" y1="16" y2="16"/></svg>',
-        default => '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/></svg>',
-    };
+    return \App\Support\Icon::svg($icon, 18);
 }
 ?>
 
@@ -236,12 +233,12 @@ function renderNavSvg(string $icon): string {
         align-items: center;
         gap: 0.75rem;
         padding: 0.5rem 0.75rem;
-        border-radius: 0.375rem;
-        font-size: 0.75rem;
+        border-radius: 0.5rem;
+        font-size: 0.8125rem;
         font-weight: 500;
         color: #9d9b97; /* neutral-400 */
         text-decoration: none;
-        transition: all 140ms cubic-bezier(0.16, 1, 0.3, 1);
+        transition: color var(--duration-fast) var(--ease-out-soft), background-color var(--duration-fast) var(--ease-out-soft);
         border-left: 3px solid transparent;
         overflow: hidden;
     }
@@ -249,28 +246,37 @@ function renderNavSvg(string $icon): string {
         color: #ffffff;
         background-color: rgba(255, 255, 255, 0.06);
     }
+    .sidebar-nav-item .nav-icon { transition: color var(--duration-fast) var(--ease-out-soft); }
+    .sidebar-nav-item:hover .nav-icon { color: #ffffff; }
 
-    /* Active Route: Solid distinct block/pill with bg-white/10 and emerald-400 left border */
+    /* Active route: lifted row with the brand accent on its edge and icon */
     .sidebar-nav-item.active {
         color: #ffffff !important;
         font-weight: 600;
         background-color: rgba(255, 255, 255, 0.10) !important;
-        border-left-color: #5fae84 !important; /* emerald-400 */
-        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.25);
+        border-left-color: var(--color-accent-from) !important;
     }
     .sidebar-nav-item.active .nav-icon {
-        color: #5fae84 !important;
+        color: var(--color-accent-from) !important;
     }
 
-    /* Rotating chevron for collapsible groups */
+    /* Collapsible groups: the chevron turns and the items fold away (height animates where supported;
+       visibility keeps folded links out of the Tab order) */
     .section-chevron {
-        transition: transform 200ms cubic-bezier(0.16, 1, 0.3, 1);
+        transition: transform var(--duration-base) var(--ease-out-soft);
     }
     .section-group.collapsed .section-chevron {
         transform: rotate(-90deg);
     }
+    .section-items {
+        overflow: hidden;
+        height: auto;
+        transition: height var(--duration-base) var(--ease-out-soft), visibility var(--duration-base) allow-discrete;
+    }
     .section-group.collapsed .section-items {
-        display: none !important;
+        height: 0;
+        margin-top: 0 !important;
+        visibility: hidden;
     }
 
     /* Rail mode hover tooltip */
@@ -321,14 +327,6 @@ function renderNavSvg(string $icon): string {
         display: none !important;
     }
 
-    /* Double-confirmation modal animations */
-    @keyframes logoutModalFadeIn { 0% { opacity: 0; } 100% { opacity: 1; } }
-    @keyframes logoutCardPop { 0% { opacity: 0; transform: scale(0.96) translateY(8px); } 100% { opacity: 1; transform: scale(1) translateY(0); } }
-    .animate-logout-backdrop { animation: logoutModalFadeIn 180ms ease-out forwards; }
-    .animate-logout-card { animation: logoutCardPop 220ms cubic-bezier(0.16, 1, 0.3, 1) forwards; }
-    #logout-modal-cancel:hover { background-color: #f1f0ee !important; color: #0a0a0a !important; }
-    #logout-modal-confirm:hover { filter: brightness(1.08); box-shadow: 0 4px 12px rgba(220, 38, 38, 0.25); }
-    #logout-modal-confirm:active { transform: scale(0.97); }
 </style>
 
 <!-- ══════════════════════════════════════════════════════════════
@@ -351,7 +349,7 @@ function renderNavSvg(string $icon): string {
 
         <!-- Brand Link -->
         <a href="<?= htmlspecialchars($dashboardHome) ?>" class="font-semibold tracking-tight inline-flex items-center gap-2 text-sm hover:opacity-90 transition-opacity">
-            <span style="color: #5fae84; font-size: 0.75rem;">▲</span>
+            <span style="color: var(--color-accent-from); font-size: 0.75rem;">▲</span>
             <span class="font-bold text-white tracking-tight">RJM <span class="text-neutral-400 font-normal">Boardinghouse</span></span>
         </a>
     </div>
@@ -381,7 +379,7 @@ function renderNavSvg(string $icon): string {
         <a href="<?= htmlspecialchars($dashboardHome) ?>"
            class="font-semibold tracking-tight inline-flex items-center gap-2 text-sm hover:opacity-90 transition-opacity flex-shrink-0 overflow-hidden"
            style="white-space: nowrap; text-decoration: none;">
-            <span style="color: #5fae84; font-size: 0.75rem;" class="flex-shrink-0">▲</span>
+            <span style="color: var(--color-accent-from); font-size: 0.75rem;" class="flex-shrink-0">▲</span>
             <span class="font-bold text-white tracking-tight rail-hide">
                 RJM <span class="text-neutral-400 font-normal">Boardinghouse</span>
             </span>
@@ -434,9 +432,10 @@ function renderNavSvg(string $icon): string {
                 <!-- Section Nav Items -->
                 <div class="section-items space-y-1.5 mt-1.5">
                     <?php foreach ($items as $item): ?>
-                        <?php $isActive = $currentPath === $item['href']; ?>
+                        <?php $isActive = navItemIsActive($item, $currentPath); ?>
                         <a href="<?= htmlspecialchars($item['href']) ?>"
                            class="sidebar-nav-item mobile-nav-link <?= $isActive ? 'active' : '' ?>"
+                           title="<?= htmlspecialchars($item['label']) ?>"
                            <?= $isActive ? 'aria-current="page"' : '' ?>>
                             <span class="nav-icon flex-shrink-0 text-neutral-400 transition-colors">
                                 <?= renderNavSvg($item['icon']) ?>
@@ -534,37 +533,15 @@ function renderNavSvg(string $icon): string {
 <!-- ══════════════════════════════════════════════════════════════
      DOUBLE CONFIRMATION LOGOUT MODAL (Exact IDs & Behavior preserved)
      ══════════════════════════════════════════════════════════════ -->
-<div id="logout-modal"
-     style="display:none; position:fixed; top:0; left:0; right:0; bottom:0; z-index:999999; background:rgba(10, 10, 10,0.55); backdrop-filter:blur(4px); -webkit-backdrop-filter:blur(4px); align-items:center; justify-content:center; padding:1rem;"
-     role="dialog"
-     aria-modal="true"
-     aria-labelledby="logout-modal-heading">
-    <div id="logout-confirm-card"
-         style="background: rgb(255, 255, 255); border-radius: 1rem; padding: 1.5rem 1.75rem; max-width: 22rem; width: 100%; margin: 0px auto; text-align: center; box-shadow: rgba(0, 0, 0, 0.25) 0px 25px 50px -12px;">
-        <!-- Big Round Icon (!) -->
-        <div id="logout-modal-icon-wrap"
-             style="width: 3.5rem; height: 3.5rem; border-radius: 50%; border: 2px solid rgb(239, 68, 68); color: rgb(220, 38, 38); display: flex; align-items: center; justify-content: center; font-size: 1.5rem; font-weight: 700; margin: 0px auto 0.75rem; user-select: none;">
-            !
-        </div>
-
-        <!-- Title -->
-        <h3 id="logout-modal-heading" style="font-size: 1.1rem; font-weight: 700; color: #0a0a0a; letter-spacing: -0.01em; margin: 0 0 0.375rem;">Are you sure?</h3>
-
-        <!-- Description -->
-        <p id="logout-modal-subtext" style="font-size: 0.8rem; color: #6b6b6b; line-height: 1.6; margin: 0 0 1.5rem; padding: 0 0.5rem;">Are you sure you want to log out of your account?</p>
-
-        <!-- Actions -->
-        <div style="display: flex; align-items: center; justify-content: flex-end; gap: 0.75rem; padding-top: 0.25rem;">
-            <button type="button"
-                    id="logout-modal-cancel"
-                    style="padding: 0.5rem 1rem; border-radius: 0.75rem; font-size: 0.75rem; font-weight: 600; color: #6b6b6b; background: transparent; border: none; cursor: pointer; transition: all 150ms;">
-                Cancel
-            </button>
-            <button type="button"
-                    id="logout-modal-confirm"
-                    style="color: rgb(255, 255, 255); font-weight: 600; border-radius: 0.75rem; padding: 0.5rem 1.25rem; font-size: 0.75rem; border: none; cursor: pointer; display: inline-flex; align-items: center; gap: 0.375rem; transition: 150ms; background: linear-gradient(135deg, rgb(239, 68, 68), rgb(220, 38, 38));">
-                <span id="logout-modal-confirm-label">Yes</span>
-                <span style="font-size: 0.95rem;">&rarr;</span>
+<div id="logout-modal" class="modal" style="display:none" role="dialog" aria-modal="true" aria-labelledby="logout-modal-heading">
+    <div id="logout-confirm-card" class="modal-card">
+        <div id="logout-modal-icon-wrap" class="modal-icon"><?= \App\Support\Icon::svg('log-out') ?></div>
+        <h3 id="logout-modal-heading" class="modal-title">Log out?</h3>
+        <p id="logout-modal-subtext" class="modal-text">You'll need your password to sign in again.</p>
+        <div class="modal-actions">
+            <button type="button" id="logout-modal-cancel" class="btn btn-secondary">Cancel</button>
+            <button type="button" id="logout-modal-confirm" class="btn btn-primary">
+                <span id="logout-modal-confirm-label">Log out</span>
             </button>
         </div>
     </div>
@@ -606,6 +583,11 @@ function renderNavSvg(string $icon): string {
         return date.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
     }
 
+    const ICONS = <?= json_encode(array_map(fn ($n) => \App\Support\Icon::svg($n), [
+        'shield' => 'shield-check', 'eye' => 'eye', 'siren' => 'siren', 'wrench' => 'wrench',
+        'card' => 'credit-card', 'clipboard' => 'clipboard', 'bell' => 'bell',
+    ]), JSON_HEX_TAG | JSON_HEX_AMP) ?>;
+
     function getNotifConfig(type, message, actionUrl) {
         type = (type || '').toLowerCase();
         const messageLower = (message || '').toLowerCase();
@@ -613,14 +595,14 @@ function renderNavSvg(string $icon): string {
         const isAcknowledged = messageLower.includes('acknowledged');
 
         if (type.includes('sos')) {
-            if (isResolved) return { icon: '🛡️', badgeBg: '#eef6f1', badgeColor: '#2f6f4e', label: 'SOS Resolved', actionText: 'View History' };
-            if (isAcknowledged) return { icon: '👁️', badgeBg: '#fbf6e8', badgeColor: '#9a6700', label: 'SOS Acknowledged', actionText: 'View Status' };
-            return { icon: '🚨', badgeBg: '#fdf1f0', badgeColor: '#b42318', label: 'Emergency SOS', actionText: 'View & Take Action' };
+            if (isResolved) return { icon: ICONS.shield, badgeBg: '#eef6f1', badgeColor: '#2f6f4e', label: 'SOS Resolved', actionText: 'View History' };
+            if (isAcknowledged) return { icon: ICONS.eye, badgeBg: '#fbf6e8', badgeColor: '#9a6700', label: 'SOS Acknowledged', actionText: 'View Status' };
+            return { icon: ICONS.siren, badgeBg: '#fdf1f0', badgeColor: '#b42318', label: 'Emergency SOS', actionText: 'View & Take Action' };
         }
-        if (type.includes('maintenance') || type.includes('repair')) return { icon: '🔧', badgeBg: '#eef6f1', badgeColor: '#2f6f4e', label: 'Maintenance', actionText: 'View Details' };
-        if (type.includes('rent') || type.includes('payment') || type.includes('penalty')) return { icon: '💳', badgeBg: '#fbf6e8', badgeColor: '#9a6700', label: 'Billing Notice', actionText: 'View Details' };
-        if (type.includes('inquiry')) return { icon: '📋', badgeBg: '#fbf4ef', badgeColor: '#b15f2c', label: 'Inquiry', actionText: 'View Details' };
-        return { icon: '🔔', badgeBg: '#f1f0ee', badgeColor: '#555452', label: 'Notification', actionText: 'View Details' };
+        if (type.includes('maintenance') || type.includes('repair')) return { icon: ICONS.wrench, badgeBg: '#eef6f1', badgeColor: '#2f6f4e', label: 'Maintenance', actionText: 'View Details' };
+        if (type.includes('rent') || type.includes('payment') || type.includes('penalty')) return { icon: ICONS.card, badgeBg: '#fbf6e8', badgeColor: '#9a6700', label: 'Billing Notice', actionText: 'View Details' };
+        if (type.includes('inquiry')) return { icon: ICONS.clipboard, badgeBg: '#fbf4ef', badgeColor: '#b15f2c', label: 'Inquiry', actionText: 'View Details' };
+        return { icon: ICONS.bell, badgeBg: '#f1f0ee', badgeColor: '#555452', label: 'Notification', actionText: 'View Details' };
     }
 
     function updateCountBadges() {
@@ -656,7 +638,7 @@ function renderNavSvg(string $icon): string {
         if (!cached.length) {
             dropdownEl.innerHTML = `
                 <div class="py-10 px-4 flex flex-col items-center justify-center text-center text-neutral-400">
-                    <div class="w-12 h-12 rounded-full bg-neutral-100 flex items-center justify-center text-xl mb-2 text-neutral-400">🔔</div>
+                    <div class="w-12 h-12 rounded-full bg-neutral-100 flex items-center justify-center text-xl mb-2 text-neutral-400">${ICONS.bell}</div>
                     <p class="text-xs font-semibold text-neutral-700">All caught up!</p>
                     <p class="text-[11px] text-neutral-400 mt-0.5">Nothing new right now.</p>
                 </div>
@@ -832,32 +814,21 @@ function renderNavSvg(string $icon): string {
     const btn        = document.getElementById('logout-btn');
     const mobileBtn  = document.getElementById('mobile-logout-btn');
     const modal      = document.getElementById('logout-modal');
-    const card       = document.getElementById('logout-confirm-card');
     const cancelBtn  = document.getElementById('logout-modal-cancel');
     const confirmBtn = document.getElementById('logout-modal-confirm');
     const form       = document.getElementById('logout-form');
     const mobileForm = document.getElementById('mobile-logout-form');
 
+    // The entrance animation is CSS (.modal / .modal-card in input.css); it replays on every open.
     function showLogoutModal() {
         if (!modal) return;
         modal.style.display = 'flex';
-        modal.classList.add('animate-logout-backdrop');
-        if (window.gsap && card) {
-            gsap.fromTo(card,
-                { opacity: 0, scale: 0.96, y: 8 },
-                { opacity: 1, scale: 1, y: 0, duration: 0.3, ease: 'power3.out' }
-            );
-        } else if (card) {
-            card.classList.add('animate-logout-card');
-        }
         if (cancelBtn) cancelBtn.focus();
     }
 
     function hideLogoutModal() {
         if (!modal) return;
         modal.style.display = 'none';
-        modal.classList.remove('animate-logout-backdrop');
-        if (card) card.classList.remove('animate-logout-card');
         if (btn) btn.focus();
     }
 

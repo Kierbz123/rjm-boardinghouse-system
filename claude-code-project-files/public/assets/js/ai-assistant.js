@@ -22,6 +22,18 @@
     let isAiOnline = false;
     let isCheckingStatus = false;
 
+    // The same stroke icons as App\Support\Icon on the server (emoji are not used as icons).
+    const ICON_PATHS = {
+        sparkles: '<path d="M9.937 15.5A2 2 0 0 0 8.5 14.063l-6.135-1.582a.5.5 0 0 1 0-.962L8.5 9.936A2 2 0 0 0 9.937 8.5l1.582-6.135a.5.5 0 0 1 .963 0L14.063 8.5A2 2 0 0 0 15.5 9.937l6.135 1.581a.5.5 0 0 1 0 .964L15.5 14.063a2 2 0 0 0-1.437 1.437l-1.582 6.135a.5.5 0 0 1-.963 0z"/><path d="M20 3v4"/><path d="M22 5h-4"/>',
+        alert: '<path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3"/><path d="M12 9v4"/><path d="M12 17h.01"/>',
+        chart: '<path d="M3 3v16a2 2 0 0 0 2 2h16"/><path d="M18 17V9"/><path d="M13 17V5"/><path d="M8 17v-3"/>',
+        refresh: '<path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/><path d="M8 16H3v5"/>',
+    };
+    function icon(name) {
+        return '<svg class="icon" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"'
+            + ' stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + ICON_PATHS[name] + '</svg>';
+    }
+
     function getCsrfToken() {
         const meta = document.querySelector('meta[name="csrf-token"]');
         if (meta && meta.content) return meta.content;
@@ -258,9 +270,9 @@
 
         modal.innerHTML = `
             <div style="background:#ffffff;border-radius:1rem;max-width:560px;width:100%;box-shadow:0 20px 40px rgba(0,0,0,0.25);overflow:hidden;border:1px solid #e6e5e2;animation:popIn 0.2s ease-out;">
-                <div style="background:linear-gradient(135deg,#0a0a0a,#312e81);color:white;padding:1rem 1.25rem;display:flex;align-items:center;justify-content:space-between;">
+                <div style="background:var(--color-ink);color:white;padding:1rem 1.25rem;display:flex;align-items:center;justify-content:space-between;">
                     <div style="display:flex;align-items:center;gap:0.5rem;font-weight:700;font-size:0.95rem;">
-                        <span>✨</span> AI-Improved Description
+                        ${icon('sparkles')} AI-Improved Description
                     </div>
                     <button id="modal-close-btn" style="background:transparent;border:none;color:white;cursor:pointer;font-size:1.25rem;line-height:1;">&times;</button>
                 </div>
@@ -338,7 +350,7 @@
                 }
 
                 if (found) {
-                    showToast('🏷️ Category set to: ' + category.toUpperCase(), 'success');
+                    showToast('Category set to: ' + category.toUpperCase(), 'success');
                 } else {
                     showToast('Suggested category: ' + category, 'info');
                 }
@@ -372,7 +384,7 @@
                 // Toggle if already visible and populated
                 if (!targetRow.classList.contains('hidden') && targetBox.dataset.loaded === 'true') {
                     targetRow.classList.add('hidden');
-                    this.innerHTML = '🤖 AI Analyze';
+                    this.innerHTML = '<span>' + icon('sparkles') + '</span> AI Analyze';
                     return;
                 }
 
@@ -402,7 +414,7 @@
                     });
 
                     if (!res.ok) {
-                        targetBox.innerHTML = `<div class="text-red-600 font-semibold py-2">⚠ ${escapeHtml(res.data.error || 'Failed to analyze ticket.')}</div>`;
+                        targetBox.innerHTML = `<div class="text-red-600 font-semibold py-2">${icon('alert')} ${escapeHtml(res.data.error || 'Failed to analyze ticket.')}</div>`;
                         return;
                     }
 
@@ -411,7 +423,7 @@
                     renderAnalysis(targetBox, analysisText);
                     this.innerHTML = '▲ Hide AI Analysis';
                 } catch (e) {
-                    targetBox.innerHTML = '<div class="text-red-600 font-semibold py-2">⚠ Error communicating with AI service.</div>';
+                    targetBox.innerHTML = '<div class="text-red-600 font-semibold py-2">' + icon('alert') + ' Error communicating with AI service.</div>';
                 } finally {
                     this.removeAttribute('disabled');
                 }
@@ -440,7 +452,7 @@
             <div class="space-y-1.5">
                 <div class="flex items-center justify-between border-b border-indigo-100 pb-1.5 mb-2">
                     <span class="font-bold text-indigo-900 text-xs flex items-center gap-1.5">
-                        <span>🤖</span> AI Diagnostic &amp; Resolution Assessment
+                        ${icon('sparkles')} AI Diagnostic &amp; Resolution Assessment
                     </span>
                     <span class="text-[10px] text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded font-mono font-semibold">Local LLM</span>
                 </div>
@@ -462,7 +474,7 @@
         btn.addEventListener('click', async function () {
             if (!container.classList.contains('hidden') && contentBox.dataset.loaded === 'true') {
                 container.classList.add('hidden');
-                btn.innerHTML = '📊 AI Queue Summary';
+                btn.innerHTML = '<span>' + icon('chart') + '</span> AI Queue Summary';
                 return;
             }
 
@@ -490,7 +502,7 @@
                 const res = await apiRequest('/api/assistant/summarize-queue', {});
 
                 if (!res.ok) {
-                    contentBox.innerHTML = `<div class="text-red-600 font-semibold py-2">⚠ ${escapeHtml(res.data.error || 'Failed to generate queue summary.')}</div>`;
+                    contentBox.innerHTML = `<div class="text-red-600 font-semibold py-2">${icon('alert')} ${escapeHtml(res.data.error || 'Failed to generate queue summary.')}</div>`;
                     return;
                 }
 
@@ -499,7 +511,7 @@
                 renderSummary(contentBox, summaryText);
                 btn.innerHTML = '▲ Close Summary';
             } catch (e) {
-                contentBox.innerHTML = '<div class="text-red-600 font-semibold py-2">⚠ Error generating AI summary.</div>';
+                contentBox.innerHTML = '<div class="text-red-600 font-semibold py-2">' + icon('alert') + ' Error generating AI summary.</div>';
             } finally {
                 btn.removeAttribute('disabled');
             }
@@ -514,7 +526,7 @@
             </div>
             <div class="mt-3 pt-2 border-t border-indigo-100 flex justify-end">
                 <button id="btn-refresh-summary" class="text-xs text-indigo-600 hover:text-indigo-800 font-semibold flex items-center gap-1 cursor-pointer">
-                    🔄 Re-analyze Current Queue
+                    ${icon('refresh')} Re-analyze Current Queue
                 </button>
             </div>
         `;

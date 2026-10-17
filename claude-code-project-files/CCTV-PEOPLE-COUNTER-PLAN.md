@@ -1,6 +1,6 @@
 # Live CCTV, motion sensing and people counting — plan
 
-**Status:** plan only, nothing built yet. It needs the owner decisions in §6 before any code is written.
+**Status (14 Oct 2026):** plan only, nothing built, no owner decision (D1–D5) recorded yet. The 14 Oct fix plan (`../IMPLEMENTATION-PLAN-2026-10-14.md`, WP-10/WP-19) removes the "Live CCTV" claim from the landing page until a camera feature exists, so this plan stays in the backlog. It needs the owner decisions in §6 before any code is written.
 **For the demo:** an ordinary phone stands in for the CCTV camera.
 
 The landing page now says "Live CCTV covers the entire boardinghouse." That describes the real house. This plan adds a camera feature *inside the system*: a live view, motion detection, an hourly people count and face snapshots. It stays within this project's rules: localhost only, no internet calls, and PHP + MariaDB as the system of record.

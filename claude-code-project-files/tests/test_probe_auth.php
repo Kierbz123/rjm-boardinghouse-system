@@ -98,7 +98,7 @@ $post = [
     ['/admin/penalties/run-check', [], ['admin']], ['/admin/notifications/rent-due', [], ['admin']],
     ['/admin/payments/1/approve', ['approved_amount' => 1], ['admin']], ['/admin/payments/1/reject', ['reason' => 'abc'], ['admin']],
     ['/staff/maintenance/1/status', ['status' => 'open'], ['admin', 'staff']], ['/staff/incidents/1/resolve', ['resolution_notes' => 'n'], ['admin', 'staff']],
-    ['/staff/penalties/issue', [], ['admin', 'staff']], ['/staff/sos/1/ack', [], ['admin', 'staff']], ['/staff/sos/1/resolve', [], ['admin', 'staff']],
+    ['/staff/penalties/issue', [], ['admin']], ['/staff/sos/1/ack', [], ['admin', 'staff']], ['/staff/sos/1/resolve', [], ['admin', 'staff']],
     ['/portal/maintenance', [], ['boarder']], ['/portal/payments', [], ['boarder']], ['/api/sos', [], ['boarder']],
     ['/api/assistant/analyze-ticket', [], ['admin', 'staff']], ['/api/assistant/summarize-queue', [], ['admin', 'staff']],
     ['/api/assistant/suggest-category', [], ['boarder']],

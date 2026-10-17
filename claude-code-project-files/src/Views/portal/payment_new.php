@@ -66,14 +66,14 @@ $methods = \App\Models\Payment::METHODS;
     <!-- Flash Alerts -->
     <?php if ($error): ?>
         <div class="text-body-sm flex items-center gap-2.5" role="alert" style="background: #fdf1f0; color: #912018; border-radius: 0.875rem; padding: 1rem 1.25rem; border: 1px solid #e88f86;">
-            <span style="font-size:1.125rem;">⚠</span>
+            <?= \App\Support\Icon::svg('alert-triangle', 18) ?>
             <?= htmlspecialchars($error) ?>
         </div>
     <?php endif; ?>
 
     <?php if ($success): ?>
         <div class="text-body-sm flex items-center gap-2.5" role="alert" style="background: #eef6f1; color: #245a3f; border-radius: 0.875rem; padding: 1rem 1.25rem; border: 1px solid #8cc2a2;">
-            <span style="font-size:1.125rem;">✓</span>
+            <?= \App\Support\Icon::svg('check', 18) ?>
             <?= htmlspecialchars($success) ?>
         </div>
     <?php endif; ?>
@@ -149,7 +149,7 @@ $methods = \App\Models\Payment::METHODS;
         <div class="lg:col-span-2">
             <form method="post" action="/portal/payments" enctype="multipart/form-data" id="payment-form" class="form-card accent-success" style="padding: 1.5rem 1.625rem 1.75rem; border-radius: 1rem; gap: 1.125rem;">
                 <div class="flex items-center gap-2.5" style="border-bottom: 1px solid #f1f0ee; padding-bottom: 0.875rem;">
-                    <span style="font-size: 1.25rem;">💳</span>
+                    <?= \App\Support\Icon::svg('credit-card', 20) ?>
                     <div>
                         <h2 class="text-heading-sm font-bold text-neutral-900">Proof of Payment Submission</h2>
                         <p class="text-caption text-neutral-500" style="margin-top: 0.2rem;">An administrator checks every receipt before it is applied to your balance</p>
@@ -274,7 +274,7 @@ $methods = \App\Models\Payment::METHODS;
         <div style="display: flex; flex-direction: column; gap: 1.125rem;">
             <div class="card" style="padding: 1.25rem 1.375rem; background: #f8f7f5; border: 1px solid #e6e5e2; border-radius: 0.875rem;">
                 <h3 class="text-xs font-bold uppercase tracking-wider text-neutral-600 flex items-center gap-2" style="margin-bottom: 0.875rem;">
-                    <span>🏦</span> Official Payment Channels
+                    <span><?= \App\Support\Icon::svg('landmark') ?></span> Official Payment Channels
                 </h3>
                 <div style="display: flex; flex-direction: column; gap: 0.625rem; font-size: 0.8125rem; color: #555452; line-height: 1.5;">
                     <div style="padding: 0.75rem 0.875rem; border-radius: 0.5rem; background: #ffffff; border: 1px solid #e6e5e2;">
@@ -367,8 +367,11 @@ $methods = \App\Models\Payment::METHODS;
                                             <a href="/<?= htmlspecialchars(ltrim($p['proof_path'], '/')) ?>"
                                                target="_blank"
                                                style="font-size: 0.75rem; font-weight: 600; color: #b15f2c; text-decoration: underline; display: inline-flex; align-items: center; gap: 0.25rem; transition: color 0.15s;">
-                                                <span>📎</span> View Receipt
+                                                <span><?= \App\Support\Icon::svg('paperclip') ?></span> View Receipt
                                             </a>
+                                        <?php elseif (in_array($status, ['auto-matched', 'admin-approved'], true)): ?>
+                                            <a href="/payments/<?= (int) $p['id'] ?>/receipt" target="_blank" rel="noopener"
+                                               style="font-size: 0.75rem; font-weight: 600; color: #b15f2c; text-decoration: underline;"><?= \App\Support\Icon::svg('receipt') ?> Print receipt<?= !empty($p['receipt_number']) ? ' ' . htmlspecialchars($p['receipt_number']) : '' ?></a>
                                         <?php else: ?>
                                             <span class="text-caption text-neutral-400">None attached</span>
                                         <?php endif; ?>

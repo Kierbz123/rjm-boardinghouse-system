@@ -2,11 +2,11 @@
 
 Turn the "Ask AI" chat into an assistant that **knows who is asking, only answers with what that person is allowed to see, takes them straight to the page they need, and still works when the AI model is off.**
 
-Status: proposal, not built. Nothing here changes the system until approved.
+Status (14 Oct 2026): **built** except parts of A6 and A7 (see the Progress table in §8). Approved by the owner on 3 Oct 2026 (§9). §1 below describes the system *before* the plan was carried out; the tables in §3–§7 are the design, and where the build differs the Progress notes say so. The current code is `src/Services/AssistantService.php`, `OllamaClient.php`, `AssistantController.php`, `src/Support/NavRegistry.php` and `public/assets/js/ai-assistant.js`.
 
 ---
 
-## 1. Where we are today
+## 1. Where we were when this plan was written (3 Oct 2026)
 
 | Today | Problem |
 |---|---|
@@ -20,7 +20,7 @@ Status: proposal, not built. Nothing here changes the system until approved.
 
 1. **Navigate:** "where do I pay rent?", "open the maintenance queue", "show flagged payments" → answer card with a **Go** button to the exact page (only pages that role can open).
 2. **Look up the user's own facts:** "how much do I owe?", "is my sink repair fixed?", "how many SOS alerts are active?", "which payments need review?" — read straight from the database, never guessed by the model.
-3. **Explain the house and the system:** curfew, billing rules, how to report a repair — answered from a written help library, with the source shown.
+3. **Explain the house and the system:** house rules (there is no curfew), billing rules, how to report a repair — answered from a written help library, with the source shown.
 4. **Prepare, never submit:** "report that my faucet is leaking" → opens *Report a Repair* with the description and category filled in; the person reviews and presses Submit themselves.
 5. **Work without the AI model:** navigation, lookups and the help library run on plain PHP rules; Ollama only adds free-form conversation on top.
 
@@ -100,7 +100,7 @@ A0–A3 alone already give a fast, reliable assistant that navigates and answers
 | A1 Navigate + palette | Done (3 Oct 2026) | `Ctrl+K` opens the drawer; live page matches while typing; one "Open …" button per answer; English/Tagalog switch. Works with Ollama stopped. |
 | A2 Role lookups | Done (3 Oct 2026) | Boarder: balance, payment status, repair status, room. Staff: open repairs, SOS, incidents, inquiries. Admin: payments waiting, vacant beds, occupancy, who owes, expenses this month, a boarder by name. Figures come from the same models the pages use. |
 | A5 Prepare actions | Done (4 Oct 2026) | A described problem opens Report a Repair or the incident form already filled in (description plus a guessed category/type); the person reviews and submits. Admin gets a ledger download link (this month or last month). Pay Rent needs no pre-fill: the page already works out the amount. |
-| A3 Help library | Done (4 Oct 2026) | Nine topics written from what the code does: due date and the current late fee, how to pay, how to report a repair, SOS, password, log out, proration, repair priority. Kept as a table in `AssistantService` instead of `docs/help/*.md` (no separate "Read more" page). House rules: the curfew is quoted from the landing page (`LandingController::CURFEW_HOURS`) and set penalties from the Penalties list; **other rules such as visitors are answered as "not written in the system" until the owner supplies them.** |
+| A3 Help library | Done (4 Oct 2026) | Nine topics written from what the code does: due date and the current late fee, how to pay, how to report a repair, SOS, password, log out, proration, repair priority. Kept as a table in `AssistantService` instead of `docs/help/*.md` (no separate "Read more" page). House rules: when this was built the curfew was quoted from the landing page; on 5 Oct the owner removed the curfew, so the assistant now answers "there is no curfew, live CCTV covers the boardinghouse" and lists set penalties from the Penalties list; **other rules such as visitors are answered as "not written in the system" until the owner supplies them.** (The "Live CCTV" wording is the landing-page claim the 14 Oct plan removes until a camera feature exists, WP-10/WP-19; the assistant's answer and Ollama prompt will need the same change.) |
 | A4 AI layer | Done (4 Oct 2026) | When the rules find nothing, `OllamaClient::pick()` lets llama3.2:3b choose one entry from the role's own list (`AssistantService::catalogue()`); `run()` re-checks the role before running it, and the reply starts with "I think this is what you mean". If the model picks "none", it falls back to free chat, whose prompt no longer contains unverified house rules. |
 | A6 Accessibility | Partly done | Done with A1: dialog role and label, `Esc` closes and returns focus, replies announced (`aria-live`), visible focus, reduced motion, language switch. Not done: starter questions that change with the page, and an automated audit (Lighthouse/axe). |
 | A7 Evaluation | Partly done | Rules: about 100 role/permission/figure cases in `tests/test_assistant.php` and `tests/test_http_rbac.php`, all passing. Model: 20 paraphrases the rules miss in `tests/test_ai_assistant.php` (`--with-ai`): **15/20 chosen correctly, 0 of 3 off-topic messages answered, about 0.5 s each** once the model is loaded. The plan's 60 questions per role and the 90% target have not been measured. |

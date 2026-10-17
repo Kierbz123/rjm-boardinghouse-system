@@ -45,7 +45,7 @@ $roomId = Room::create('B-' . mt_rand(1000, 9999), '2', 1, $rate);
 $today = new DateTimeImmutable('today');
 $key = fn (DateTimeImmutable $d) => $d->format('Y-m-d');
 $newResident = function (string $moveIn, ?int $room = null) use ($pdo, $roomId, $adminId): int {
-    $id = User::create('boarder', 'Billing Tester', 'billing-' . mt_rand() . '@rjm.test', 'Secret123!');
+    $id = User::create('boarder', 'Billing Tester', 'billing-' . mt_rand() . '@rjm.test', 'Billing-quartz-meadow');
     BoarderProfile::create($id, $room ?? $roomId, null);
     $pdo->prepare('UPDATE boarder_profiles SET move_in_date = ? WHERE user_id = ?')->execute([$moveIn, $id]);
     BoarderProfile::updateStatus($id, 'active', $adminId, 'test');

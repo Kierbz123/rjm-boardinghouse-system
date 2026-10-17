@@ -23,7 +23,15 @@ class AssistantController
     public static function status(): void
     {
         header('Content-Type: application/json');
-        $available = OllamaClient::isAvailable();
+        // Every page asks this on load. Remembered for 30 seconds per session, so moving between pages
+        // doesn't re-probe Ollama each time; starting or stopping it shows up within half a minute.
+        $cached = $_SESSION['ollama_status'] ?? null;
+        if (is_array($cached) && ($cached['at'] ?? 0) > time() - 30) {
+            $available = (bool) $cached['available'];
+        } else {
+            $available = OllamaClient::isAvailable();
+            $_SESSION['ollama_status'] = ['at' => time(), 'available' => $available];
+        }
         echo json_encode([
             'ok'        => true,
             'available' => $available,

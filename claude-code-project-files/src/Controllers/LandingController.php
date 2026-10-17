@@ -63,59 +63,24 @@ class LandingController
         unset($lm);
         usort($mapData['landmarks'], fn ($x, $y) => $x['km'] <=> $y['km']);
 
-        $roomTiers = [
-            [
-                'id'          => 'solo',
-                'type'        => 'Solo Executive Room',
-                'badge'       => 'Maximum Privacy',
-                'popular'     => false,
-                'price'       => '₱3,500',
-                'period'      => '/ month',
-                'capacity'    => '1 Resident (Private)',
-                'features'    => [
-                    'Private furnished room with solid hardwood door',
-                    'Dedicated ergonomic study desk & reading lamp',
-                    'Individual steel locker & wardrobe cabinet',
-                    'Dedicated electric submeter & private ceiling fan',
-                    'Fiber Wi-Fi & quiet study floor allocation'
-                ],
-                'cta_label'   => 'Inquire for Solo Room'
-            ],
-            [
-                'id'          => 'twin',
-                'type'        => 'Twin Sharing Scholar Suite',
-                'badge'       => 'Most Popular',
-                'popular'     => true,
-                'price'       => '₱2,200',
-                'period'      => '/ bed / month',
-                'capacity'    => '2 Residents (Shared)',
-                'features'    => [
-                    'Spacious 2-bed layout with dual study stations',
-                    'Two separate secure steel storage lockers',
-                    'Wide cross-ventilation windows with blackout curtains',
-                    'High-speed Wi-Fi & power charging hubs',
-                    'Split electricity submetering per occupant'
-                ],
-                'cta_label'   => 'Inquire for Twin Sharing'
-            ],
-            [
-                'id'          => 'quad',
-                'type'        => 'Quad Bedspace Sanctuary',
-                'badge'       => 'Best Value',
-                'popular'     => false,
-                'price'       => '₱1,600',
-                'period'      => '/ bed / month',
-                'capacity'    => '4 Residents (Bunk Bed)',
-                'features'    => [
-                    'Heavy-duty mahogany double-deck bunks with privacy curtains',
-                    'Individual LED night lamp & dual USB wall sockets',
-                    'Assigned lockable heavy-duty storage compartment',
-                    'Complimentary purified drinking water station',
-                    'Full access to shared study hall & pantry station'
-                ],
-                'cta_label'   => 'Inquire for Bedspace'
-            ]
-        ];
+        // The offerings come from room_types, the same records the admin edits on Rooms & Beds.
+        $roomTiers = [];
+        try {
+            foreach (\App\Models\RoomType::all() as $t) {
+                $roomTiers[] = [
+                    'id'       => $t['code'],
+                    'type'     => $t['name'],
+                    'badge'    => $t['badge'],
+                    'popular'  => (bool) $t['is_popular'],
+                    'price'    => '₱' . number_format((float) $t['price']),
+                    'period'   => $t['price_unit'] === 'bed' ? '/ bed / month' : '/ month',
+                    'capacity' => $t['capacity_label'],
+                    'features' => $t['feature_list'],
+                ];
+            }
+        } catch (\Throwable $e) {
+            \App\Support\Logger::warn('Room offerings unavailable: ' . $e->getMessage());
+        }
 
         // Only real numbers from the database (owner decision 8): no invented figures.
         $stats = ['total_rooms' => 0, 'total_beds' => 0, 'vacant_beds' => 0, 'residents' => 0,

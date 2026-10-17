@@ -6,6 +6,7 @@ use App\Models\Payment;
 use App\Models\Room;
 use App\Services\BillingService;
 use App\Services\PaymentAllocationService;
+use App\Services\PaymentRecorder;
 use App\Services\PaymentReviewService;
 use App\Services\NotificationDispatcher;
 use App\Support\Csrf;
@@ -155,6 +156,66 @@ class PaymentController
         unset($p);
 
         require __DIR__ . '/../Views/admin/payments.php';
+    }
+
+    /** Admin and staff: record a payment taken in person (cash, a walk-in GCash, a bank slip). */
+    public static function recordForm(): void
+    {
+        $pdo = Database::getConnection();
+        $residents = $pdo->query("SELECT u.id, u.name, r.room_number, bp.status
+            FROM users u JOIN boarder_profiles bp ON bp.user_id = u.id LEFT JOIN rooms r ON r.id = bp.room_id
+            WHERE u.role = 'boarder' AND u.archived_at IS NULL AND bp.status IN ('active', 'on_notice', 'moved_out')
+            ORDER BY u.name")->fetchAll();
+        $selected = (int) ($_GET['boarder'] ?? 0);
+        $balance = null;
+        foreach ($residents as $r) {
+            if ((int) $r['id'] === $selected) {
+                $balance = BillingService::calculateBalance($selected, $pdo, true); // showing it must not write
+            }
+        }
+        $error = $_SESSION['flash_error'] ?? null;
+        unset($_SESSION['flash_error']);
+        require __DIR__ . '/../Views/admin/payment_record.php';
+    }
+
+    public static function record(): void
+    {
+        if (!Csrf::verify($_POST['csrf_token'] ?? null)) {
+            http_response_code(400);
+            echo 'Invalid session, please retry.';
+            return;
+        }
+        $result = PaymentRecorder::record($_POST, (int) $_SESSION['user_id'], (string) $_SESSION['role']);
+        if (!$result['ok']) {
+            $_SESSION['flash_error'] = $result['error'];
+            $back = (int) ($_POST['boarder_id'] ?? 0);
+            header('Location: /admin/payments/record' . ($back > 0 ? "?boarder={$back}" : ''));
+            exit;
+        }
+        $_SESSION['flash_success'] = 'Payment recorded. Print the receipt for the resident.';
+        header('Location: /payments/' . (int) $result['payment_id'] . '/receipt');
+        exit;
+    }
+
+    /** A printable receipt for an approved payment: the admin sees any, a resident only their own (staff handle no money). */
+    public static function receipt(string $id): void
+    {
+        $payment = Payment::find((int) $id);
+        $role = (string) ($_SESSION['role'] ?? '');
+        $mine = $payment && (int) $payment['boarder_id'] === (int) ($_SESSION['user_id'] ?? 0);
+        if (!$payment || !in_array($payment['verification_status'], BillingService::APPROVED, true)
+            || !($role === 'admin' || ($role === 'boarder' && $mine))) {
+            \App\Support\ErrorPage::render(404);
+        }
+        $pdo = Database::getConnection();
+        $stmt = $pdo->prepare('SELECT u.name, u.email, r.room_number, b.label AS bed_label
+            FROM users u LEFT JOIN boarder_profiles bp ON bp.user_id = u.id LEFT JOIN rooms r ON r.id = bp.room_id LEFT JOIN beds b ON b.id = bp.bed_id
+            WHERE u.id = ?');
+        $stmt->execute([(int) $payment['boarder_id']]);
+        $resident = $stmt->fetch() ?: ['name' => 'Resident', 'room_number' => null, 'bed_label' => null];
+        $receivedBy = $payment['received_by'] ? (\App\Models\User::findById((int) $payment['received_by'])['name'] ?? null) : null;
+        $allocations = PaymentAllocationService::getAllocationsForPayment((int) $payment['id']);
+        require __DIR__ . '/../Views/shared/receipt.php';
     }
 
     public static function approve(string $id): void

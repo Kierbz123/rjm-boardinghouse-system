@@ -6,7 +6,10 @@
  * CLAUDE.md). No Node/build step is needed to *run* the app; regenerating
  * app.css after template changes is documented in UI-LIBRARY-EVALUATION.md.
  * Every role-specific view inherits this <head> — don't duplicate it per role.
+ * Asset URLs carry ?v=<file time>: the router lets the browser keep versioned files, and a rebuilt
+ * app.css gets a new URL, so pages switch fast and never show stale styles.
  */
+$asset = fn (string $path): string => $path . '?v=' . (int) @filemtime(__DIR__ . '/../../../public' . $path);
 ?>
 <!doctype html>
 <html lang="en">
@@ -17,10 +20,11 @@
     <title><?= htmlspecialchars($pageTitle ?? 'RJM Boardinghouse') ?></title>
 
     <!-- Tailwind CSS v4 — compiled once via the standalone CLI -->
-    <link rel="stylesheet" href="/assets/css/app.css" />
+    <link rel="stylesheet" href="<?= $asset('/assets/css/app.css') ?>" />
+    <link rel="preload" href="/assets/fonts/onest-latin.woff2" as="font" type="font/woff2" crossorigin />
 
     <!-- GSAP — vendored locally -->
-    <script src="/assets/js/vendor/gsap.min.js"></script>
+    <script src="<?= $asset('/assets/js/vendor/gsap.min.js') ?>"></script>
     <script>
     // Cards rise in once per page load (.page-enter in input.css). The class comes off afterwards
     // so cards shown again later (filters, toggled forms) do not replay the entrance.
@@ -68,7 +72,7 @@
         \App\Support\NavRegistry::forRole($_SESSION['role'])
     ), JSON_HEX_TAG | JSON_HEX_AMP | JSON_UNESCAPED_UNICODE) ?></script>
     <?php endif; ?>
-    <script src="/assets/js/app.js"></script>
-    <script src="/assets/js/ai-assistant.js"></script>
+    <script src="<?= $asset('/assets/js/app.js') ?>"></script>
+    <script src="<?= $asset('/assets/js/ai-assistant.js') ?>"></script>
 </body>
 </html>

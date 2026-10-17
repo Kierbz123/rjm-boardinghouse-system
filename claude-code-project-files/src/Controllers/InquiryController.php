@@ -29,6 +29,7 @@ class InquiryController
         $todayInquiries = (int) $inquiryStats['today'];
         // Contact details of prospects are for admins only.
         $recentInquiries = $userRole === 'admin' ? \App\Models\Inquiry::recent(10) : [];
+        $roomTypes = \App\Models\RoomType::all();
 
         $inquirySuccess = $_SESSION['flash_inquiry_success'] ?? null;
         unset($_SESSION['flash_inquiry_success']);
@@ -49,6 +50,7 @@ class InquiryController
 
         // Walk-in notes are appended to the message as "Staff notes: ..."; show them separately.
         [$visitorMessage, $staffNotes] = array_pad(explode("\n\nStaff notes: ", (string) $inquiry['message'], 2), 2, '');
+        $roomType = $inquiry['room_type'] ? \App\Models\RoomType::findByName($inquiry['room_type']) : null;
         $flashOk = $_SESSION['flash_inquiry_success'] ?? null;
         unset($_SESSION['flash_inquiry_success']);
 
@@ -64,6 +66,42 @@ class InquiryController
             \App\Support\ErrorPage::render(404);
         } elseif (\App\Models\Inquiry::setStatus($inquiryId, (string) ($_POST['status'] ?? ''))) {
             $_SESSION['flash_inquiry_success'] = 'Status updated.';
+        }
+        header("Location: /admin/inquiries/{$inquiryId}");
+        exit;
+    }
+
+    /**
+     * The inquirer already has a boarder account (same email): record the inquiry as that boarder
+     * instead of creating a duplicate. The account is found from the inquiry's own email, never
+     * from anything the browser sends.
+     */
+    public static function linkBoarder(string $id): void
+    {
+        $inquiryId = (int) $id;
+        if (!\App\Support\Csrf::verify($_POST['csrf_token'] ?? null)) {
+            $_SESSION['flash_error'] = 'Invalid session token. Please try again.';
+            header("Location: /admin/boarders?inquiry={$inquiryId}");
+            exit;
+        }
+        $inquiry = \App\Models\Inquiry::find($inquiryId) ?? \App\Support\ErrorPage::render(404);
+        $user = $inquiry['email'] ? \App\Models\User::findByEmail((string) $inquiry['email']) : null;
+        if ($user === null || $user['role'] !== 'boarder') {
+            $_SESSION['flash_error'] = 'No boarder account uses this inquiry\'s email.';
+            header("Location: /admin/boarders?inquiry={$inquiryId}");
+            exit;
+        }
+        $pdo = Database::getConnection();
+        $pdo->beginTransaction();
+        try {
+            \App\Models\Inquiry::markConverted($inquiryId, (int) $user['id']);
+            $pdo->commit();
+            $_SESSION['flash_inquiry_success'] = "Inquiry linked to {$user['name']}'s existing account and closed.";
+        } catch (\Throwable $e) {
+            $pdo->rollBack();
+            $_SESSION['flash_error'] = \App\Support\Flash::error($e, 'The inquiry could not be linked. Please try again.');
+            header("Location: /admin/boarders?inquiry={$inquiryId}");
+            exit;
         }
         header("Location: /admin/inquiries/{$inquiryId}");
         exit;

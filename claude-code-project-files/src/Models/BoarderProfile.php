@@ -73,12 +73,12 @@ class BoarderProfile
         }
         return $restored;
     }
-    public static function create(int $userId, ?int $roomId, ?int $bedId): void
+    public static function create(int $userId, ?int $roomId, ?int $bedId, ?string $contactNumber = null): void
     {
         $stmt = Database::getConnection()->prepare(
-            'INSERT INTO boarder_profiles (user_id, room_id, bed_id, status) VALUES (?, ?, ?, "pending")'
+            'INSERT INTO boarder_profiles (user_id, room_id, bed_id, contact_number, status) VALUES (?, ?, ?, ?, "pending")'
         );
-        $stmt->execute([$userId, $roomId, $bedId]);
+        $stmt->execute([$userId, $roomId, $bedId, $contactNumber]);
     }
 
     /**

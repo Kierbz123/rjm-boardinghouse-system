@@ -409,10 +409,23 @@
 }
 
 @layer base {
-  html { -webkit-font-smoothing: antialiased; }
+  /* Motion: three durations and the two curves above, used everywhere */
+  :root {
+    --duration-fast: 150ms;   /* hover, press, colour */
+    --duration-base: 200ms;   /* toggles, dropdowns, nav */
+    --duration-slow: 300ms;   /* dialogs, page entrance */
+    --shadow-hover: 0 0 0 1px var(--color-neutral-300), 0 10px 24px -14px rgb(10 10 10 / 0.22);
+    interpolate-size: allow-keywords; /* lets height animate to/from auto where supported */
+  }
+  html { -webkit-font-smoothing: antialiased; scrollbar-gutter: stable; }
   body { font-family: var(--font-sans); color: var(--color-neutral-900); }
-  h1, h2, h3, h4 { letter-spacing: -0.015em; overflow-wrap: break-word; }
+  h1, h2, h3, h4 { letter-spacing: -0.015em; overflow-wrap: break-word; text-wrap: balance; }
+  p { text-wrap: pretty; }
   input, select, textarea { box-sizing: border-box; max-width: 100%; }
+  input[type="checkbox"], input[type="radio"], input[type="range"], progress { accent-color: var(--color-ink); }
+  a, button, summary, label, [role="button"] { -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
+  button:disabled { cursor: not-allowed; }
+  summary { cursor: pointer; }
   :focus-visible { outline: 2px solid var(--color-accent); outline-offset: 2px; }
   ::selection { background: var(--color-primary-100); color: var(--color-ink); }
   table { width: 100%; border-collapse: collapse; }
@@ -426,6 +439,11 @@
     border-radius: var(--radius-lg);
     box-shadow: var(--shadow-card);
   }
+  /* Cards that are links lift slightly; static cards never move. */
+  a.card, a.reveal-card, .card-interactive {
+    transition: box-shadow var(--duration-base) var(--ease-out-soft), transform var(--duration-base) var(--ease-out-soft);
+  }
+  a.card:hover, a.reveal-card:hover, .card-interactive:hover { box-shadow: var(--shadow-hover); transform: translateY(-1px); }
   .ink-panel, .page-banner {
     background: var(--color-ink);
     color: #fff;
@@ -484,6 +502,13 @@
   .metric-accent-success { box-shadow: var(--shadow-card), inset 3px 0 0 var(--color-success-600); }
   .metric-accent-info    { box-shadow: var(--shadow-card), inset 3px 0 0 var(--color-info-600); }
   .metric-accent-primary { box-shadow: var(--shadow-card), inset 3px 0 0 var(--color-ink); }
+  /* The icon in a KPI tile's header row takes the tile's status colour and keeps clear of a wrapped label. */
+  [class*="metric-accent-"] > :first-child:has(> .icon) { gap: 0.5rem; align-items: flex-start; }
+  [class*="metric-accent-"] > :first-child > .icon { color: var(--color-neutral-400); }
+  .metric-accent-error > :first-child > .icon   { color: var(--color-error-600); }
+  .metric-accent-warning > :first-child > .icon { color: var(--color-warning-600); }
+  .metric-accent-success > :first-child > .icon { color: var(--color-success-600); }
+  .metric-accent-info > :first-child > .icon    { color: var(--color-info-600); }
 
   /* ---- Buttons: pills ---- */
   .btn {
@@ -498,14 +523,28 @@
     line-height: 1.25rem;
     padding: 0.625rem 1.25rem;
     cursor: pointer;
-    transition: background-color 160ms var(--ease-out-soft), box-shadow 160ms var(--ease-out-soft), transform 160ms var(--ease-out-soft);
+    transition: background-color var(--duration-fast) var(--ease-out-soft), box-shadow var(--duration-fast) var(--ease-out-soft),
+                color var(--duration-fast) var(--ease-out-soft), transform var(--duration-fast) var(--ease-out-soft);
   }
-  .btn:active { transform: scale(0.98); }
-  .btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+  .btn:active, .btn-danger:active, .btn-danger-solid:active, .ai-action-btn:active:not(:disabled) { transform: scale(0.98); }
+  .btn:disabled, .btn[aria-disabled="true"], .btn-danger:disabled, .btn-danger-solid:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
   .btn-primary { background-color: var(--color-ink); color: #fff; }
-  .btn-primary:hover { background-color: var(--color-ink-soft); }
+  .btn-primary:hover:not(:disabled) { background-color: var(--color-ink-soft); box-shadow: 0 6px 16px -8px rgb(10 10 10 / 0.5); }
   .btn-secondary { background-color: var(--color-neutral-0); color: var(--color-neutral-900); box-shadow: inset 0 0 0 1px var(--color-line); }
-  .btn-secondary:hover { background-color: var(--color-surface); }
+  .btn-secondary:hover:not(:disabled) { background-color: var(--color-surface); box-shadow: inset 0 0 0 1px var(--color-neutral-300); }
+  /* Set by app.js while a form submits: a spinner, and no second click. */
+  .is-loading { pointer-events: none; cursor: progress; }
+  .is-loading::before {
+    content: "";
+    flex: none;
+    width: 0.9em;
+    height: 0.9em;
+    border-radius: 9999px;
+    border: 2px solid currentColor;
+    border-right-color: transparent;
+    animation: spin 0.7s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
   .btn-accent { background: linear-gradient(to bottom right, var(--color-accent-from), var(--color-accent-to)); color: #fff; }
   .btn-danger, .btn-danger-solid {
     display: inline-flex;
@@ -520,6 +559,8 @@
     cursor: pointer;
     transition: background-color 160ms var(--ease-out-soft);
   }
+  /* Compact size for row actions and inline forms; pair any .btn variant with it so neighbours match. */
+  .btn.btn-sm, .btn-danger.btn-sm { padding: 0.4rem 0.9rem; font-size: 0.8125rem; line-height: 1.25rem; gap: 0.35rem; }
   .btn-danger { background: var(--color-error-50); color: var(--color-error-700); box-shadow: inset 0 0 0 1px var(--color-error-100); }
   .btn-danger:hover { background: var(--color-error-100); }
   .btn-danger-solid { background: var(--color-error-600); color: #fff; }
@@ -586,8 +627,23 @@
     transition: border-color 160ms var(--ease-out-soft), background-color 160ms var(--ease-out-soft), box-shadow 160ms var(--ease-out-soft);
   }
   .input::placeholder { color: var(--color-neutral-400); }
+  .input:hover:not(:focus):not(:disabled) { border-color: var(--color-neutral-300); }
   .input:focus { outline: none; background-color: #fff; border-color: rgb(17 17 17 / 0.3); box-shadow: 0 0 0 3px var(--color-primary-100); }
-  .input[aria-invalid="true"], .input.is-invalid { border-color: var(--color-error-600); background-color: var(--color-error-50); }
+  .input:disabled, .input[readonly] { background-color: var(--color-surface); color: var(--color-neutral-500); cursor: not-allowed; }
+  /* Native validation shows only after the person has touched the field, never on page load. */
+  .input[aria-invalid="true"], .input.is-invalid, .input:user-invalid { border-color: var(--color-error-600); background-color: var(--color-error-50); }
+  .input:user-invalid:focus { box-shadow: 0 0 0 3px var(--color-error-100); }
+  select.input {
+    appearance: none;
+    padding-right: 2.25rem;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%236b6b6b' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 0.75rem center;
+    background-size: 1rem;
+    cursor: pointer;
+  }
+  select.input[multiple] { background-image: none; padding-right: 0.875rem; }
+  textarea.input { min-height: 5.5rem; line-height: 1.5; resize: vertical; }
   .input-sm { padding: 0.35rem 0.65rem; font-size: var(--text-caption); }
   .field-error { margin-top: 0.35rem; font-size: 0.8125rem; color: var(--color-error-700); }
 
@@ -605,7 +661,10 @@
     white-space: nowrap;
   }
   table td { padding: 0.8rem 1rem !important; vertical-align: middle; border-bottom: 1px solid var(--color-line); }
-  tbody tr { transition: background-color 120ms; }
+  thead th { border-bottom: 1px solid var(--color-line); }
+  tbody tr:last-child td { border-bottom: 0; }
+  td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
+  tbody tr { transition: background-color var(--duration-fast) var(--ease-out-soft); }
   tbody tr:hover { background-color: var(--color-neutral-50); }
   .table-compact th { padding: 0.5rem 0.75rem !important; font-size: 0.75rem !important; }
   .table-compact td { padding: 0.55rem 0.75rem !important; font-size: 0.8125rem !important; line-height: 1.4 !important; }
@@ -625,6 +684,23 @@
     padding-block: 3rem;
     color: var(--color-neutral-500);
     text-align: center;
+  }
+  /* As a table cell it must stay a cell, or its colspan is ignored and it squeezes into column one. */
+  td.empty-state { display: table-cell; }
+  /* Icons (App\Support\Icon) sit on the text baseline and never shrink in flex rows. */
+  .icon { display: inline-block; flex-shrink: 0; vertical-align: -0.125em; }
+  /* The round tile an empty state's icon sits in. */
+  .empty-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.75rem;
+    height: 2.75rem;
+    margin: 0 auto 0.5rem;
+    border-radius: 9999px;
+    background: var(--color-surface);
+    color: var(--color-neutral-500);
+    font-size: 1.25rem;
   }
   .skeleton {
     border-radius: var(--radius-sm);
@@ -665,17 +741,86 @@
   @keyframes toast-in { from { opacity: 0; transform: translateY(-8px) scale(0.98); } }
   @keyframes toast-out { to { opacity: 0; transform: translateY(-6px); } }
 
+  /* ---- Confirmation dialogs ----
+     Markup: .modal (backdrop, starts style="display:none"; page JS sets display:flex) > .modal-card >
+     .modal-icon, .modal-title, .modal-text, .modal-actions with .btn buttons. The entrance replays
+     each time display goes from none to flex. */
+  .modal {
+    position: fixed;
+    inset: 0;
+    z-index: 1000;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+    background: rgb(10 10 10 / 0.5);
+    backdrop-filter: blur(3px);
+    -webkit-backdrop-filter: blur(3px);
+    animation: fade-in var(--duration-base) var(--ease-out-soft) both;
+  }
+  .modal-card {
+    width: 100%;
+    max-width: 24rem;
+    margin: 0 auto;
+    padding: 1.5rem;
+    border-radius: var(--radius-lg);
+    background: #fff;
+    text-align: center;
+    box-shadow: var(--shadow-raised);
+    animation: modal-in var(--duration-slow) var(--ease-spring) both;
+  }
+  .modal-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 3rem;
+    height: 3rem;
+    margin: 0 auto 0.875rem;
+    border-radius: 9999px;
+    font-size: 1.375rem;
+    background: var(--color-surface);
+    color: var(--color-ink);
+    user-select: none;
+  }
+  .modal-icon-danger  { background: var(--color-error-50);   color: var(--color-error-600); }
+  .modal-icon-success { background: var(--color-success-50); color: var(--color-success-600); }
+  .modal-icon-warning { background: var(--color-warning-50); color: var(--color-warning-600); }
+  .modal-title { margin: 0 0 0.375rem; font-size: 1.0625rem; font-weight: 600; letter-spacing: -0.01em; color: var(--color-ink); }
+  .modal-text { margin: 0 0 1.5rem; font-size: var(--text-body-sm); line-height: 1.55; color: var(--color-neutral-500); }
+  .modal-actions { display: flex; justify-content: flex-end; gap: 0.5rem; }
+  /* A native <dialog> (showModal(): focus trap, Esc and backdrop for free) holding a .modal-card. */
+  dialog.dialog { margin: auto; padding: 0; border: 0; background: transparent; width: min(26rem, calc(100vw - 2rem)); max-height: calc(100dvh - 2rem); overflow: visible; }
+  dialog.dialog::backdrop { background: rgb(10 10 10 / 0.5); backdrop-filter: blur(3px); -webkit-backdrop-filter: blur(3px); }
+  dialog.dialog .modal-card { max-width: none; }
+  .btn.btn-danger-solid { padding: 0.625rem 1.25rem; font-size: var(--text-body-sm); } /* full-size when paired with .btn */
+  @media (max-width: 420px) { .modal-actions > * { flex: 1; } }
+  @keyframes fade-in { from { opacity: 0; } }
+  @keyframes modal-in { from { opacity: 0; transform: translateY(8px) scale(0.97); } }
+
+  /* ---- Disclosure: <details> opens and closes smoothly where the browser supports it ---- */
+  details::details-content {
+    block-size: 0;
+    overflow: hidden;
+    transition: block-size var(--duration-base) var(--ease-out-soft), content-visibility var(--duration-base) allow-discrete;
+  }
+  details[open]::details-content { block-size: auto; }
+
+  /* Touch screens: every button is a comfortable target. */
+  @media (pointer: coarse) {
+    .btn, .btn-danger, .btn-danger-solid, .ai-action-btn { min-height: 2.75rem; }
+  }
+
   /* Page entrance: cards rise in once per page load, staggered among siblings. CSS rather than
      GSAP so it runs off the main thread and stays smooth while scripts are still loading.
      layout.php sets `page-enter` on <html> and removes it afterwards. Without JS the class is
      never set, so nothing is ever hidden and no safety net is needed. (The old 0.6s safety net
      overrode GSAP's inline styles mid-tween and snapped every card after the third into place.) */
-  @keyframes rise-in { from { opacity: 0; transform: translateY(10px); } }
-  .page-enter :is(.reveal-card, .form-card) { animation: rise-in 520ms var(--ease-spring) both; }
-  .page-enter :is(.reveal-card, .form-card):nth-child(2) { animation-delay: 45ms; }
-  .page-enter :is(.reveal-card, .form-card):nth-child(3) { animation-delay: 90ms; }
-  .page-enter :is(.reveal-card, .form-card):nth-child(4) { animation-delay: 135ms; }
-  .page-enter :is(.reveal-card, .form-card):nth-child(n+5) { animation-delay: 180ms; }
+  /* Kept short: content is readable within ~0.3s, so moving between pages feels immediate. */
+  @keyframes rise-in { from { opacity: 0; transform: translateY(6px); } }
+  .page-enter :is(.reveal-card, .form-card) { animation: rise-in var(--duration-slow) var(--ease-out-soft) both; }
+  .page-enter :is(.reveal-card, .form-card):nth-child(2) { animation-delay: 30ms; }
+  .page-enter :is(.reveal-card, .form-card):nth-child(3) { animation-delay: 60ms; }
+  .page-enter :is(.reveal-card, .form-card):nth-child(4) { animation-delay: 90ms; }
+  .page-enter :is(.reveal-card, .form-card):nth-child(n+5) { animation-delay: 120ms; }
 
   /* ---- AI assistant (ink + accent instead of purple) ---- */
   .ai-status-badge { display: inline-flex; align-items: center; gap: 0.35rem; font-size: 0.75rem; font-weight: 500; padding: 0.25rem 0.7rem; border-radius: 9999px; }
@@ -797,7 +942,7 @@
    Browsers without cross-document view transitions ignore this and navigate as before. */
 @view-transition { navigation: auto; }
 ::view-transition-old(root), ::view-transition-new(root) {
-  animation-duration: 200ms;
+  animation-duration: var(--duration-fast);
   animation-timing-function: var(--ease-out-soft);
 }
 

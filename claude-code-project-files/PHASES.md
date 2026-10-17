@@ -1,8 +1,12 @@
 # Build Phases — RJM Boardinghouse System
 
-Read at the start of every session to confirm which phase is current (check the Progress Log at the bottom). Each phase follows the same loop: **Plan Mode → implement → run this phase's verification → security-reviewer pass if relevant → update Progress Log → commit.**
+> **This is the build history, not the current plan.** Phases 0–8 below are the original build plan (Sept 2026) and are all finished or superseded. The Progress Log at the bottom records every later change and owner decision in order. For current behaviour read `README.md`, `FEATURES.md` and `ARCHITECTURE.md`; for open work read `../IMPLEMENTATION-PLAN-2026-10-14.md`.
+>
+> Where the text below mentions the **Python scoring service** (`scoring_service/`, `localhost:5000`), `VerificationClient`, the `auto-matched` / `flagged` payment statuses, `public/uploads/` or the Playwright scripts, it describes the original stack. The Python service, `VerificationClient` and the Playwright scripts were removed in batch B6 (see `FINAL-REPORT.md`); repair scoring and payment rules are now PHP, every payment waits for an admin, uploads live in `storage/uploads/`, and the tests are `php tests/run.php`. The "verify" lines for phases 3 and 4 that stop the Python service therefore can no longer be run.
 
-Don't treat a phase as done because the code "looks right." Run the verification steps and show the actual output — that's the check Claude Code's own best practices call the thing that lets you stop watching and let the loop close on its own.
+Each phase originally followed the same loop: **plan → implement → run this phase's verification → security-reviewer pass if relevant → update Progress Log → commit.** The loop for current work is in `CLAUDE.md` and the implementation plan.
+
+Don't treat work as done because the code "looks right." Run the verification steps and show the actual output.
 
 ---
 
@@ -79,7 +83,7 @@ Full functional pass through every role's flows; security pass; UI consistency p
 | 5 | **Done** | SOS/incidents — see verification above. |
 | 6 | **Done** | Command Center — see verification above. Occupancy trend page verified against a direct bed count (see below). |
 | 7 | **Done** | Notifications — see verification above. |
-| 8 | **In progress** | Security review done (see findings below). All 8 Playwright scripts now written (`tests/playwright/`) — one per phase plus a combined runner — but none executed anywhere yet (no browser binaries on this sandbox's network allowlist). Run them on your machine. |
+| 8 | **Done (superseded)** | Security review done (see findings below). The Playwright scripts written for this phase were never run and were removed in B6; the full-system checks are now `php tests/run.php` plus browser walkthroughs recorded in the later log entries. |
 
 ### Phase 8 — security review findings (found and fixed in this pass)
 Manual review against the `security-reviewer` subagent's checklist, backed by live attack tests (SQLi, XSS, CSRF, IDOR) against the running app — not just a code read-through.
@@ -96,8 +100,8 @@ Manual review against the `security-reviewer` subagent's checklist, backed by li
 
 **Verified live after fixing** (not just re-read): SQL injection in the login form → rejected, no bypass; XSS in a maintenance description → escaped in output, not executed; state-changing POST with no CSRF token → `400`; cross-user notification mark-read → blocked (an anomaly during this specific test: it returned `400` instead of the expected `403`, which traced to a CSRF-token timing issue in the *test script*, not the app — the actual security property, that the write never happened, held either way); the previously-unprotected logout now correctly rejects a token-less request.
 
-**Still open — genuinely not done:**
-- **None of the 8 Playwright scripts have been executed anywhere.** They're written correctly against this codebase's real routes and forms, but this project was built in a sandbox without browser binaries available — running them for the first time, on a real machine, is still an open item.
+**Was open at the time, now closed:**
+- The 8 Playwright scripts were never executed anywhere. They were deleted in B6 (`FINAL-REPORT.md`) rather than kept unrun; browser checks since then were done by driving the running app, and `tests/` covers the flows over HTTP.
 
 ### Login rate limiting (done)
 The one item repeatedly flagged as "genuinely open" across earlier passes. `login_attempts` (migration `0011`) logs every attempt — email, IP, success/failure, timestamp. 5 failed attempts within 15 minutes locks that email out, checked **before** the password is even verified, and the lockout holds even if the very next attempt has the correct password — same fail-closed discipline as the payment/scoring connectors. Scoped per-email, not global or per-IP, so one account under attack doesn't affect anyone else.
@@ -187,7 +191,7 @@ Re-verified after the fixes: `php tests/run.php` 6/6, browser walkthrough 24/24.
 - **Rule change, at the owner's request:** "localhost only" is now "localhost by default". The one permitted exposure is a temporary Cloudflare quick tunnel started by hand with `start-online.bat` (`bin/go-online.ps1`, modelled on the TripleR car-rental project's `demo-online.ps1`). Data stays on this machine; nothing is hosted.
 - `App\Support\TrustedProxy` reads the visitor's address and the https flag from the tunnel's headers, only when the connection comes from an address in `TRUSTED_PROXIES` (empty by default, so normal use is unchanged). Used for the session cookie's `Secure` flag, the sign-in lockout and the inquiry limit.
 - `AuthController::publicBaseUrl()` returns `APP_BASE_URL` when the launcher sets it, so the login page's QR code, address pill and "Open mobile preview" link use the public address; the label then reads "Online · any network".
-- The launcher warns (and continues) when a demo account still has its seeded password (`database/check-demo-passwords.php`).
+- The launcher warns (and continues) when a demo account still has its seeded password (`database/check-demo-passwords.php`). *Superseded 14 Oct 2026 (WP-1): that script is deleted, the launcher now refuses to start instead of warning, and it checks `bin/pre-online-check.php`.*
 - Verified: `php tests/run.php` 7/7 including the new `test_trusted_proxy.php`. A local server started with the launcher's two settings against the test database: cookie `Secure` with the tunnel's headers and not without; QR/link/pill show the public address; a failed sign-in sent with a forged address in front of the real one was recorded under the real one. Normal server on :8000 unchanged (LAN address, "Local Wi-Fi Network", cookie not `Secure`).
 - **Not verified here:** a run through a live tunnel. The assistant's session is not allowed to open one; the owner runs `start-online.bat` and checks from a phone on mobile data.
 - Assumption: no LAN-only mode was added; the tunnel address also serves phones on the same Wi-Fi.
@@ -209,3 +213,6 @@ Full record, with the traceability table and evidence: **`FEATURE_IMPLEMENTATION
 - **Verified:** `php tests/run.php --with-ai` 9/9 files, 542 checks, 0 failed (Ollama was running). Live database backed up to `database/backups/rjm_boardinghouse_20261010_093227_before_0029.sql` before migrating; live and freshly migrated schemas now match with 0 differences; one live row changed (resident #5's bed pointer cleared).
 - **Not verified here:** `bin/go-online.ps1` after the heartbeat change (this session may not open a tunnel).
 - **For the owner to decide:** landing-page room prices are fixed text that does not match the rooms table; resident #5 needs a bed assigned; the admin's own password can only be reset from the command line.
+
+### Functionality audit and fix plan (14 Oct 2026)
+A new audit (`../FUNCTIONALITY-AUDIT-2026-10-14.md`) found 31 issues (F-01…F-31); the owner approved all of the fixes, organised as work packages WP-0…WP-20 in `../IMPLEMENTATION-PLAN-2026-10-14.md`. That plan, not this log, is where progress is recorded from now on. At the time of this entry WP-0 (test and migration infrastructure) and WP-1 (credentials) are done.

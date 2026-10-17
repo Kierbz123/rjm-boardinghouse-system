@@ -180,7 +180,7 @@ class ProfileController
             exit;
         }
 
-        if (($problem = \App\Support\PasswordPolicy::problem($newPassword)) !== null) {
+        if (($problem = \App\Support\PasswordPolicy::problem($newPassword, [$user['name'], $user['email']])) !== null) {
             $_SESSION['flash_error'] = $problem;
             header('Location: /profile');
             exit;

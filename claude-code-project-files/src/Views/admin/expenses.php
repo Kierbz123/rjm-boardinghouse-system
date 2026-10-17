@@ -34,14 +34,14 @@ $latestExpense = !empty($expenses) ? $expenses[0] : null;
 
     <?php if ($error): ?>
         <div class="bg-error-50 text-error-700 text-body-sm rounded-lg p-3.5 border border-error-500 flex items-center gap-2.5" role="alert">
-            <span style="font-size:1.1rem; line-height:1;">⚠</span>
+            <?= \App\Support\Icon::svg('alert-triangle', 18) ?>
             <span class="font-medium"><?= htmlspecialchars($error) ?></span>
         </div>
     <?php endif; ?>
 
     <?php if ($success): ?>
         <div class="bg-emerald-50 text-emerald-800 text-body-sm rounded-lg p-3.5 border border-emerald-300 flex items-center gap-2.5" role="alert">
-            <span style="font-size:1.1rem; line-height:1;">✓</span>
+            <?= \App\Support\Icon::svg('check', 18) ?>
             <span class="font-medium"><?= htmlspecialchars($success) ?></span>
         </div>
     <?php endif; ?>
@@ -51,7 +51,7 @@ $latestExpense = !empty($expenses) ? $expenses[0] : null;
         <div class="reveal-card card p-4 metric-accent-primary">
             <div class="flex items-center justify-between mb-1">
                 <span class="text-caption font-semibold text-neutral-500 uppercase tracking-wider">Total Entries</span>
-                <span style="font-size:1.1rem; line-height:1;">📑</span>
+                <?= \App\Support\Icon::svg('file-text', 18) ?>
             </div>
             <p class="text-3xl font-bold text-neutral-900 mt-1" style="font-variant-numeric: tabular-nums;"><?= $totalCount ?></p>
             <p class="text-caption text-neutral-400 mt-1">Disbursements logged</p>
@@ -59,7 +59,7 @@ $latestExpense = !empty($expenses) ? $expenses[0] : null;
         <div class="reveal-card card p-4 metric-accent-error">
             <div class="flex items-center justify-between mb-1">
                 <span class="text-caption font-semibold text-neutral-500 uppercase tracking-wider">Total Disbursed</span>
-                <span style="font-size:1.1rem; line-height:1;">💸</span>
+                <?= \App\Support\Icon::svg('banknote', 18) ?>
             </div>
             <p class="text-3xl font-bold text-neutral-900 mt-1" style="font-variant-numeric: tabular-nums;">₱<?= number_format($totalAmount, 2) ?></p>
             <p class="text-caption text-neutral-400 mt-1">Cumulative expenditure</p>
@@ -67,7 +67,7 @@ $latestExpense = !empty($expenses) ? $expenses[0] : null;
         <div class="reveal-card card p-4 metric-accent-warning">
             <div class="flex items-center justify-between mb-1">
                 <span class="text-caption font-semibold text-neutral-500 uppercase tracking-wider">Top Category</span>
-                <span style="font-size:1.1rem; line-height:1;">🏷️</span>
+                <?= \App\Support\Icon::svg('tag', 18) ?>
             </div>
             <p class="text-2xl font-bold text-neutral-900 mt-1 truncate" title="<?= htmlspecialchars($topCategory) ?>">
                 <?= htmlspecialchars($topCategory) ?>
@@ -105,7 +105,7 @@ $latestExpense = !empty($expenses) ? $expenses[0] : null;
                 <a href="/admin/ledger/export"
                    class="btn btn-secondary !py-1.5 !px-3.5 !text-xs inline-flex items-center gap-1.5 shadow-xs font-semibold"
                    title="Export detailed financial ledger with user names, descriptions, and proper formatting">
-                    <span>📊</span>
+                    <span><?= \App\Support\Icon::svg('bar-chart') ?></span>
                     <span>Export Ledger</span>
                 </a>
             </div>
@@ -164,7 +164,7 @@ $latestExpense = !empty($expenses) ? $expenses[0] : null;
                             <?php if (empty($expenses)): ?>
                                 <tr>
                                     <td colspan="5" class="empty-state" style="padding:3.5rem 0;">
-                                        <span style="font-size:2.5rem; margin-bottom:0.5rem;">📋</span>
+                                        <span class="empty-icon"><?= \App\Support\Icon::svg('clipboard') ?></span>
                                         <span class="text-sm font-semibold text-neutral-800">No expenses logged yet</span>
                                         <span class="text-xs text-neutral-500 mt-1">Use the form on the right to log your first expenditure.</span>
                                     </td>
@@ -184,7 +184,7 @@ $latestExpense = !empty($expenses) ? $expenses[0] : null;
 
             <form method="post" action="/admin/expenses" class="form-card">
                 <div class="flex items-center gap-2 pb-2 border-b border-neutral-100">
-                    <span style="font-size:1.15rem; line-height: 1;">💸</span>
+                    <?= \App\Support\Icon::svg('banknote', 18) ?>
                     <h3 class="text-body font-semibold text-neutral-900">Log Operating Expense</h3>
                 </div>
 

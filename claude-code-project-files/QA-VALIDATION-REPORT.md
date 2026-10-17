@@ -1,5 +1,7 @@
 # Final System Validation Report
 ### RJM Boardinghouse Rent, Maintenance and Security Management System
+> **Historical report (September 2026, the original stack).** The Python scoring service, `VerificationClient`, the `auto-matched` / `flagged` payment flow and the Playwright scripts it mentions were removed in batch B6, and billing was rebuilt afterwards, so the PASS results below do not describe today's behaviour. The data-classification rule it led to is still current: `PROJECT_STRUCTURE.md`. Current coverage: `php tests/run.php`; latest audit: `../FUNCTIONALITY-AUDIT-2026-10-14.md`.
+
 Full end-to-end simulation, CRUD audit, security/authorization testing, and database validation, executed against a live PHP 8.3 + MariaDB + Python stack. Every result below is from an actual HTTP request, database query, or log entry produced during this session — not inferred from reading the code.
 
 ---

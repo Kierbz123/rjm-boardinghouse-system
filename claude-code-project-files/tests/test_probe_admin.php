@@ -35,7 +35,7 @@ check(flashHas($admin, $admin->post('/admin/beds/999999/delete'), 'not found'), 
 
 section('Residents: create / validate / assign');
 $email = 'one' . uniq() . '@t.test';
-$mk = fn (array $o) => $admin->post('/admin/boarders', $o + ['name' => 'Audit One', 'email' => $email, 'password' => 'Passw0rd!x']);
+$mk = fn (array $o) => $admin->post('/admin/boarders', $o + ['name' => 'Audit One', 'email' => $email, 'password' => 'Audit-pebble-lantern']);
 check(flashHas($admin, $mk(['bed_id' => $beds[0], 'room_id' => $roomId]), 'Added Audit One'), 'create a resident on a bed');
 $one = (int) q1('SELECT id FROM users WHERE email = ?', [$email]);
 check(q1('SELECT status FROM beds WHERE id = ?', [$beds[0]]) === 'occupied' && (int) q1('SELECT bed_id FROM boarder_profiles WHERE user_id = ?', [$one]) === $beds[0], 'the bed becomes occupied and the profile points at it');
@@ -43,7 +43,7 @@ check(q1('SELECT status FROM boarder_profiles WHERE user_id = ?', [$one]) === 'p
 check(flashHas($admin, $mk([]), 'already in use'), 'duplicate e-mail refused');
 check(flashHas($admin, $mk(['email' => strtoupper($email)]), 'already in use'), 'duplicate e-mail in other letter case refused');
 check(flashHas($admin, $mk(['email' => 'not-an-email']), 'valid email'), 'invalid e-mail refused');
-check(flashHas($admin, $mk(['email' => 's' . uniq() . '@t.test', 'password' => '1234567']), '8 to 72'), 'password under 8 refused');
+check(flashHas($admin, $mk(['email' => 's' . uniq() . '@t.test', 'password' => '1234567']), '15 characters'), 'password under 15 characters refused');
 $long = 'l' . uniq() . '@t.test';
 $mk(['email' => $long, 'password' => str_repeat('p', 100) . 'A']);
 $accepted = (bool) q1('SELECT COUNT(*) FROM users WHERE email = ?', [$long]);
@@ -113,17 +113,19 @@ $admin->post('/admin/boarders/2/delete');
 check((int) q1('SELECT COUNT(*) FROM users WHERE id IN (1, 2)') === 2, 'the delete route cannot remove the admin or staff account');
 
 section('Password resets and staff accounts');
-$admin->post("/admin/boarders/{$arch['id']}/password", ['new_password' => 'NewTemp#123']);
-check((new Client('rs'))->login($arch['email'], 'NewTemp#123')->loc === '/portal/dashboard', 'admin can reset a resident password');
-$admin->post('/admin/boarders/1/password', ['new_password' => 'Hacked#1234']);
-check(!password_verify('Hacked#1234', (string) q1('SELECT password_hash FROM users WHERE id = 1')), 'the resident-reset route cannot reset the admin');
+$admin->post("/admin/boarders/{$arch['id']}/password", ['new_password' => 'Newtemp-otter-violet']);
+check((new Client('rs'))->login($arch['email'], 'Newtemp-otter-violet')->loc === '/portal/dashboard', 'admin can reset a resident password');
+$admin->post('/admin/boarders/1/password', ['new_password' => 'Hacked-walnut-meadow']);
+check(!password_verify('Hacked-walnut-meadow', (string) q1('SELECT password_hash FROM users WHERE id = 1')), 'the resident-reset route cannot reset the admin');
 $se = 'staff' . uniq() . '@t.test';
-check(flashHas($admin, $admin->post('/admin/staff', ['name' => 'Staff Two', 'email' => $se, 'password' => 'Staff#12345']), 'created'), 'create a staff account');
+check(flashHas($admin, $admin->post('/admin/staff', ['name' => 'Staff Two', 'email' => $se, 'password' => 'Crew-copper-kettle']), 'created'), 'create a staff account');
 $s2 = (int) q1('SELECT id FROM users WHERE email = ?', [$se]);
-check(flashHas($admin, $admin->post('/admin/staff', ['name' => 'Staff Two', 'email' => $se, 'password' => 'Staff#12345']), 'already in use'), 'duplicate staff e-mail refused');
+check(flashHas($admin, $admin->post('/admin/staff', ['name' => 'Staff Two', 'email' => $se, 'password' => 'Crew-copper-kettle']), 'already in use'), 'duplicate staff e-mail refused');
 $s2c = new Client('s2');
-$s2c->login($se, 'Staff#12345');
-check($s2c->get('/staff/dashboard')->code === 200, 'a new staff member can sign in');
+$s2c->login($se, 'Crew-copper-kettle');
+check($s2c->get('/staff/dashboard')->loc === '/profile', 'a new staff member signs in and is sent to choose their own password');
+$s2c->post('/profile/password', ['current_password' => 'Crew-copper-kettle', 'new_password' => 'Own-choice-amber-ridge', 'confirm_password' => 'Own-choice-amber-ridge']);
+check($s2c->get('/staff/dashboard')->code === 200, 'after choosing it they can work');
 $admin->post("/admin/staff/{$s2}/status", ['status' => 'inactive']);
 check($s2c->get('/staff/dashboard')->code === 302, 'deactivating staff ends their open session at once');
 $admin->post("/admin/staff/{$s2}/status", ['status' => 'active']);
@@ -131,7 +133,7 @@ $admin->post("/admin/staff/{$arch['id']}/status", ['status' => 'inactive']);
 check(q1('SELECT status FROM users WHERE id = ?', [$arch['id']]) === 'active', 'the staff route cannot deactivate a resident');
 $admin->post('/admin/staff/1/status', ['status' => 'inactive']);
 check(q1('SELECT status FROM users WHERE id = 1') === 'active', 'the staff route cannot deactivate the admin');
-check(flashHas($admin, $admin->post("/admin/staff/{$s2}/password", ['new_password' => 'x']), '8 to 72'), 'a staff reset needs 8 to 72 characters');
+check(flashHas($admin, $admin->post("/admin/staff/{$s2}/password", ['new_password' => 'x']), '15 characters'), 'a staff reset needs 15 characters to 72 bytes');
 
 section('Electricity bills');
 $room = makeRoom($admin, 2, 3000, 2);

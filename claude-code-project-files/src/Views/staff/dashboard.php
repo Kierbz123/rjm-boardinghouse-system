@@ -68,6 +68,7 @@ $tierBadges = [
             </div>
             <span class="text-caption text-neutral-400 font-mono">Poll: 8s auto-refresh</span>
         </div>
+        <p class="text-caption text-neutral-600">While you are on duty, keep this page open on the front-desk computer: new SOS alerts appear here within seconds. Phone numbers are only the backup, not the plan.</p>
 
         <div class="card overflow-hidden <?= $activeSosCount > 0 ? 'border-red-300 shadow-sm' : '' ?>">
             <div class="overflow-x-auto" style="-webkit-overflow-scrolling: touch;">
@@ -125,7 +126,7 @@ $tierBadges = [
                             <tr>
                                 <td colspan="5">
                                     <div class="py-10 text-center text-neutral-400">
-                                        <div style="font-size: 2rem; margin-bottom: 0.5rem;">🛡️</div>
+                                        <span class="empty-icon"><?= \App\Support\Icon::svg('shield-check') ?></span>
                                         <p class="font-semibold text-neutral-700 text-body-sm">All clear! No active emergency alerts.</p>
                                         <p class="text-caption text-neutral-400 mt-0.5">The emergency system is actively polling for incoming broadcasts.</p>
                                     </div>
@@ -190,7 +191,7 @@ $tierBadges = [
                             <tr>
                                 <td colspan="5">
                                     <div class="py-8 text-center text-neutral-400">
-                                        <div style="font-size: 1.75rem; margin-bottom: 0.25rem;">🔧</div>
+                                        <span class="empty-icon"><?= \App\Support\Icon::svg('wrench') ?></span>
                                         <p class="font-semibold text-neutral-700 text-body-sm">Maintenance queue is empty.</p>
                                         <p class="text-caption text-neutral-400 mt-0.5">No open repair requests currently recorded.</p>
                                     </div>
@@ -203,69 +204,8 @@ $tierBadges = [
         </div>
     </div>
 
-    <!-- Section 3: Issue Rule Violation Penalty (Staff Authority) -->
-    <div class="reveal-card card accent-warning" style="padding: 1.5rem 1.75rem; border-radius: 1rem; border: 1px solid #f4e7c2; background: linear-gradient(135deg, #fffdfa 0%, #ffffff 100%);">
-        <div class="flex items-center gap-2.5 pb-2.5 border-b border-amber-100">
-            <span style="font-size: 1.25rem;">⚖️</span>
-            <div>
-                <h2 class="text-heading-sm font-bold text-neutral-900">Issue Dorm Rule Penalty</h2>
-                <p class="text-caption text-neutral-500">Record house rule infractions (trash, noise, minor damages). Balance updates immediately.</p>
-            </div>
-        </div>
-
-        <form method="post" action="/staff/penalties/issue" class="mt-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-3.5 items-end">
-            <?= \App\Support\Csrf::field() ?>
-
-            <div>
-                <label class="block text-caption font-semibold text-neutral-700 mb-1">
-                    Resident <span class="text-error-600">*</span>
-                </label>
-                <select name="boarder_id" required class="input text-xs w-full">
-                    <option value="">-- Select Resident --</option>
-                    <?php foreach ($activeBoarders ?? [] as $b): ?>
-                        <option value="<?= (int) $b['user_id'] ?>">
-                            <?= htmlspecialchars($b['name']) ?> (Room <?= htmlspecialchars($b['room_number'] ?? 'N/A') ?><?= !empty($b['bed_label']) ? ' · ' . htmlspecialchars($b['bed_label']) : '' ?>)
-                        </option>
-                    <?php endforeach; ?>
-                </select>
-            </div>
-
-            <div>
-                <label class="block text-caption font-semibold text-neutral-700 mb-1">
-                    Rule / Violation <span class="text-error-600">*</span>
-                </label>
-                <select name="rule_id" id="staff_rule_id" required class="input text-xs w-full" onchange="const opt = this.options[this.selectedIndex]; if (opt.dataset.amount) document.getElementById('staff_amount').value = opt.dataset.amount;">
-                    <option value="">-- Select Violation --</option>
-                    <?php foreach ($activeRules ?? [] as $ar): ?>
-                        <option value="<?= (int) $ar['id'] ?>" data-amount="<?= (float) $ar['amount'] ?>">
-                            <?= htmlspecialchars($ar['name']) ?> (₱<?= number_format((float) $ar['amount'], 2) ?>)
-                        </option>
-                    <?php endforeach; ?>
-                </select>
-            </div>
-
-            <div>
-                <label class="block text-caption font-semibold text-neutral-700 mb-1">
-                    Amount (₱) <span class="text-error-600">*</span>
-                </label>
-                <input name="amount" id="staff_amount" type="number" step="0.01" min="0.01" required class="input font-mono text-xs w-full" placeholder="0.00">
-            </div>
-
-            <div>
-                <label class="block text-caption font-semibold text-neutral-700 mb-1">
-                    Reason / Specifics <span class="text-error-600">*</span>
-                </label>
-                <input name="reason" placeholder="e.g. Unattended trash outside door" required class="input text-xs w-full" maxlength="255">
-            </div>
-
-            <div>
-                <input type="hidden" name="due_date" value="<?= date('Y-m-d', strtotime('+30 days')) ?>">
-                <button type="submit" class="btn btn-primary w-full shadow-xs cursor-pointer !text-xs !py-2.5">
-                    <span>Charge Penalty</span>
-                </button>
-            </div>
-        </form>
-    </div>
+    <!-- Penalties, expenses and payments are admin-only (owner decision, 15 Oct 2026). -->
+    <p class="text-caption text-neutral-500">Saw a house-rule violation (noise, trash, damage)? Log it under <a href="/staff/incidents" class="underline font-semibold">Incidents</a>. The administrator decides on any penalty.</p>
 
 </div>
 

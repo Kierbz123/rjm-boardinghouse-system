@@ -1,0 +1,7 @@
+RJM Boardinghouse - demo accounts
+Log in at http://127.0.0.1:8000/login
+
+admin@rjm.test, staff@rjm.test and boarder@rjm.test exist after running database/seed.php.
+No password is stored in this project: the seed script prints a random one for each account
+once, and each account must choose its own at first sign-in.
+See claude-code-project-files/DEMO-ACCOUNTS.md.

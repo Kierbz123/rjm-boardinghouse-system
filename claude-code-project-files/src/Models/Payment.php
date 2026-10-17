@@ -9,6 +9,9 @@ class Payment
     /** How a resident may pay, as stored => as shown. */
     public const METHODS = ['gcash' => 'GCash', 'maya' => 'Maya', 'bank_transfer' => 'Bank transfer'];
 
+    /** What an admin or staff member may record for a payment taken in person (PaymentRecorder). */
+    public const MANUAL_METHODS = self::METHODS + ['cash' => 'Cash', 'other' => 'Other'];
+
     /**
      * Every new submission waits for an admin as 'pending'. An amount that differs
      * from what is owed is shown to the admin beside it, never as a different status.
@@ -34,7 +37,7 @@ class Payment
     /** "gcash" → "GCash"; older payments recorded no method. */
     public static function methodLabel(?string $method): string
     {
-        return self::METHODS[$method] ?? 'Not recorded';
+        return self::MANUAL_METHODS[$method] ?? 'Not recorded';
     }
 
     /** What the resident sees for each status. */

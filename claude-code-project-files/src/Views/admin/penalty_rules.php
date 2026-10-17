@@ -38,14 +38,14 @@ $totalPenaltyAmount = array_sum(array_map(fn($p) => (float) ($p['amount'] ?? 0),
 
     <?php if ($info): ?>
         <div class="bg-emerald-50 text-emerald-800 text-body-sm rounded-lg p-3.5 border border-emerald-300 flex items-center gap-2.5" role="status">
-            <span style="font-size:1.1rem; line-height:1;">✓</span>
+            <?= \App\Support\Icon::svg('check', 18) ?>
             <span class="font-medium"><?= htmlspecialchars($info) ?></span>
         </div>
     <?php endif; ?>
 
     <?php if ($error): ?>
         <div class="bg-error-50 text-error-700 text-body-sm rounded-lg p-3.5 border border-error-500 flex items-center gap-2.5" role="alert">
-            <span style="font-size:1.1rem; line-height:1;">⚠</span>
+            <?= \App\Support\Icon::svg('alert-triangle', 18) ?>
             <span class="font-medium"><?= htmlspecialchars($error) ?></span>
         </div>
     <?php endif; ?>
@@ -55,7 +55,7 @@ $totalPenaltyAmount = array_sum(array_map(fn($p) => (float) ($p['amount'] ?? 0),
         <div class="reveal-card card p-4 metric-accent-primary">
             <div class="flex items-center justify-between mb-1">
                 <span class="text-caption font-semibold text-neutral-500 uppercase tracking-wider">Total Rules</span>
-                <span style="font-size:1.1rem; line-height:1;">⚖️</span>
+                <?= \App\Support\Icon::svg('scale', 18) ?>
             </div>
             <p class="text-3xl font-bold text-neutral-900 mt-1" style="font-variant-numeric: tabular-nums;"><?= $totalRules ?></p>
             <p class="text-caption text-neutral-400 mt-1">Configured policies</p>
@@ -63,7 +63,7 @@ $totalPenaltyAmount = array_sum(array_map(fn($p) => (float) ($p['amount'] ?? 0),
         <div class="reveal-card card p-4 metric-accent-success">
             <div class="flex items-center justify-between mb-1">
                 <span class="text-caption font-semibold text-neutral-500 uppercase tracking-wider">Active Rules</span>
-                <span style="font-size:1.1rem; line-height:1;">🟢</span>
+                <?= \App\Support\Icon::svg('circle-dot', 18) ?>
             </div>
             <p class="text-3xl font-bold text-neutral-900 mt-1" style="font-variant-numeric: tabular-nums;"><?= $activeRuleCount ?></p>
             <p class="text-caption text-neutral-400 mt-1">Enforced currently</p>
@@ -95,7 +95,7 @@ $totalPenaltyAmount = array_sum(array_map(fn($p) => (float) ($p['amount'] ?? 0),
         <div class="reveal-card card p-4 metric-accent-error">
             <div class="flex items-center justify-between mb-1">
                 <span class="text-caption font-semibold text-neutral-500 uppercase tracking-wider">Total Penalties</span>
-                <span style="font-size:1.1rem; line-height:1;">⚠️</span>
+                <?= \App\Support\Icon::svg('alert-triangle', 18) ?>
             </div>
             <p class="text-3xl font-bold text-neutral-900 mt-1" style="font-variant-numeric: tabular-nums;"><?= $totalPenalties ?></p>
             <p class="text-caption text-neutral-400 mt-1">Penalties applied</p>
@@ -111,7 +111,7 @@ $totalPenaltyAmount = array_sum(array_map(fn($p) => (float) ($p['amount'] ?? 0),
         <div class="reveal-card card p-4 metric-accent-success">
             <div class="flex items-center justify-between mb-1">
                 <span class="text-caption font-semibold text-neutral-500 uppercase tracking-wider">Active Rules</span>
-                <span style="font-size:1.1rem; line-height:1;">📜</span>
+                <?= \App\Support\Icon::svg('file-text', 18) ?>
             </div>
             <p class="text-3xl font-bold text-neutral-900 mt-1" style="font-variant-numeric: tabular-nums;"><?= $activeRuleCount ?></p>
             <p class="text-caption text-neutral-400 mt-1">Late rent &amp; fee rules</p>
@@ -119,7 +119,7 @@ $totalPenaltyAmount = array_sum(array_map(fn($p) => (float) ($p['amount'] ?? 0),
         <div class="reveal-card card p-4 metric-accent-info">
             <div class="flex items-center justify-between mb-1">
                 <span class="text-caption font-semibold text-neutral-500 uppercase tracking-wider">Avg per Penalty</span>
-                <span style="font-size:1.1rem; line-height:1;">📊</span>
+                <?= \App\Support\Icon::svg('bar-chart', 18) ?>
             </div>
             <p class="text-3xl font-bold text-neutral-900 mt-1" style="font-variant-numeric: tabular-nums;">₱<?= $totalPenalties > 0 ? number_format($totalPenaltyAmount / $totalPenalties, 2) : '0.00' ?></p>
             <p class="text-caption text-neutral-400 mt-1">Average fee</p>
@@ -132,12 +132,12 @@ $totalPenaltyAmount = array_sum(array_map(fn($p) => (float) ($p['amount'] ?? 0),
             <h2 class="text-heading-sm font-semibold text-neutral-900">Automation &amp; Policy Management</h2>
         </div>
 
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
 
             <!-- Card 0: Issue Manual Penalty to Boarder -->
             <form method="post" action="/admin/penalties/issue" class="form-card accent-warning">
                 <div class="flex items-center gap-2 pb-1 border-b border-neutral-100">
-                    <span style="font-size:1.1rem;">⚖️</span>
+                    <?= \App\Support\Icon::svg('scale', 18) ?>
                     <h3 class="text-body font-semibold text-neutral-900">Issue Penalty to Boarder</h3>
                 </div>
 
@@ -203,7 +203,7 @@ $totalPenaltyAmount = array_sum(array_map(fn($p) => (float) ($p['amount'] ?? 0),
             <!-- Card 1: Add New Rule -->
             <form method="post" action="/admin/penalty-rules" class="form-card">
                 <div class="flex items-center gap-2 pb-1 border-b border-neutral-100">
-                    <span style="font-size:1.1rem;">➕</span>
+                    <?= \App\Support\Icon::svg('plus', 18) ?>
                     <h3 class="text-body font-semibold text-neutral-900">Add Penalty Rule</h3>
                 </div>
 
@@ -254,7 +254,7 @@ $totalPenaltyAmount = array_sum(array_map(fn($p) => (float) ($p['amount'] ?? 0),
             <div class="form-card accent-neutral flex flex-col justify-between">
                 <div>
                     <div class="flex items-center gap-2 pb-1 border-b border-neutral-100">
-                        <span style="font-size:1.1rem;">⚡</span>
+                        <?= \App\Support\Icon::svg('zap', 18) ?>
                         <h3 class="text-body font-semibold text-neutral-900">Run Penalty Check</h3>
                     </div>
                     <p class="text-body-sm text-neutral-600 mt-2">
@@ -268,7 +268,7 @@ $totalPenaltyAmount = array_sum(array_map(fn($p) => (float) ($p['amount'] ?? 0),
                 <form method="post" action="/admin/penalties/run-check" id="penalty-check-form" class="pt-3">
                     <?= \App\Support\Csrf::field() ?>
                     <button type="button" id="penalty-check-btn" class="btn btn-primary w-full shadow-xs cursor-pointer">
-                        <span>⚡ Run Check Now</span>
+                        <span><?= \App\Support\Icon::svg('zap') ?> Run Check Now</span>
                     </button>
                 </form>
             </div>
@@ -277,21 +277,21 @@ $totalPenaltyAmount = array_sum(array_map(fn($p) => (float) ($p['amount'] ?? 0),
             <div class="form-card accent-success flex flex-col justify-between">
                 <div>
                     <div class="flex items-center gap-2 pb-1 border-b border-neutral-100">
-                        <span style="font-size:1.1rem;">🔔</span>
+                        <?= \App\Support\Icon::svg('bell', 18) ?>
                         <h3 class="text-body font-semibold text-neutral-900">Rent-Due Reminders</h3>
                     </div>
                     <p class="text-body-sm text-neutral-600 mt-2">
                         Dispatches in-app notifications and dashboard alerts to all active boarders without a verified payment for the current month (<span class="font-semibold text-neutral-800"><?= date('F Y') ?></span>).
                     </p>
                     <div class="bg-emerald-50 rounded-lg p-2.5 mt-3 border border-emerald-200 text-caption text-emerald-800">
-                        ✓ Alerts boarders safely without creating duplicate notices.
+                        <?= \App\Support\Icon::svg('check') ?> Alerts boarders safely without creating duplicate notices.
                     </div>
                 </div>
 
                 <form method="post" action="/admin/notifications/rent-due" id="rent-reminders-form" class="pt-3">
                     <?= \App\Support\Csrf::field() ?>
                     <button type="button" id="rent-reminders-btn" class="btn btn-primary w-full shadow-xs cursor-pointer" style="background-color: #2f6f4e; border-color: #2f6f4e;">
-                        <span>🔔 Send Reminders Now</span>
+                        <span><?= \App\Support\Icon::svg('bell') ?> Send Reminders Now</span>
                     </button>
                 </form>
             </div>
@@ -389,7 +389,7 @@ $totalPenaltyAmount = array_sum(array_map(fn($p) => (float) ($p['amount'] ?? 0),
                         <?php if (empty($rules)): ?>
                             <tr>
                                 <td colspan="6" class="empty-state" style="padding:3.5rem 0;">
-                                    <span style="font-size:2rem;">⚖️</span>
+                                    <span class="empty-icon"><?= \App\Support\Icon::svg('scale') ?></span>
                                     <span class="text-xs font-medium text-neutral-500 mt-1 block">No penalty rules configured yet. Create one using the form above.</span>
                                 </td>
                             </tr>
@@ -412,7 +412,7 @@ $totalPenaltyAmount = array_sum(array_map(fn($p) => (float) ($p['amount'] ?? 0),
             <a href="/admin/ledger/export"
                class="btn btn-secondary !py-1.5 !px-3 !text-xs inline-flex items-center gap-1.5 shadow-xs"
                title="Export detailed financial ledger with user names, descriptions, and proper formatting">
-                <span>📊</span>
+                <span><?= \App\Support\Icon::svg('bar-chart') ?></span>
                 <span>Export Ledger</span>
             </a>
         </div>
@@ -466,7 +466,7 @@ $totalPenaltyAmount = array_sum(array_map(fn($p) => (float) ($p['amount'] ?? 0),
                                 </td>
                                 <td class="p-3">
                                     <?php if ($isPaid): ?>
-                                        <span class="badge badge-success text-xs">✓ Paid</span>
+                                        <span class="badge badge-success text-xs"><?= \App\Support\Icon::svg('check') ?> Paid</span>
                                     <?php else: ?>
                                         <span class="badge badge-error text-xs">Unpaid</span>
                                     <?php endif; ?>
@@ -502,7 +502,7 @@ $totalPenaltyAmount = array_sum(array_map(fn($p) => (float) ($p['amount'] ?? 0),
                         <?php if (empty($penalties)): ?>
                             <tr>
                                 <td colspan="9" class="empty-state" style="padding:3.5rem 0;">
-                                    <span style="font-size:2rem;">⚠️</span>
+                                    <span class="empty-icon"><?= \App\Support\Icon::svg('alert-triangle') ?></span>
                                     <span class="text-xs font-medium text-neutral-500 mt-1 block">No penalty records found.</span>
                                 </td>
                             </tr>
@@ -514,77 +514,28 @@ $totalPenaltyAmount = array_sum(array_map(fn($p) => (float) ($p['amount'] ?? 0),
     </div>
 </div>
 
-<style>
-/* Custom Modal Animations */
-@keyframes customModalFadeIn {
-    0% { opacity: 0; }
-    100% { opacity: 1; }
-}
-@keyframes customCardPop {
-    0% { opacity: 0; transform: scale(0.96) translateY(8px); }
-    100% { opacity: 1; transform: scale(1) translateY(0); }
-}
-.animate-custom-backdrop {
-    animation: customModalFadeIn 180ms ease-out forwards;
-}
-.animate-custom-card {
-    animation: customCardPop 220ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
-}
-.custom-modal-cancel:hover {
-    background-color: #f1f0ee !important;
-    color: #0a0a0a !important;
-}
-.custom-modal-confirm:hover {
-    filter: brightness(1.08);
-    box-shadow: 0 4px 12px rgba(220, 38, 38, 0.25);
-}
-.custom-modal-confirm:active {
-    transform: scale(0.97);
-}
-.rent-modal-confirm {
-    background: linear-gradient(135deg, #2f6f4e, #245a3f) !important;
-}
-.rent-modal-confirm:hover {
-    box-shadow: 0 4px 12px rgba(22, 163, 74, 0.25);
-}
-</style>
-
 <!-- Penalty Check Confirmation Modal -->
-<div id="penalty-check-modal" style="display:none; position:fixed; top:0; left:0; right:0; bottom:0; z-index:99999; background:rgba(10, 10, 10,0.55); backdrop-filter:blur(4px); -webkit-backdrop-filter:blur(4px); align-items:center; justify-content:center; padding:1rem;" role="dialog" aria-modal="true" aria-labelledby="penalty-modal-heading">
-    <div id="penalty-confirm-card" style="background: rgb(255, 255, 255); border-radius: 1rem; padding: 1.5rem 1.75rem; max-width: 22rem; width: 100%; margin: 0px auto; text-align: center; box-shadow: rgba(0, 0, 0, 0.25) 0px 25px 50px -12px;">
-        <div id="penalty-modal-icon-wrap" style="width: 3.5rem; height: 3.5rem; border-radius: 50%; border: 2px solid rgb(239, 68, 68); color: rgb(220, 38, 38); display: flex; align-items: center; justify-content: center; font-size: 1.5rem; font-weight: 700; margin: 0px auto 0.75rem; user-select: none;">
-            ⚡
-        </div>
-        <h3 id="penalty-modal-heading" style="font-size: 1.1rem; font-weight: 700; color: #0a0a0a; letter-spacing: -0.01em; margin: 0 0 0.375rem;">Run Penalty Check?</h3>
-        <p id="penalty-modal-subtext" style="font-size: 0.8rem; color: #6b6b6b; line-height: 1.6; margin: 0 0 1.5rem; padding: 0 0.5rem;">This will scan all active tenancies and generate penalty charges based on unpaid rent. Continue?</p>
-        <div style="display: flex; align-items: center; justify-content: flex-end; gap: 0.75rem; padding-top: 0.25rem;">
-            <button type="button" id="penalty-modal-cancel" class="custom-modal-cancel" style="padding: 0.5rem 1rem; border-radius: 0.75rem; font-size: 0.75rem; font-weight: 600; color: #6b6b6b; background: transparent; border: none; cursor: pointer; transition: all 150ms;">
-                Cancel
-            </button>
-            <button type="button" id="penalty-modal-confirm" class="custom-modal-confirm" style="color: rgb(255, 255, 255); font-weight: 600; border-radius: 0.75rem; padding: 0.5rem 1.25rem; font-size: 0.75rem; border: none; cursor: pointer; display: inline-flex; align-items: center; gap: 0.375rem; transition: 150ms; background: linear-gradient(135deg, rgb(239, 68, 68), rgb(220, 38, 38));">
-                <span>Yes</span>
-                <span style="font-size: 0.95rem;">&rarr;</span>
-            </button>
+<div id="penalty-check-modal" class="modal" style="display:none" role="dialog" aria-modal="true" aria-labelledby="penalty-modal-heading">
+    <div id="penalty-confirm-card" class="modal-card">
+        <div id="penalty-modal-icon-wrap" class="modal-icon modal-icon-danger"><?= \App\Support\Icon::svg('zap') ?></div>
+        <h3 id="penalty-modal-heading" class="modal-title">Run Penalty Check?</h3>
+        <p id="penalty-modal-subtext" class="modal-text">This will scan all active tenancies and generate penalty charges based on unpaid rent. Continue?</p>
+        <div class="modal-actions">
+            <button type="button" id="penalty-modal-cancel" class="btn btn-secondary">Cancel</button>
+            <button type="button" id="penalty-modal-confirm" class="btn btn-danger-solid">Run check</button>
         </div>
     </div>
 </div>
 
 <!-- Rent Reminders Confirmation Modal -->
-<div id="rent-reminders-modal" style="display:none; position:fixed; top:0; left:0; right:0; bottom:0; z-index:99999; background:rgba(10, 10, 10,0.55); backdrop-filter:blur(4px); -webkit-backdrop-filter:blur(4px); align-items:center; justify-content:center; padding:1rem;" role="dialog" aria-modal="true" aria-labelledby="rent-modal-heading">
-    <div id="rent-confirm-card" style="background: rgb(255, 255, 255); border-radius: 1rem; padding: 1.5rem 1.75rem; max-width: 22rem; width: 100%; margin: 0px auto; text-align: center; box-shadow: rgba(0, 0, 0, 0.25) 0px 25px 50px -12px;">
-        <div id="rent-modal-icon-wrap" style="width: 3.5rem; height: 3.5rem; border-radius: 50%; border: 2px solid #2f6f4e; color: #245a3f; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; font-weight: 700; margin: 0px auto 0.75rem; user-select: none;">
-            🔔
-        </div>
-        <h3 id="rent-modal-heading" style="font-size: 1.1rem; font-weight: 700; color: #0a0a0a; letter-spacing: -0.01em; margin: 0 0 0.375rem;">Send Rent Reminders?</h3>
-        <p id="rent-modal-subtext" style="font-size: 0.8rem; color: #6b6b6b; line-height: 1.6; margin: 0 0 1.5rem; padding: 0 0.5rem;">This will send rent-due notifications to all active boarders without verified payments for <?= date('F Y') ?>. Continue?</p>
-        <div style="display: flex; align-items: center; justify-content: flex-end; gap: 0.75rem; padding-top: 0.25rem;">
-            <button type="button" id="rent-modal-cancel" class="custom-modal-cancel" style="padding: 0.5rem 1rem; border-radius: 0.75rem; font-size: 0.75rem; font-weight: 600; color: #6b6b6b; background: transparent; border: none; cursor: pointer; transition: all 150ms;">
-                Cancel
-            </button>
-            <button type="button" id="rent-modal-confirm" class="custom-modal-confirm rent-modal-confirm" style="color: rgb(255, 255, 255); font-weight: 600; border-radius: 0.75rem; padding: 0.5rem 1.25rem; font-size: 0.75rem; border: none; cursor: pointer; display: inline-flex; align-items: center; gap: 0.375rem; transition: 150ms;">
-                <span>Yes</span>
-                <span style="font-size: 0.95rem;">&rarr;</span>
-            </button>
+<div id="rent-reminders-modal" class="modal" style="display:none" role="dialog" aria-modal="true" aria-labelledby="rent-modal-heading">
+    <div id="rent-confirm-card" class="modal-card">
+        <div id="rent-modal-icon-wrap" class="modal-icon"><?= \App\Support\Icon::svg('bell') ?></div>
+        <h3 id="rent-modal-heading" class="modal-title">Send Rent Reminders?</h3>
+        <p id="rent-modal-subtext" class="modal-text">This will send rent-due notifications to all active boarders without verified payments for <?= date('F Y') ?>. Continue?</p>
+        <div class="modal-actions">
+            <button type="button" id="rent-modal-cancel" class="btn btn-secondary">Cancel</button>
+            <button type="button" id="rent-modal-confirm" class="btn btn-primary">Send reminders</button>
         </div>
     </div>
 </div>

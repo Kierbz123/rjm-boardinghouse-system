@@ -29,8 +29,44 @@ class User
         $stmt = Database::getConnection()->prepare(
             'INSERT INTO users (role, name, email, password_hash) VALUES (?, ?, ?, ?)'
         );
-        $stmt->execute([$role, $name, $email, $hash]);
+        $stmt->execute([$role, $name, mb_strtolower(trim($email)), $hash]);
         return (int) Database::getConnection()->lastInsertId();
+    }
+
+    /** How long a password typed by an administrator works before they have to issue a new one. */
+    public const TEMP_PASSWORD_HOURS = 72;
+
+    /** An administrator chose this account's current password: it must be replaced at first sign-in and expires. */
+    public static function markPasswordTemporary(int $id): void
+    {
+        Database::getConnection()->prepare('UPDATE users SET must_change_password = 1, temp_password_expires_at = ? WHERE id = ?')
+            ->execute([date('Y-m-d H:i:s', time() + self::TEMP_PASSWORD_HOURS * 3600), $id]);
+    }
+
+    /** True when the account still holds an administrator's temporary password and its time ran out. */
+    public static function temporaryPasswordExpired(array $user): bool
+    {
+        $expires = $user['temp_password_expires_at'] ?? null;
+        return !empty($user['must_change_password']) && $expires !== null && strtotime($expires) < time();
+    }
+
+    /** "" or null clears it. The caller validates the format (StaffController::phoneProblem). */
+    public static function setPhone(int $id, ?string $phone): void
+    {
+        Database::getConnection()->prepare('UPDATE users SET phone = ? WHERE id = ?')->execute([$phone ?: null, $id]);
+    }
+
+    /** Who a resident can ring when an SOS goes unanswered: active staff that have a phone number. */
+    public static function activeStaffPhones(): array
+    {
+        return Database::getConnection()->query(
+            "SELECT name, phone FROM users WHERE role = 'staff' AND status = 'active' AND phone IS NOT NULL ORDER BY name"
+        )->fetchAll();
+    }
+
+    public static function recordLogin(int $id): void
+    {
+        Database::getConnection()->prepare('UPDATE users SET last_login_at = NOW() WHERE id = ?')->execute([$id]);
     }
 
     public static function allByRole(string $role): array
@@ -68,7 +104,7 @@ class User
     /** The person themselves chose a password: it is no longer a temporary or default one. */
     public static function markPasswordChosen(int $id): void
     {
-        Database::getConnection()->prepare('UPDATE users SET must_change_password = 0, password_changed_at = NOW() WHERE id = ?')->execute([$id]);
+        Database::getConnection()->prepare('UPDATE users SET must_change_password = 0, temp_password_expires_at = NULL, password_changed_at = NOW() WHERE id = ?')->execute([$id]);
     }
 
     public static function updatePassword(int $id, string $password): void

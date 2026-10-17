@@ -1,105 +1,118 @@
-# Expected Project Structure — RJM Boardinghouse System
+# Project Structure — RJM Boardinghouse System
 
-This is the authoritative folder layout. Everything below marked **(scaffolded)** already exists in the starter files provided — Claude Code should extend these, not recreate them from scratch. Everything marked **(Claude Code creates)** doesn't exist yet and is built during the phase named.
+Where everything lives, and where a new file belongs. Paths are relative to the application folder `claude-code-project-files/` unless they start with `../` (the repository root).
 
 ```
-project-root/
-├── CLAUDE.md                          (scaffolded) — always-loaded instructions
-├── FEATURES.md                        (scaffolded) — full feature spec, read on demand
-├── PHASES.md                          (scaffolded) — build plan + verification criteria
-├── ARCHITECTURE.md                    (scaffolded) — connectors, sequence diagrams, ER diagram
-├── PROJECT_STRUCTURE.md               (scaffolded) — this file
-├── .env.example                       (scaffolded) — copy to .env, fill in locally, never commit .env
-├── .gitignore                         (scaffolded)
+rjm-boardinghouse-final/                 ← repository root
+├── AGENTS.md                            standing instructions for any agent (setup, tests, gotchas)
+├── start-system.bat                     Windows launcher: checks PHP/MySQL, migrates, starts the app on :8000
+├── start-online.bat                     same checks, then a temporary public tunnel (calls bin\go-online.ps1)
+├── .htaccess                            "Require all denied" so XAMPP's Apache never serves the repository
+├── AUDIT-REPORT.md, DESIGN.md           see "Documentation map" below
+├── FUNCTIONALITY-AUDIT-2026-10-14.md    latest audit (findings F-01…F-31)
+├── IMPLEMENTATION-PLAN-2026-10-14.md    the work plan that fixes those findings, with live status
 │
-├── .claude/
-│   ├── settings.json                  (scaffolded) — wires up the two hooks below
-│   ├── hooks/
-│   │   ├── protect-files.sh           (scaffolded) — blocks edits to .env, .git/, etc.
-│   │   └── lint-after-edit.sh         (scaffolded) — php -l / py_compile after every edit
-│   ├── rules/
-│   │   ├── php-conventions.md         (scaffolded) — auto-loads on *.php
-│   │   └── python-conventions.md      (scaffolded) — auto-loads on scoring_service/*
-│   └── agents/
-│       └── security-reviewer.md       (scaffolded) — subagent, dispatch before sensitive phases
-│
-├── public/                             ← Apache web root, the ONLY thing served directly
-│   ├── index.php                      (scaffolded stub) — front controller; real routing = Phase 1
-│   ├── .htaccess                      (scaffolded) — rewrites all requests through index.php
-│   ├── assets/
-│   │   ├── css/                       (empty, scaffolded) — Phase 1+
-│   │   └── js/                        (empty, scaffolded) — Phase 1+, incl. SOS/notification polling JS
-│   └── uploads/                       (empty, scaffolded) — repair media + payment receipts land here
-│                                         (Claude Code creates) validated filenames only, never web-executable
-│
-├── src/                                 ← PHP application code, not web-accessible directly
-│   ├── Database.php                   (scaffolded) — the ONE shared PDO connection helper
-│   ├── Controllers/                   (empty, scaffolded)
-│   │   (Claude Code creates, one per resource, thin — validate → call Model/Service → respond):
-│   │   AuthController.php (Ph.1) · BoarderController.php, RoomController.php, BedController.php (Ph.2)
-│   │   PaymentController.php, ExpenseController.php, PenaltyController.php, LedgerController.php (Ph.3)
-│   │   MaintenanceController.php (Ph.4) · SosController.php, IncidentController.php (Ph.5)
-│   │   DashboardController.php, OccupancyController.php (Ph.6) · NotificationController.php (Ph.7)
-│   ├── Models/                        (empty, scaffolded)
-│   │   (Claude Code creates, one per table — thin DB-access classes, PDO prepared statements only)
-│   │   User.php (Ph.1) · Room.php, Bed.php, BoarderProfile.php (Ph.2)
-│   │   Payment.php, Expense.php, PenaltyRule.php, Penalty.php (Ph.3) · MaintenanceRequest.php (Ph.4)
-│   │   SosAlert.php, Incident.php (Ph.5) · OccupancySnapshot.php (Ph.6) · Notification.php (Ph.7)
-│   ├── Services/                      (empty, scaffolded)
-│   │   (Claude Code creates — business logic lives here, not in controllers)
-│   │   ScoringClient.php (Ph.4, calls Python /score-repair, handles the unreachable-service fallback)
-│   │   VerificationClient.php (Ph.3, calls Python /verify-payment, same fallback pattern)
-│   │   LedgerBuilder.php (Ph.3) · PenaltyEngine.php (Ph.3) · NotificationDispatcher.php (Ph.7)
-│   ├── Middleware/                    (empty, scaffolded)
-│   │   (Claude Code creates, Phase 1) AuthMiddleware.php · RoleMiddleware.php (RBAC) · CsrfMiddleware.php
-│   └── Views/                         (empty, scaffolded — one subfolder per role + shared partials)
-│       ├── shared/                    (scaffolded) layout.php — shared shell wiring in Tailwind + GSAP via CDN
-│       ├── admin/                     (Phase 2 onward, per feature)
-│       ├── staff/                     (Phase 4-5)
-│       └── portal/                    (boarder-facing — Phase 2 onward)
-│
-├── config/                             ← non-secret app config if needed beyond .env (Claude Code creates as needed)
-│
-├── database/
-│   └── migrations/                    (scaffolded — all 10 files, apply in filename order)
-│       0001_create_users.sql                          (Phase 1)
-│       0002_create_rooms_and_beds.sql                 (Phase 2)
-│       0003_create_boarder_profiles_and_status_log.sql (Phase 2)
-│       0004_create_payments.sql                       (Phase 3)
-│       0005_create_expenses.sql                       (Phase 3)
-│       0006_create_penalty_rules_and_penalties.sql    (Phase 3)
-│       0007_create_maintenance_requests.sql           (Phase 4)
-│       0008_create_sos_alerts_and_incidents.sql       (Phase 5)
-│       0009_create_occupancy_snapshots.sql            (Phase 6)
-│       0010_create_notifications.sql                  (Phase 7)
-│
-├── scoring_service/                    ← Python microservice, localhost:5000, stateless
-│   ├── main.py                        (scaffolded, working stub) — FastAPI app, binds 127.0.0.1 only
-│   ├── schemas.py                     (scaffolded) — Pydantic request/response models, exact contracts
-│   ├── scoring.py                     (scaffolded stub → Phase 4 real logic, FEATURES.md §1)
-│   ├── verification.py                (scaffolded stub → Phase 3 real logic, FEATURES.md §7)
-│   ├── requirements.txt               (scaffolded)
-│   └── venv/                          (Claude Code creates locally — gitignored, never committed)
-│
-├── logs/                               (scaffolded, empty)
-│   (Claude Code creates at runtime) app.log · scoring_service.log — timestamped, leveled
-│
-└── tests/
-    └── playwright/                    (scaffolded, empty — see its README.md for naming convention)
-        (Claude Code creates, one script per phase's verification criteria from PHASES.md)
+└── claude-code-project-files/           ← the application
+    ├── CLAUDE.md                        short rules, loaded every session
+    ├── README.md                        setup, running, billing rules, demo walkthrough, going online
+    ├── ARCHITECTURE.md · FEATURES.md · PROJECT_STRUCTURE.md   design, feature spec, this file
+    ├── PHASES.md                        original build phases and the long progress log (history)
+    ├── *-PLAN.md, *-REPORT.md, ...      plans and point-in-time reports (see map below)
+    ├── .env.example                     documents the DB_* variables; .env (git-ignored) is read by Database.php
+    ├── .gitignore
+    │
+    ├── .claude/                         AI-assisted-development config only (not part of the app)
+    │   ├── settings.json                wires the two hooks below
+    │   ├── hooks/                       protect-files.sh, lint-after-edit.sh
+    │   ├── rules/php-conventions.md     auto-loads when editing *.php / *.sql
+    │   └── agents/security-reviewer.md  subagent for changes touching auth, payments, uploads
+    │
+    ├── public/                          ← the ONLY folder the web server serves
+    │   ├── index.php                    front controller, route table (86 routes), security headers
+    │   └── assets/
+    │       ├── css/app.css              compiled Tailwind (source: css/source/input.css)
+    │       ├── js/                      app.js, ai-assistant.js, vendor/ (GSAP, ScrollTrigger, qrcode)
+    │       ├── fonts/                   Onest, peso-sign fonts and their LICENSE files
+    │       └── images/                  landing-bg.jpg
+    │
+    ├── src/                             PHP, namespace App\ (PSR-4 autoloader in src/autoload.php)
+    │   ├── Database.php                 the single PDO connection helper
+    │   ├── Controllers/                 Assistant, Auth, Boarder, Dashboard, Expense, Incident, Inquiry,
+    │   │                                Landing, Ledger, Maintenance, Notification, Occupancy, Payment,
+    │   │                                Penalty, Profile, Room, Sos, Staff
+    │   ├── Models/                      Bed, BoarderProfile, ElectricityBill, Expense, Incident, Inquiry,
+    │   │                                LoginAttempt, MaintenanceRequest, Notification, OccupancySnapshot,
+    │   │                                Payment, Penalty, PenaltyRule, Room, SosAlert, User
+    │   ├── Services/                    Assistant, Billing, Ledger builder, NotificationDispatcher,
+    │   │                                OllamaClient, PasswordReset, PaymentAllocation, PaymentReview,
+    │   │                                PenaltyEngine, ScoringClient (rule-based repair priority)
+    │   ├── Middleware/                  AuthMiddleware, RoleMiddleware
+    │   ├── Support/                     Csrf, ErrorPage, Icon (the one SVG icon set), Logger, NavRegistry,
+    │   │                                NotificationType, Router, TrustedProxy, Uploads
+    │   └── Views/                       admin/, staff/, portal/ (boarder), shared/ (layout, nav, login,
+    │                                    landing, profile, notifications, error)
+    │
+    ├── database/
+    │   ├── migrations/                  NNNN_name.sql in order (0001…); from 0031 also NNNN_name.down.sql
+    │   ├── migrate.php                  applies pending migrations; --status; --rollback[=N]
+    │   ├── seed.php                     demo accounts (random passwords, printed once) + Room 101 with two beds
+    │   └── backups/                     mysqldump files from earlier changes (git-ignored)
+    │
+    ├── storage/uploads/{receipts,maintenance}/   private files, never inside public/ (git-ignored)
+    ├── logs/                            app.log, online-*.log (git-ignored)
+    ├── bin/                             go-online.ps1 (tunnel launcher), pre-online-check.php (its safety
+    │                                    check), setup-db-user.php (creates the dedicated DB login → .env)
+    └── tests/                           run.php (runner), lib.php (helpers), helpers/, test_*.php
 ```
 
-## Why it's laid out this way
-- **`public/` is the only web-servable folder.** `src/`, `database/`, `scoring_service/`, `logs/` all sit outside the web root so they're never directly reachable by URL — this is a hard requirement, not a style choice.
-- **One connection helper, one microservice entry point.** `src/Database.php` and `scoring_service/main.py` are already scaffolded precisely so no later phase reinvents either — every Model goes through the former, every scoring/verification call goes through the latter's two endpoints.
-- **Migrations are numbered in build order, not alphabetically-by-topic**, so `0001`→`0010` doubles as a readable history of which phase introduced which table.
-- **The stub scoring service already runs and answers both contracts** (`/score-repair`, `/verify-payment`) with dummy-but-valid responses — Phase 0's "prove the connector works end-to-end" deliverable from `ARCHITECTURE.md` §10 is done before Phase 1 even starts. Phases 3 and 4 replace the stub logic, not the endpoints or schemas.
-- **Views are split by role** (`admin/`, `staff/`, `portal/`) sharing one `shared/` layout, matching the frontend page map in `ARCHITECTURE.md` §8 — avoids three unrelated template sets growing independently.
+Not present, and what older documents may still say: there is **no `scoring_service/`** (the Python service was removed in B6), **no `public/uploads/`** (uploads moved to `storage/uploads/`), **no `tests/playwright/`** (the never-run browser scripts were removed in B6; coverage is `php tests/run.php`), and **no `config/` contents** (settings come from environment variables).
+
+## Where does a new file go?
+
+| Adding… | Put it in | Notes |
+|---|---|---|
+| A page or action | route in `public/index.php`, handler in `src/Controllers/`, view in `src/Views/<role>/` | A form or link must exist for every route (`tests/test_z_feature_audit.php` enforces it) |
+| Business rule | `src/Services/` | Controllers stay thin |
+| Table access | `src/Models/` | Prepared statements only |
+| Schema change | `database/migrations/NNNN_name.sql` + `NNNN_name.down.sql` | Never edit an applied migration |
+| Test | `tests/test_<topic>.php` using `tests/lib.php` | Run through `php tests/run.php`, never directly |
+| Script run by hand | `bin/` (launchers) or `database/` (data tools) | |
+| User upload | `storage/uploads/<subdir>/`, add the subdir to `Uploads::SUBDIRS` | Served only through `Uploads::serve()` |
+
+## Documentation map
+
+One authoritative document per topic. Everything else is either a plan or a dated record; do not treat records as current behaviour.
+
+| Document | Kind | Authoritative for |
+|---|---|---|
+| `../AGENTS.md` | current | Setup, running, testing, gotchas for any agent |
+| `README.md` | current | Setup for people, **billing rules**, demo walkthrough, going online, deploying, known limitations |
+| `CLAUDE.md` | current | Non-negotiable constraints, hard rules, commands |
+| `ARCHITECTURE.md` | current | Components, request flows, schema overview |
+| `FEATURES.md` | current spec | What each of the 11 features should do, with an implementation-status table |
+| `PROJECT_STRUCTURE.md` | current | This file |
+| `UI-LIBRARY-EVALUATION.md` | decision record | Why Tailwind CSS + GSAP; how to rebuild the CSS |
+| `../IMPLEMENTATION-PLAN-2026-10-14.md` | **active plan** | The work packages WP-0…WP-20, their order, decisions and status |
+| `../FUNCTIONALITY-AUDIT-2026-10-14.md` | latest audit | Findings F-01…F-31 and test ideas T-01…T-37 |
+| `AI-ASSISTANT-PLAN.md` | plan (mostly done) | Role-aware assistant: design, phases A0–A7, owner decisions |
+| `CCTV-PEOPLE-COUNTER-PLAN.md` | plan (not started) | Optional camera feature and its privacy rules |
+| `IMPROVEMENT-PLAN.md` | plan (partly superseded) | Older per-page suggestion list; open items now tracked by the work packages |
+| `PHASES.md` | history | Original phases 0–8 and the progress log of every later change |
+| `FINAL-REPORT.md` | history | Audit-fix batches B0–B7 (3 Oct 2026) |
+| `FEATURE_IMPLEMENTATION_AUDIT.md` | history | Screen → route → table trace of all features (10 Oct 2026) |
+| `../AUDIT-REPORT.md` | history | Independent audit of the original `main` branch (4 Oct 2026) |
+| `QA-VALIDATION-REPORT.md`, `DEBUGGING-REPORT.md` | history | Early QA and debugging passes on the original stack (with the Python service) |
+| `DEMO-ACCOUNTS.md` | current | Demo accounts, what each role can do, resetting passwords |
+| `../DESIGN.md` | uncertain | A design-token analysis of another site's UI (Airbnb); not referenced by the app. Purpose unconfirmed, kept |
+| `public/assets/fonts/LICENSE*.txt` | licences | Third-party font licences — keep |
 
 ## Data classification: what's editable, and what never is
-`QA-VALIDATION-REPORT.md`'s CRUD audit found this was implicit rather than decided. It's now explicit:
 
-- **Event records — append-only, forever. No edit, no delete, not even for admins.** `payments`, `expenses`, `penalties`, `boarder_status_log`, `login_attempts`, `occupancy_snapshots`, `notifications`. These are records of something that *happened* — rewriting history defeats the point of a financial/security audit trail. `maintenance_requests` and `sos_alerts` fall in this category too, but with one exception: their `status` field transitions (open→resolved, active→acknowledged→resolved) since that's the event's own lifecycle, not a rewrite of what was originally reported.
-- **Configuration data — editable, because it's current state, not a past event.** `rooms`, `beds`, `penalty_rules`, and a boarder's `name`/`email` on `users`. Getting a room's price or a boarder's email wrong is a data-entry mistake, not history to preserve.
-- **Guarded, not blocked, delete** — only where deleting can't silently corrupt something else: a room with zero beds, a bed that's vacant. Checked in the Model layer *before* the query runs (see `Room::delete()`, `Bed::delete()`), never left for a foreign-key constraint to catch — that's the exact lesson from Bug #2 in `QA-VALIDATION-REPORT.md`.
-- **Guarded, not deleted, deactivation** for `penalty_rules` — `penalties.rule_id` references it, so a rule that's ever been applied can't be hard-deleted without either violating that FK or orphaning the audit trail. The `active` flag (present since the very first migration, but never wired to anything until this pass) is the correct mechanism: stop new penalties from using it, keep every rule a past penalty pointed to intact.
+Decided after the first QA pass (`QA-VALIDATION-REPORT.md`) and still the rule.
+
+- **Event records — no edit and no delete in the UI, even for admins:** `payments`, `expenses`, `penalties`, `boarder_status_log`, `occupancy_snapshots`, `incidents`, `maintenance_requests`, `sos_alerts`. They record something that *happened*. Only their own lifecycle changes: a payment is approved, rejected or reversed; a penalty is paid or waived (with who and why); a repair or SOS alert moves through its statuses.
+  - `expenses` have no edit or void yet (audit F-19, WP-12 will add void rather than delete).
+  - `login_attempts` is pruned by the app on a successful login; `notifications` belong to the recipient, who may mark them read, pin them or delete them. Neither is an audit trail.
+- **Configuration data — editable, because it's current state:** `rooms`, `beds` (rename), `penalty_rules` (amount, active flag), a resident's name, e-mail and contact details.
+- **Guarded delete** only where deleting cannot corrupt anything, checked in the Model layer *before* the query (never left for a foreign-key error): a room with no beds and no electricity bills, a bed that is vacant, a resident with no payments, penalties or electricity charges. A resident who has any of those is **archived** (login blocked, bed freed, restorable), never erased. Known gap: a resident with only repairs, incidents or SOS history is still hard-deleted together with that history (F-04, WP-4).
+- **Deactivate, don't delete:** `penalty_rules` — `penalties.rule_id` references them, so a rule that has ever been applied is only switched off.

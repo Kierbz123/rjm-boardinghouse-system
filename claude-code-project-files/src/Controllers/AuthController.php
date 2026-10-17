@@ -96,6 +96,11 @@ class AuthController
             Logger::warn("Failed login attempt for {$masked} from {$ip}");
             return ['ok' => false, 'error' => 'Invalid email or password.'];
         }
+        // Only said after the right password, so it reveals nothing about which accounts exist.
+        if (User::temporaryPasswordExpired($user)) {
+            Logger::warn("Expired temporary password used for {$masked} from {$ip}");
+            return ['ok' => false, 'error' => 'Your temporary password has expired. Ask the administrator for a new one.'];
+        }
 
         LoginAttempt::record($email, true, $ip);
         return ['ok' => true, 'user' => $user];
@@ -109,6 +114,7 @@ class AuthController
         $_SESSION['name'] = $user['name'];
         $_SESSION['last_activity'] = time();
         $_SESSION['pw_fp'] = \App\Middleware\AuthMiddleware::passwordFingerprint($user);
+        User::recordLogin((int) $user['id']);
         Logger::info("User {$user['id']} ({$user['role']}) logged in");
     }
 

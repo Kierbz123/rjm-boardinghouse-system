@@ -244,7 +244,11 @@ class NotificationDispatcher
             } . ' ₱' . number_format((float) $al['amount'], 2);
         }
         // Most important first: the 255-character notification may cut the end of a long list.
-        $message = 'Your ' . self::describePayment(['claimed_amount' => $paid] + $payment) . ' payment was approved. Balance now: ₱'
+        // A payment an admin or staff member took in person has a receipt number and was never "submitted".
+        $was = !empty($payment['recorded_by_role'])
+            ? 'received (receipt ' . ($payment['receipt_number'] ?? '') . ')'
+            : 'approved';
+        $message = 'Your ' . self::describePayment(['claimed_amount' => $paid] + $payment) . " payment was {$was}. Balance now: ₱"
             . number_format((float) $balance['total_outstanding'], 2) . '.';
         if ($waived) {
             $message .= ' Late fee waived (' . implode(', ', array_map(

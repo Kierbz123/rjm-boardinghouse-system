@@ -1,5 +1,5 @@
 <?php
-/** @var array $inquiry @var string $visitorMessage @var string $staffNotes @var ?string $flashOk */
+/** @var array $inquiry @var string $visitorMessage @var string $staffNotes @var ?string $flashOk @var ?array $roomType */
 $pageTitle = 'Inquiry #' . (int) $inquiry['id'];
 $e = fn ($v) => htmlspecialchars((string) $v, ENT_QUOTES);
 $statusStyle = [
@@ -52,6 +52,9 @@ ob_start();
             <div>
                 <dt class="text-caption font-semibold text-neutral-500 uppercase tracking-wider">Requested room</dt>
                 <dd class="mt-1 font-medium text-neutral-900"><?= $e($inquiry['room_type'] ?: 'Not given') ?></dd>
+                <?php if ($roomType): ?>
+                    <dd class="text-xs text-neutral-500"><?= $e($roomType['capacity_label']) ?> · <?= $e(\App\Models\RoomType::priceLabel($roomType)) ?></dd>
+                <?php endif; ?>
             </div>
             <div>
                 <dt class="text-caption font-semibold text-neutral-500 uppercase tracking-wider">Target move-in / viewing</dt>
@@ -73,6 +76,22 @@ ob_start();
                 <h2 class="text-caption font-semibold text-neutral-500 uppercase tracking-wider">Staff notes (internal)</h2>
                 <p class="mt-1 text-sm text-neutral-900" style="white-space: pre-wrap; overflow-wrap: anywhere;"><?= $e($staffNotes) ?></p>
             </div>
+        <?php endif; ?>
+    </div>
+
+    <div class="card p-5 flex flex-wrap items-center justify-between gap-3">
+        <?php if ($inquiry['converted_user_id']): ?>
+            <p class="text-sm text-neutral-900">
+                <span class="font-semibold">Registered as a boarder</span>
+                <?= $inquiry['converted_at'] ? 'on ' . $e(date('F j, Y', strtotime($inquiry['converted_at']))) : '' ?>:
+                <a href="/admin/boarders/<?= (int) $inquiry['converted_user_id'] ?>" class="underline font-medium"><?= $e($inquiry['converted_user_name'] ?? 'open profile') ?></a>
+            </p>
+        <?php else: ?>
+            <div class="text-sm">
+                <p class="font-semibold text-neutral-900">Ready to move in?</p>
+                <p class="text-neutral-500">Opens Add Boarder with these details filled in. Nothing is saved until you set a password and submit.</p>
+            </div>
+            <a href="/admin/boarders?inquiry=<?= (int) $inquiry['id'] ?>#add-boarder" class="btn btn-primary" style="padding: 0.55rem 1.1rem; background: #b15f2c; color: white; border-radius: 0.5rem; font-size: 0.875rem; font-weight: 600; text-decoration: none; white-space: nowrap;">Convert to Boarder</a>
         <?php endif; ?>
     </div>
 

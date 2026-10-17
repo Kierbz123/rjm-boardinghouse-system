@@ -68,7 +68,7 @@ $tierBadges = [
             </div>
             <div class="flex items-center gap-3">
                 <button type="button" id="btn-queue-summary" class="ai-action-btn" style="background:#eef2ff; color:#4338ca; border-color:#c7d2fe;">
-                    <span>📊</span> AI Queue Summary
+                    <span><?= \App\Support\Icon::svg('bar-chart') ?></span> AI Queue Summary
                 </button>
                 <span class="text-caption text-neutral-400">Order: Critical &rarr; High &rarr; Medium &rarr; Low</span>
                 <a href="/staff/maintenance/history" class="text-xs font-semibold text-primary-600 hover:text-primary-700 transition-colors">
@@ -81,7 +81,7 @@ $tierBadges = [
         <div id="queue-summary-container" class="hidden card p-4 bg-indigo-50/40 border border-indigo-100 rounded-xl" style="box-shadow: 0 4px 12px rgba(99, 102, 241, 0.08);">
             <div class="flex items-center justify-between border-b border-indigo-100 pb-2 mb-2.5">
                 <div class="flex items-center gap-2">
-                    <span style="font-size: 1.1rem;">📊</span>
+                    <?= \App\Support\Icon::svg('bar-chart', 18) ?>
                     <span class="font-bold text-indigo-950 text-xs uppercase tracking-wider">Natural Language Queue Synthesis</span>
                 </div>
                 <span class="text-[10px] text-indigo-600 bg-indigo-100 px-2 py-0.5 rounded font-mono font-semibold">Ollama llama3.2:3b</span>
@@ -113,7 +113,7 @@ $tierBadges = [
                                         <?php if (!empty($q['scoring_pending'])): ?>
                                             <span class="text-[10px] text-amber-700 bg-amber-50 border border-amber-200 px-1.5 py-0.5 rounded font-medium"
                                                   title="Scoring service was unreachable at submission; default fallback applied">
-                                                ⚠ not yet AI-scored
+                                                <?= \App\Support\Icon::svg('alert-triangle') ?> not yet AI-scored
                                             </span>
                                         <?php endif; ?>
                                     </div>
@@ -132,13 +132,13 @@ $tierBadges = [
                                             <a href="/<?= htmlspecialchars(ltrim($q['media_path'], '/')) ?>"
                                                target="_blank"
                                                class="inline-flex items-center gap-1 text-xs font-semibold text-primary-600 hover:text-primary-800 underline">
-                                                <span>📎</span> Proof
+                                                <span><?= \App\Support\Icon::svg('paperclip') ?></span> Proof
                                             </a>
                                         <?php endif; ?>
                                         <button type="button" class="btn-analyze-ticket ai-action-btn"
                                                 data-ticket-id="<?= (int) $q['id'] ?>"
                                                 title="Run root-cause diagnosis and resolution steps with local AI">
-                                            <span>🤖</span> AI Analyze
+                                            <span><?= \App\Support\Icon::svg('sparkles') ?></span> AI Analyze
                                         </button>
                                     </div>
                                 </td>
@@ -175,7 +175,7 @@ $tierBadges = [
                             <tr>
                                 <td colspan="6">
                                     <div class="py-12 text-center text-neutral-400">
-                                        <div style="font-size: 2rem; margin-bottom: 0.5rem;">🎉</div>
+                                        <span class="empty-icon"><?= \App\Support\Icon::svg('check-circle') ?></span>
                                         <p class="font-semibold text-neutral-700 text-body-sm">All caught up! Maintenance queue is empty.</p>
                                         <p class="text-caption text-neutral-400 mt-0.5">No open or in-progress repair tickets at this time.</p>
                                     </div>

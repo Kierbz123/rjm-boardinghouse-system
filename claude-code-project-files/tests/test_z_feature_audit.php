@@ -155,7 +155,7 @@ $matches = function (string $method, string $path) use ($routes): ?string {
 $pages = [
     'visitor' => [null, ['/', '/login']],
     'admin' => [$admin, ['/admin/dashboard', '/admin/inquiry-center', "/admin/inquiries/{$inquiry}", '/admin/boarders', '/admin/boarders?archived=1', "/admin/boarders/{$r1}",
-        '/admin/staff', '/admin/rooms', '/admin/payments', '/admin/expenses', '/admin/penalty-rules', '/admin/occupancy', '/staff/dashboard',
+        '/admin/staff', '/admin/rooms', '/admin/payments', '/admin/payments/record', '/admin/expenses', '/admin/penalty-rules', '/admin/occupancy', '/staff/dashboard',
         '/staff/maintenance', '/staff/maintenance/history', '/staff/incidents', '/staff/incidents/history', '/notifications', '/profile']],
     'staff' => [$staff, ['/staff/dashboard', '/staff/maintenance', '/staff/maintenance/history', '/staff/incidents', '/staff/incidents/history',
         '/admin/inquiry-center', '/notifications', '/profile']],
@@ -210,7 +210,9 @@ $scripted = ['POST /api/sos', 'POST /api/maintenance/score-preview', 'POST /api/
     'POST /api/assistant/suggest-description', 'POST /api/assistant/suggest-category', 'POST /api/assistant/analyze-ticket',
     'POST /api/assistant/summarize-queue', 'POST /portal/incidents', 'POST /notifications/{id}/read',
     // Only on screen while a move-out is scheduled; clicked through in test_wp03_dates.php.
-    'POST /admin/boarders/{id}/move-out/cancel'];
+    'POST /admin/boarders/{id}/move-out/cancel',
+    // Only on screen when an inquiry's email already has an account; clicked through in test_inquiry_conversion.php.
+    'POST /admin/inquiries/{id}/link-boarder'];
 $unreachable = [];
 foreach ($routes as [$rm, $pattern]) {
     if ($rm === 'POST' && empty($reached["POST {$pattern}"]) && !in_array("POST {$pattern}", $scripted, true)) {
@@ -300,7 +302,7 @@ check(loginAs($email1, $pw1)[1] === '', 'five wrong passwords lock the account, 
 $hashBefore = one('SELECT password_hash FROM users WHERE id = ?', [$r1]);
 http('POST', "/admin/boarders/{$r1}/password", $admin, ['csrf_token' => $adminT, 'new_password' => 'short']);
 http('POST', "/admin/boarders/{$r1}/password", $admin, ['csrf_token' => $adminT, 'new_password' => str_repeat('Ab1!', 19)]);
-check(one('SELECT password_hash FROM users WHERE id = ?', [$r1]) === $hashBefore, 'a password under 8 or over 72 characters is refused');
+check(one('SELECT password_hash FROM users WHERE id = ?', [$r1]) === $hashBefore, 'a password under 15 characters or over 72 bytes is refused');
 check(App\Services\PasswordResetService::byAdmin(['id' => 1, 'role' => 'admin', 'email' => 'admin@rjm.test'], $newPassword(), 1) !== null
     && password_verify(getenv('TEST_ADMIN_PASSWORD'), (string) one('SELECT password_hash FROM users WHERE id = 1')), 'the reset service itself refuses an admin account');
 check(http('POST', "/admin/boarders/{$r1}/password", $staff, ['csrf_token' => $staffT, 'new_password' => $newPassword()])['code'] === 403, 'staff cannot reset a resident password');
@@ -316,6 +318,10 @@ check(http('GET', '/portal/dashboard', $res)['code'] === 302, 'the resident is s
 check(loginAs($email1, $pw1)[1] === '', 'the old password no longer works');
 [$res, $resT] = loginAs($email1, $pw1b);
 check($resT !== '', 'the new password works at once (the lockout was lifted)');
+check(http('GET', '/portal/dashboard', $res)['code'] === 302, 'the reset password is temporary: the resident must choose their own first');
+$pw1c = $newPassword();
+http('POST', '/profile/password', $res, ['csrf_token' => $resT, 'current_password' => $pw1b, 'new_password' => $pw1c, 'confirm_password' => $pw1c]);
+check(http('GET', '/portal/dashboard', $res)['code'] === 200, 'after choosing it they can use the system');
 check((int) one('SELECT COUNT(*) FROM notifications WHERE user_id = ? AND message LIKE "An administrator set a new password%"', [$r1]) === 1, 'the resident is told inside the system');
 http('POST', '/admin/boarders/1/password', $admin, ['csrf_token' => $adminT, 'new_password' => $newPassword()]);
 check(password_verify(getenv('TEST_ADMIN_PASSWORD'), (string) one('SELECT password_hash FROM users WHERE id = 1')), 'the resident route cannot be used on an admin account');
@@ -325,7 +331,7 @@ $s1 = (int) one('SELECT id FROM users WHERE email = ?', ["audit.staff.{$tag}@rjm
 http('POST', "/admin/staff/{$s1}/password", $admin, ['csrf_token' => $adminT, 'new_password' => $staffPw]);
 check(loginAs("audit.staff.{$tag}@rjm.test", $staffPw)[1] !== '', 'staff password reset works the same way');
 http('POST', "/admin/staff/{$r1}/password", $admin, ['csrf_token' => $adminT, 'new_password' => $newPassword()]);
-check(password_verify($pw1b, (string) one('SELECT password_hash FROM users WHERE id = ?', [$r1])), 'the staff route cannot be used on a resident');
+check(password_verify($pw1c, (string) one('SELECT password_hash FROM users WHERE id = ?', [$r1])), 'the staff route cannot be used on a resident');
 
 echo "== Resident's own profile ==\n";
 http('POST', '/profile/update', $res, ['csrf_token' => $resT, 'name' => 'Audit One Self', 'email' => $email1, 'contact_number' => '0999 123 4567', 'emergency_contact_number' => '']);
@@ -352,7 +358,7 @@ $r = http('POST', '/admin/penalty-rules/999999/amount', $admin, ['csrf_token' =>
 check(str_contains(http('GET', '/admin/penalty-rules', $admin)['body'], 'Penalty rule not found'), 'editing a rule that does not exist says so');
 http('POST', "/admin/penalty-rules/{$ruleId}/toggle", $admin, ['csrf_token' => $adminT, 'active' => '0']);
 check((int) one('SELECT active FROM penalty_rules WHERE id = ?', [$ruleId]) === 0, 'rule deactivated');
-http('POST', '/staff/penalties/issue', $staff, ['csrf_token' => $staffT, 'boarder_id' => $r1, 'rule_id' => $ruleId, 'amount' => '1', 'reason' => "audit off {$tag}"]);
+http('POST', '/admin/penalties/issue', $admin, ['csrf_token' => $adminT, 'boarder_id' => $r1, 'rule_id' => $ruleId, 'amount' => '1', 'reason' => "audit off {$tag}"]);
 check((int) one('SELECT COUNT(*) FROM penalties WHERE reason = ?', ["audit off {$tag}"]) === 0, 'a deactivated rule cannot be used to issue a penalty');
 http('POST', "/admin/penalty-rules/{$ruleId}/toggle", $admin, ['csrf_token' => $adminT, 'active' => '1']);
 check((int) one('SELECT active FROM penalty_rules WHERE id = ?', [$ruleId]) === 1, 'rule reactivated');

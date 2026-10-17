@@ -109,7 +109,7 @@ $totalPages = $totalPages ?? 1;
                                                 class="btn btn-secondary !py-0.5 !px-2 !text-[11px] font-semibold note-toggle-btn cursor-pointer inline-flex items-center gap-1 shadow-2xs"
                                                 data-id="<?= (int) $h['id'] ?>"
                                                 title="View resolution notes">
-                                            <span>📝</span> Note
+                                            <span><?= \App\Support\Icon::svg('square-pen') ?></span> Note
                                         </button>
                                     <?php else: ?>
                                         <span class="text-neutral-400 text-[11px] italic">No notes</span>
@@ -141,7 +141,7 @@ $totalPages = $totalPages ?? 1;
                                         <div class="note-drawer-box bg-white rounded-xl border border-neutral-200 p-4 shadow-xs">
                                             <div class="flex items-center justify-between pb-2 mb-2.5 border-b border-neutral-100">
                                                 <div class="flex items-center gap-2">
-                                                    <span style="font-size:1rem;">📝</span>
+                                                    <?= \App\Support\Icon::svg('square-pen', 16) ?>
                                                     <h4 class="text-body-sm font-semibold text-neutral-900">
                                                         Resolution Notes &mdash;
                                                         <span class="text-primary-700 font-bold"><?= htmlspecialchars($h['type']) ?></span>
@@ -164,7 +164,7 @@ $totalPages = $totalPages ?? 1;
                             <tr>
                                 <td colspan="8">
                                     <div class="py-12 text-center text-neutral-400">
-                                        <div style="font-size: 2rem; margin-bottom: 0.5rem;">📋</div>
+                                        <span class="empty-icon"><?= \App\Support\Icon::svg('clipboard') ?></span>
                                         <p class="font-semibold text-neutral-700 text-body-sm">No incident history.</p>
                                         <p class="text-caption text-neutral-400 mt-0.5">No incidents have been recorded yet.</p>
                                     </div>

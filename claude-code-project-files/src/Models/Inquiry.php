@@ -67,10 +67,30 @@ class Inquiry
     public static function find(int $id): ?array
     {
         $stmt = Database::getConnection()->prepare(
-            'SELECT i.*, u.name AS submitted_by_name FROM inquiries i LEFT JOIN users u ON u.id = i.submitted_by WHERE i.id = ?'
+            'SELECT i.*, u.name AS submitted_by_name, c.name AS converted_user_name
+             FROM inquiries i LEFT JOIN users u ON u.id = i.submitted_by LEFT JOIN users c ON c.id = i.converted_user_id
+             WHERE i.id = ?'
         );
         $stmt->execute([$id]);
         return $stmt->fetch() ?: null;
+    }
+
+    /**
+     * Records that this inquiry became $userId's account and closes it. Called inside the
+     * account-creation transaction; the row lock plus the UNIQUE key mean a double submit
+     * cannot turn one inquiry into two accounts.
+     */
+    public static function markConverted(int $id, int $userId): void
+    {
+        $pdo = Database::getConnection();
+        $stmt = $pdo->prepare('SELECT converted_user_id FROM inquiries WHERE id = ? FOR UPDATE');
+        $stmt->execute([$id]);
+        $row = $stmt->fetch() ?: throw new \RuntimeException('That inquiry no longer exists.');
+        if ($row['converted_user_id'] !== null) {
+            throw new \RuntimeException('This inquiry has already been registered as a boarder.');
+        }
+        $pdo->prepare("UPDATE inquiries SET converted_user_id = ?, converted_at = NOW(), status = 'closed' WHERE id = ?")
+            ->execute([$userId, $id]);
     }
 
     public static function setStatus(int $id, string $status): bool
