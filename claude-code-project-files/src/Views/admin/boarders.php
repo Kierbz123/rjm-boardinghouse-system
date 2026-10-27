@@ -741,6 +741,8 @@ $totalBalancesOwed  = array_sum(array_column($boarders, 'outstanding_balance'));
         </span>
     </div>
 
+    <?php $userTab = 'boarders'; require __DIR__ . '/_user_tabs.php'; ?>
+
     <?php if ($error): ?>
         <div class="bg-error-50 text-error-700 text-body-sm rounded-lg p-3.5 border border-error-500 flex items-center gap-2.5" role="alert">
             <?= \App\Support\Icon::svg('alert-triangle', 18) ?>

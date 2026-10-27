@@ -79,7 +79,7 @@ check($late->get('/profile')->loc === '/login', 'a session opened before the exp
 $r = $late->login($e2, 'Tmp-walnut-meadow-fig');
 check($r->loc === '/login' && flashHas($late, $r, 'temporary password has expired'), 'an expired temporary password does not sign in, and says so');
 check(flashHas($late, $late->login($e2, 'wrong-password-entirely'), 'Invalid email or password'), 'a wrong password still gets the generic message (no hint the account exists)');
-check($admin->get('/admin/staff')->has('Temporary password expired'), 'the admin sees which temporary passwords expired');
+check($admin->get('/admin/staff?view=staff')->has('Temporary password expired'), 'the admin sees which temporary passwords expired');
 $admin->post('/admin/staff/' . $idOf($e2) . '/password', ['new_password' => 'Tmp-second-heron-lamp']);
 check((new Client('late2'))->login($e2, 'Tmp-second-heron-lamp')->loc === '/staff/dashboard', 'a fresh temporary password from the admin works again');
 
@@ -89,7 +89,7 @@ $r = $admin->post("/admin/staff/{$sid}/password", ['new_password' => 'Reset-plum
 check(flashHas($admin, $r, 'signed out') && q1('SELECT password_hash FROM users WHERE id = ?', [$sid]) !== $before, 'the admin sets a new temporary password');
 check($c->get('/staff/dashboard')->loc === '/login', "the staff member's open session ended");
 check((int) q1('SELECT must_change_password FROM users WHERE id = ?', [$sid]) === 1 && q1('SELECT temp_password_expires_at FROM users WHERE id = ?', [$sid]) !== null, 'the reset password is temporary too');
-check(!str_contains($admin->get('/admin/staff')->body, 'Reset-plum-anchor-sky'), 'the page never shows a password');
+check(!str_contains($admin->get('/admin/staff?view=staff')->body, 'Reset-plum-anchor-sky'), 'the page never shows a password');
 $r = $admin->post("/admin/staff/{$sid}/password", ['new_password' => "Crew Member {$email}"]);
 check(flashHas($admin, $r, 'easy to guess'), "a reset password made of the person's name and e-mail is refused");
 $c = new Client('temp2');
@@ -146,7 +146,7 @@ check(!array_filter($trail, fn ($t) => (int) $t['actor_id'] !== $adminId), 'ever
 check(!array_filter($trail, fn ($t) => !array_key_exists('ip', json_decode((string) $t['details'], true) ?: [])), 'every entry records the IP address');
 $allDetails = implode(' ', array_column(q("SELECT details FROM audit_log WHERE entity_type = 'user'"), 'details'));
 check(!str_contains($allDetails, 'Tmp-') && !str_contains($allDetails, 'Reset-plum') && !str_contains($allDetails, '$2y$'), 'no password or hash is ever written to the trail');
-$page = $admin->get('/admin/staff');
+$page = $admin->get('/admin/staff?view=staff');
 check($page->has('History for') && $page->has('Temporary password set') && $page->has('Reactivated'), "the page shows each staff member's history");
 
 section('Owner decisions, 15 Oct 2026: money is admin-only');
@@ -172,7 +172,7 @@ check(flashHas($admin, $admin->post('/admin/staff', ['name' => 'Phone Bad', 'ema
 $admin->post('/admin/staff', ['name' => 'Rosa Dela Cruz', 'email' => $pe, 'password' => 'Tmp-cobalt-river-fern', 'phone' => ' 0917  555 0101 ']);
 $pid = $idOf($pe);
 check($pid > 0 && q1('SELECT phone FROM users WHERE id = ?', [$pid]) === '0917 555 0101', 'the phone is stored trimmed with single spaces');
-check($admin->get('/admin/staff')->has('0917 555 0101'), 'the staff list shows it');
+check($admin->get('/admin/staff?view=staff')->has('0917 555 0101'), 'the staff list shows it');
 $portal = $resident['client']->get('/portal/dashboard')->body;
 check(str_contains($portal, 'Call Rosa Dela Cruz') && str_contains($portal, 'href="tel:09175550101"'), 'residents see "Call <name>: <number>" beside the SOS button, as a tap-to-call link');
 $admin->post("/admin/staff/{$pid}/phone", ['phone' => '+63 917 555 0202']);
@@ -187,6 +187,6 @@ $admin->post("/admin/staff/{$pid}/phone", ['phone' => '']);
 check(q1('SELECT phone FROM users WHERE id = ?', [$pid]) === null, 'an empty field removes the number');
 
 section('Owner decisions, 15 Oct 2026: retention and on-duty rules are shown');
-check($admin->get('/admin/staff')->has('5 years after the person leaves'), 'the admin page states the 5-year retention rule');
+check($admin->get('/admin/staff?view=staff')->has('5 years after the person leaves'), 'the admin page states the 5-year retention rule');
 check($staffC->get('/profile')->has('5 years after you leave'), 'staff see the retention rule on their Profile page');
 check($staffC->get('/staff/dashboard')->has('keep this page open on the front-desk computer'), 'the staff dashboard says to keep it open while on duty');

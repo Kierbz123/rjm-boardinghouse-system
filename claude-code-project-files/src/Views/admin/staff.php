@@ -43,8 +43,10 @@ $hint = 'text-xs text-neutral-500 mt-1.5 leading-relaxed';
         </span>
     </div>
 
+    <?php $userTab = 'staff'; require __DIR__ . '/_user_tabs.php'; ?>
+
     <div class="grid gap-6 xl:grid-cols-3 items-start">
-        <section class="card p-5 sm:p-6 xl:col-span-2" aria-labelledby="add-staff-heading">
+        <section id="add-staff" class="card p-5 sm:p-6 xl:col-span-2" aria-labelledby="add-staff-heading">
             <h2 id="add-staff-heading" class="text-base font-semibold text-neutral-900">Add a staff member</h2>
             <p class="text-sm text-neutral-500 mt-1">They sign in with a temporary password, then choose their own.</p>
 
@@ -102,7 +104,7 @@ $hint = 'text-xs text-neutral-500 mt-1.5 leading-relaxed';
                 <span class="text-xs text-neutral-500">Add one with the form above.</span>
             </div>
         <?php else: ?>
-        <div class="overflow-x-auto border-t border-neutral-100">
+        <div class="relative overflow-x-auto border-t border-neutral-100">
             <table class="w-full text-sm table-compact">
                 <thead>
                     <tr>
@@ -118,7 +120,7 @@ $hint = 'text-xs text-neutral-500 mt-1.5 leading-relaxed';
                     $sid = (int) $s['id'];
                     $isActive = ($s['status'] ?? 'active') === 'active';
                     $expired = \App\Models\User::temporaryPasswordExpired($s); ?>
-                    <tr class="staff-row">
+                    <tr id="staff-<?= $sid ?>" class="staff-row">
                         <td>
                             <div class="font-medium text-neutral-900"><?= htmlspecialchars($s['name']) ?></div>
                             <div class="text-xs text-neutral-500"><?= htmlspecialchars($s['email']) ?></div>

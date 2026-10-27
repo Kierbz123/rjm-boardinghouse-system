@@ -147,6 +147,7 @@ class BoarderController
             if ($inquiryId > 0) {
                 \App\Models\Inquiry::markConverted($inquiryId, $userId);
             }
+            self::audit('resident_created', $userId, $inquiryId > 0 ? ['inquiry_id' => $inquiryId] : []);
             $pdo->commit();
         } catch (\Throwable $e) {
             if ($pdo->inTransaction()) {
@@ -225,7 +226,8 @@ class BoarderController
         $redirectUrl = preg_match('#^/admin/boarders/\d+$#', $returnTo) ? $returnTo : '/admin/boarders';
 
         // This route edits residents only; an id belonging to a staff or admin account is refused.
-        if (BoarderProfile::find($id) === null) {
+        $before = BoarderProfile::find($id);
+        if ($before === null) {
             $_SESSION['flash_error'] = 'Boarder not found.';
             header('Location: /admin/boarders');
             exit;
@@ -264,15 +266,22 @@ class BoarderController
             exit;
         }
 
-        // Update user record (name, email)
+        // Details and their audit row are saved together. The trail names the fields that changed, never their
+        // values; a status change has its own trail in boarder_status_log (BoarderProfile::updateStatus).
+        $after = ['name' => $name, 'email' => $email, 'contact_number' => $contactNumber, 'emergency_contact_number' => $emergencyContactNumber];
+        $changed = array_keys(array_filter($after, fn ($v, $k) => (string) ($before[$k] ?? '') !== $v, ARRAY_FILTER_USE_BOTH));
+        $pdo = Database::getConnection();
+        $pdo->beginTransaction();
         User::updateInfo($id, $name, $email);
-
-        // Update boarder profile record (contact numbers)
         BoarderProfile::updateProfile(
             $id,
             $contactNumber !== '' ? $contactNumber : null,
             $emergencyContactNumber !== '' ? $emergencyContactNumber : null
         );
+        if ($changed) {
+            self::audit('resident_updated', $id, ['fields' => $changed]);
+        }
+        $pdo->commit();
 
         // Update status if specified and either changed or note attached
         if ($status !== '') {
@@ -293,6 +302,12 @@ class BoarderController
         $_SESSION['flash_success'] = "Updated resident details for {$name}.";
         header('Location: ' . $redirectUrl);
         exit;
+    }
+
+    private static function audit(string $action, int $userId, array $details = []): void
+    {
+        \App\Services\AuditLog::record((int) ($_SESSION['user_id'] ?? 0), $action, 'user', $userId,
+            $details + ['ip' => \App\Support\TrustedProxy::clientIp($_SERVER)]);
     }
 
     public static function delete(string $userId): void

@@ -121,7 +121,7 @@ try {
 }
 check($threw, 'the model itself refuses an over-long password (a controller that forgets cannot create a truncated one)');
 
-$pages = ['/admin/boarders', '/admin/staff', "/admin/boarders/{$res['id']}", '/profile'];
+$pages = ['/admin/boarders', '/admin/staff?view=staff', "/admin/boarders/{$res['id']}", '/profile'];
 foreach ($pages as $page) {
     $html = ($page === '/profile' ? $me : $admin)->get($page, true)->body;
     check(str_contains($html, 'data-max-bytes="72"'), "{$page} password fields carry the 72-byte limit for the browser");

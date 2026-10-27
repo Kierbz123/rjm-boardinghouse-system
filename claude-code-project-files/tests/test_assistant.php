@@ -29,7 +29,7 @@ echo "== Sidebar is unchanged ==\n";
 $sidebarBefore = [
     'admin' => [
         'Overview' => ['/admin/dashboard' => 'Dashboard', '/admin/inquiry-center' => 'Inquiry Center', '/admin/occupancy' => 'Occupancy'],
-        'Boarding' => ['/admin/boarders' => 'Boarders', '/admin/rooms' => 'Rooms & Beds', '/admin/staff' => 'Staff Accounts'],
+        'Boarding' => ['/admin/boarders' => 'Boarders', '/admin/rooms' => 'Rooms & Beds', '/admin/staff' => 'User Management'],
         'Finance' => ['/admin/payments' => 'Payments', '/admin/payments/record' => 'Record Payment', '/admin/expenses' => 'Expenses', '/admin/penalty-rules' => 'Penalties'],
         'Records' => ['/staff/maintenance/history' => 'Maintenance History', '/staff/incidents/history' => 'Incident History'],
     ],

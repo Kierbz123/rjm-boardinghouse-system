@@ -9,14 +9,40 @@ use App\Support\Csrf;
 use App\Support\PasswordPolicy;
 use App\Support\TrustedProxy;
 
-/** Admin-only staff account management: list, add, deactivate/reactivate (owner decision 7b). */
+/**
+ * Admin-only User Management. The default view lists residents and staff together; the Staff tab is
+ * the staff account page (add, reset, deactivate/reactivate, owner decision 7b); the Boarders tab is /admin/boarders.
+ */
 class StaffController
 {
+    private const PER_PAGE = 25;
+
     public static function index(): void
     {
-        $staff = User::allByRole('staff');
-        $history = AuditLog::forUsersWithRole('staff');
-        require __DIR__ . '/../Views/admin/staff.php';
+        $view = $_GET['view'] ?? 'all';
+        if ($view === 'boarders') {
+            header('Location: /admin/boarders');
+            exit;
+        }
+        if ($view === 'staff') {
+            $staff = User::allByRole('staff');
+            $history = AuditLog::forUsersWithRole('staff');
+            require __DIR__ . '/../Views/admin/staff.php';
+            return;
+        }
+
+        $pick = fn (string $key, array $allowed, string $default) => in_array($_GET[$key] ?? null, $allowed, true) ? $_GET[$key] : $default;
+        $filters = [
+            'q' => is_string($_GET['q'] ?? null) ? mb_substr(trim($_GET['q']), 0, 100) : '',
+            'type' => $pick('type', ['boarder', 'staff'], ''),
+            'status' => $pick('status', User::MANAGEMENT_STATUSES, ''),
+            'sort' => $pick('sort', User::MANAGEMENT_SORTS, 'name'),
+        ];
+        $page = min(10000, max(1, (int) ($_GET['page'] ?? 1)));
+        ['rows' => $users, 'total' => $total] = User::managementList($filters, $page, self::PER_PAGE);
+        $counts = User::managementCounts();
+        $pages = max(1, (int) ceil($total / self::PER_PAGE));
+        require __DIR__ . '/../Views/admin/users_all.php';
     }
 
     public static function create(): void
@@ -138,7 +164,7 @@ class StaffController
     private static function back(string $flashKey, string $message): never
     {
         $_SESSION[$flashKey] = $message;
-        header('Location: /admin/staff');
+        header('Location: /admin/staff?view=staff');
         exit;
     }
 }

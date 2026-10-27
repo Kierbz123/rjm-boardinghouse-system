@@ -69,6 +69,78 @@ class User
         Database::getConnection()->prepare('UPDATE users SET last_login_at = NOW() WHERE id = ?')->execute([$id]);
     }
 
+    /** User Management filters: '' = everyone except archived residents. */
+    public const MANAGEMENT_STATUSES = ['', 'active', 'inactive', 'pending', 'archived'];
+    public const MANAGEMENT_SORTS = ['name', 'newest', 'last_login'];
+
+    // One fixed text; optional filters are switched by their parameter, so no SQL is ever assembled at runtime.
+    // boarder_profiles is keyed by user_id (1:1), so each person is one row. Admins are never listed.
+    private const MANAGEMENT_FROM = "FROM users u
+        LEFT JOIN boarder_profiles bp ON bp.user_id = u.id
+        LEFT JOIN rooms r ON r.id = bp.room_id
+        LEFT JOIN beds b ON b.id = bp.bed_id
+        WHERE u.role IN ('boarder', 'staff')
+          AND (? = '' OR u.role = ?)
+          AND CASE ?
+                WHEN 'active'   THEN u.status = 'active'
+                WHEN 'inactive' THEN u.status = 'inactive'
+                WHEN 'archived' THEN u.status = 'archived'
+                WHEN 'pending'  THEN u.status <> 'archived' AND bp.status = 'pending'
+                ELSE u.status <> 'archived'
+              END
+          AND (? = '' OR u.name LIKE ? OR u.email LIKE ? OR u.phone LIKE ? OR bp.contact_number LIKE ? OR r.room_number LIKE ? OR u.id = ?)";
+
+    private const MANAGEMENT_LIST_SQL = 'SELECT u.id, u.role, u.name, u.email, u.phone, u.status, u.created_at, u.last_login_at,
+            u.must_change_password, u.temp_password_expires_at, bp.status AS residency_status, bp.contact_number,
+            r.room_number, b.label AS bed_label ' . self::MANAGEMENT_FROM . "
+        ORDER BY CASE WHEN ? = 'newest' THEN u.id END DESC,
+                 CASE WHEN ? = 'last_login' THEN u.last_login_at END DESC,
+                 u.name ASC, u.id ASC
+        LIMIT ? OFFSET ?";
+
+    private const MANAGEMENT_COUNT_SQL = 'SELECT COUNT(*) ' . self::MANAGEMENT_FROM;
+
+    /**
+     * Residents and staff in one list. $f holds validated 'q', 'type', 'status', 'sort'.
+     * @return array{rows: list<array>, total: int}
+     */
+    public static function managementList(array $f, int $page, int $perPage): array
+    {
+        $q = $f['q'];
+        $like = '%' . addcslashes($q, '%_\\') . '%';
+        $idNum = ctype_digit(ltrim($q, '#')) ? (int) ltrim($q, '#') : 0;
+        $where = [$f['type'], $f['type'], $f['status'], $q, $like, $like, $like, $like, $like, $idNum];
+        $db = Database::getConnection();
+
+        $count = $db->prepare(self::MANAGEMENT_COUNT_SQL);
+        $count->execute($where);
+        $list = $db->prepare(self::MANAGEMENT_LIST_SQL);
+        foreach ([...$where, $f['sort'], $f['sort'], $perPage, ($page - 1) * $perPage] as $i => $value) {
+            $list->bindValue($i + 1, $value, is_int($value) ? \PDO::PARAM_INT : \PDO::PARAM_STR);
+        }
+        $list->execute();
+        return ['rows' => $list->fetchAll(), 'total' => (int) $count->fetchColumn()];
+    }
+
+    /** The User Management summary. Archived residents count only towards "cannot sign in". */
+    public static function managementCounts(): array
+    {
+        $c = ['total' => 0, 'boarders' => 0, 'staff' => 0, 'active' => 0, 'inactive' => 0];
+        $rows = Database::getConnection()->query(
+            "SELECT role, status, COUNT(*) AS n FROM users WHERE role IN ('boarder', 'staff') GROUP BY role, status"
+        )->fetchAll();
+        foreach ($rows as $r) {
+            $n = (int) $r['n'];
+            if ($r['status'] !== 'archived') {
+                $c['total'] += $n;
+                $c[$r['role'] === 'boarder' ? 'boarders' : 'staff'] += $n;
+            }
+            $c['active'] += $r['status'] === 'active' ? $n : 0;
+            $c['inactive'] += in_array($r['status'], ['inactive', 'archived'], true) ? $n : 0;
+        }
+        return $c;
+    }
+
     public static function allByRole(string $role): array
     {
         $stmt = Database::getConnection()->prepare('SELECT * FROM users WHERE role = ? ORDER BY name');

@@ -155,7 +155,7 @@ $matches = function (string $method, string $path) use ($routes): ?string {
 $pages = [
     'visitor' => [null, ['/', '/login']],
     'admin' => [$admin, ['/admin/dashboard', '/admin/inquiry-center', "/admin/inquiries/{$inquiry}", '/admin/boarders', '/admin/boarders?archived=1', "/admin/boarders/{$r1}",
-        '/admin/staff', '/admin/rooms', '/admin/payments', '/admin/payments/record', '/admin/expenses', '/admin/penalty-rules', '/admin/occupancy', '/staff/dashboard',
+        '/admin/staff', '/admin/staff?view=staff', '/admin/rooms', '/admin/payments', '/admin/payments/record', '/admin/expenses', '/admin/penalty-rules', '/admin/occupancy', '/staff/dashboard',
         '/staff/maintenance', '/staff/maintenance/history', '/staff/incidents', '/staff/incidents/history', '/notifications', '/profile']],
     'staff' => [$staff, ['/staff/dashboard', '/staff/maintenance', '/staff/maintenance/history', '/staff/incidents', '/staff/incidents/history',
         '/admin/inquiry-center', '/notifications', '/profile']],
@@ -212,7 +212,9 @@ $scripted = ['POST /api/sos', 'POST /api/maintenance/score-preview', 'POST /api/
     // Only on screen while a move-out is scheduled; clicked through in test_wp03_dates.php.
     'POST /admin/boarders/{id}/move-out/cancel',
     // Only on screen when an inquiry's email already has an account; clicked through in test_inquiry_conversion.php.
-    'POST /admin/inquiries/{id}/link-boarder'];
+    'POST /admin/inquiries/{id}/link-boarder',
+    // The Staff tab's one reset dialog gets each row's action by script; clicked through in test_staff_accounts.php.
+    'POST /admin/staff/{id}/password'];
 $unreachable = [];
 foreach ($routes as [$rm, $pattern]) {
     if ($rm === 'POST' && empty($reached["POST {$pattern}"]) && !in_array("POST {$pattern}", $scripted, true)) {

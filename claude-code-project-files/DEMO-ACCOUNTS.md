@@ -21,7 +21,7 @@ Sees and controls everything.
 - **Dashboard:** pending payments, open repairs by priority, active SOS alerts, recent expenses, occupancy.
 - **Boarders:** add residents, assign beds, change status (pending, active, on notice, moved out), edit move-in/move-out dates, add notes. *Remove* archives a resident who has payment history (records kept, restorable) and deletes only residents with no payment history.
 - **Rooms & Beds:** add, edit and delete rooms; add, rename and delete beds; a bed can't be double-booked (the database refuses it) and a room can't have more beds than its capacity.
-- **Staff Accounts:** add staff, deactivate or reactivate them, reset a forgotten password.
+- **User Management:** every resident and staff member in one list (search, filters, paging); its **Staff** tab adds staff, deactivates or reactivates them, and resets a forgotten password.
 - **Forgotten passwords:** set a new temporary password for a resident (on their page) or a staff member.
 - **Payments:** approve or reject boarders' receipts, or *Reverse* an approved payment. Every payment waits for an admin.
 - **Penalties:** create penalty rules, issue penalties with any amount, run the late-fee check, mark a penalty paid.
@@ -56,7 +56,7 @@ passwords. They are not listed here.
 
 **A resident or a staff member:** sign in as the admin and set a new temporary password for them.
 - Resident: **Boarders → open the resident → Reset Sign-in Password**.
-- Staff: **Staff Accounts → Reset password** on their row.
+- Staff: **User Management → Staff → Reset password** on their row.
 
 They are signed out everywhere, any lockout from wrong attempts is lifted, and they should change the
 password under **Profile** after signing in.
