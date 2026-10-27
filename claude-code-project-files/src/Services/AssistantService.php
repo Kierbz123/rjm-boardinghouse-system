@@ -511,7 +511,7 @@ class AssistantService
                     self::peso(array_sum(array_column($owing, 'due'))),
                     implode(', ', array_map(fn ($o) => "{$o['name']} " . self::peso($o['due']), $top)))
                 : self::t($lang, 'No boarder owes anything right now.', 'Walang boarder na may utang ngayon.'),
-            'actions' => [self::open($lang, 'Boarders', '/admin/boarders'),
+            'actions' => [self::open($lang, 'Boarders', '/admin/staff?view=boarders'),
                 ...array_map(fn ($o) => self::open($lang, $o['name'], "/admin/boarders/{$o['id']}"), array_slice($top, 0, 2))],
         ];
     }

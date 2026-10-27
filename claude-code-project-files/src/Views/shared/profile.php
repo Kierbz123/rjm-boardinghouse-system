@@ -321,7 +321,7 @@ $stats = $stats ?? [];
 
             <!-- Quick Action Links Cluster with Generous Spacing and NO straight divider line -->
             <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 0.75rem; margin-top: 1.75rem;">
-                <a href="/admin/boarders" class="btn btn-secondary !py-2.5 !px-4.5 !text-xs !rounded-xl inline-flex items-center gap-2 shadow-xs hover:border-neutral-400 transition-all">
+                <a href="/admin/staff?view=boarders" class="btn btn-secondary !py-2.5 !px-4.5 !text-xs !rounded-xl inline-flex items-center gap-2 shadow-xs hover:border-neutral-400 transition-all">
                     <span><?= \App\Support\Icon::svg('users') ?></span>
                     <span class="font-semibold">Boarders Directory</span>
                 </a>

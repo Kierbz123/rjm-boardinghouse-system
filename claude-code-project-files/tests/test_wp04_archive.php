@@ -38,10 +38,10 @@ check(!method_exists(\App\Models\BoarderProfile::class, 'delete'), 'BoarderProfi
 section('Archived residents view');
 $row = q('SELECT archived_at, archived_by, archive_reason FROM users WHERE id = ?', [$a['id']])[0] ?? [];
 check(!empty($row['archived_at']) && (int) $row['archived_by'] === 1 && $row['archive_reason'] === 'Left without notice', 'the date, who archived them and why are stored', json_encode($row));
-$list = $admin->get('/admin/boarders?archived=1', true)->body;
+$list = $admin->get('/admin/staff?view=boarders&archived=1', true)->body;
 check(str_contains($list, 'Left without notice') && str_contains($list, 'Test Resident'), 'the archived view shows the reason');
 check(preg_match('/Archived (on )?' . preg_quote(date('M j, Y'), '/') . '/i', $list) === 1 || str_contains($list, date('M j, Y')), 'the archived view shows when');
-check(!str_contains($admin->get('/admin/boarders', true)->body, $a['email']), 'archived residents are not in the current list');
+check(!str_contains($admin->get('/admin/staff?view=boarders', true)->body, $a['email']), 'archived residents are not in the current list');
 check(flashHas($admin, $admin->post("/admin/boarders/{$b['id']}/restore"), 'restored') && q1('SELECT status FROM users WHERE id = ?', [$b['id']]) === 'active', 'restore brings an archived resident back');
 check(q1('SELECT archived_at FROM users WHERE id = ?', [$b['id']]) === null, 'and clears the archive details');
 check((int) q1("SELECT COUNT(*) FROM audit_log WHERE action = 'resident_archived' AND entity_id = ?", [$a['id']]) === 1 && (int) q1("SELECT COUNT(*) FROM audit_log WHERE action = 'resident_restored' AND entity_id = ?", [$b['id']]) === 1, 'archive and restore are in the audit trail');

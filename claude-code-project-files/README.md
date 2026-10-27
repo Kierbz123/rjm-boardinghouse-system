@@ -49,7 +49,7 @@ php -d upload_max_filesize=20M -d post_max_size=25M -S 127.0.0.1:8000 -t public 
 
 `database/seed.php` creates three accounts: `admin@rjm.test`, `staff@rjm.test` and `boarder@rjm.test`. **No password is written anywhere in this project.** Each one gets a random password that the seed script prints once, and each must choose its own at first sign-in (the rest of the system stays closed until then). To reset one later, see DEMO-ACCOUNTS.md.
 
-There is no public sign-up. Admins create boarders (Boarders page) and staff (User Management → Staff tab). User Management (`/admin/staff`) also lists every resident and staff member in one searchable, paged table. When a resident or staff member forgets their password, the admin sets a new temporary one from the same pages (resident: open them, then "Reset Sign-in Password"; staff: "Reset password" on their row).
+There is no public sign-up. Admins create boarders (Boarders page) and staff (User Management → Staff tab). User Management (`/admin/staff`) also lists every resident and staff member in one searchable, paged table; its Boarders tab (`/admin/staff?view=boarders`) is the Resident Directory, where residents are filtered by status, edited, archived and restored ("Show archived"). When a resident or staff member forgets their password, the admin sets a new temporary one from the same pages (resident: open them, then "Reset Sign-in Password"; staff: "Reset password" on their row).
 
 ## How billing works
 

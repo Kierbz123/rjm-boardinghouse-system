@@ -11,7 +11,8 @@ use App\Support\TrustedProxy;
 
 /**
  * Admin-only User Management. The default view lists residents and staff together; the Staff tab is
- * the staff account page (add, reset, deactivate/reactivate, owner decision 7b); the Boarders tab is /admin/boarders.
+ * the staff account page (add, reset, deactivate/reactivate, owner decision 7b); the Boarders tab is the
+ * Resident Directory. Adding and placing a resident stays on /admin/boarders.
  */
 class StaffController
 {
@@ -21,8 +22,11 @@ class StaffController
     {
         $view = $_GET['view'] ?? 'all';
         if ($view === 'boarders') {
-            header('Location: /admin/boarders');
-            exit;
+            \App\Services\HousekeepingService::applyDueMoveOuts(); // like every other resident list, so statuses are current
+            $showArchived = ($_GET['archived'] ?? '') === '1';
+            $boarders = \App\Models\BoarderProfile::all($showArchived);
+            require __DIR__ . '/../Views/admin/boarders_directory.php';
+            return;
         }
         if ($view === 'staff') {
             $staff = User::allByRole('staff');

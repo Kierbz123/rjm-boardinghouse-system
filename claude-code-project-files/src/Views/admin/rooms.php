@@ -232,7 +232,7 @@ $occupancyRate = $totalBeds > 0 ? round(($occupiedBeds / $totalBeds) * 100) : 0;
                     </select>
                     <?php if (!$assignable): ?>
                         <p class="text-caption text-neutral-400 mt-1">
-                            No boarders to assign yet. Add one in the <a href="/admin/boarders" class="text-primary-600 font-medium hover:underline">Boarders Directory</a>.
+                            No boarders to assign yet. Add one on the <a href="/admin/boarders#add-boarder" class="text-primary-600 font-medium hover:underline">Boarders page</a>.
                         </p>
                     <?php endif; ?>
                 </div>

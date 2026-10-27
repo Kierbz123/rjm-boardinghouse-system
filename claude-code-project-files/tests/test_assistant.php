@@ -140,7 +140,7 @@ check($card['source'] === 'data' && str_contains($card['reply'], ($beds['total']
 $card = $ask('admin', 'payments waiting for review', 'en', 1);
 check($card['source'] === 'data' && $hrefsOf($card) === ['/admin/payments'], 'admin payments waiting: ' . $card['reply']);
 $card = $ask('admin', 'who owes the most?', 'en', 1);
-check($card['source'] === 'data' && $hrefsOf($card)[0] === '/admin/boarders', 'admin who owes: ' . $card['reply']);
+check($card['source'] === 'data' && $hrefsOf($card)[0] === '/admin/staff?view=boarders', 'admin who owes: ' . $card['reply']);
 check($ask('admin', 'gastos this month', 'tl', 1)['source'] === 'data', 'admin expenses this month in Tagalog');
 $boarder = BoarderProfile::find($boarderId);
 $namePart = current(array_filter(explode(' ', $boarder['name']), fn ($p) => strlen($p) >= 3 && !NavRegistry::isPageWord($p)));

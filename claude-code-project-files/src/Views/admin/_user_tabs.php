@@ -3,7 +3,7 @@
 (function (string $current): void {
     $tabs = [
         'all' => ['All users', '/admin/staff', 'users'],
-        'boarders' => ['Boarders', '/admin/boarders', 'building'],
+        'boarders' => ['Boarders', '/admin/staff?view=boarders', 'building'],
         'staff' => ['Staff', '/admin/staff?view=staff', 'wrench'],
     ];
     echo '<nav data-user-tabs aria-label="User Management" class="flex flex-wrap gap-2">';

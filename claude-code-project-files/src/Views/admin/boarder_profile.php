@@ -488,7 +488,7 @@ input[type="date"].profile-input {
 
     <!-- Top Navigation Breadcrumb & Back Button -->
     <div class="flex items-center justify-between gap-4">
-        <a href="/admin/boarders" class="profile-btn profile-btn-secondary !text-xs font-semibold">
+        <a href="/admin/staff?view=boarders" class="profile-btn profile-btn-secondary !text-xs font-semibold">
             <span>←</span> Back to Directory
         </a>
         <div class="flex items-center gap-2">

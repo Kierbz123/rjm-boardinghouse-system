@@ -146,7 +146,7 @@ $totalOpenRequests = array_sum(array_column($openByTier, 'c'));
                 <?php if ($collections['owing_count'] > count($collections['debtors'])): ?>
                     <p class="text-caption text-neutral-500" style="padding: 0.75rem 1rem; border-top: 1px solid #e6e5e2;">
                         Showing <?= count($collections['debtors']) ?> of <?= $collections['owing_count'] ?> residents with a balance.
-                        <a href="/admin/boarders" class="font-semibold text-neutral-900" style="text-decoration: underline; text-underline-offset: 3px;">See all boarders</a>
+                        <a href="/admin/staff?view=boarders" class="font-semibold text-neutral-900" style="text-decoration: underline; text-underline-offset: 3px;">See all boarders</a>
                     </p>
                 <?php endif; ?>
             </div>

@@ -154,7 +154,7 @@ $matches = function (string $method, string $path) use ($routes): ?string {
 
 $pages = [
     'visitor' => [null, ['/', '/login']],
-    'admin' => [$admin, ['/admin/dashboard', '/admin/inquiry-center', "/admin/inquiries/{$inquiry}", '/admin/boarders', '/admin/boarders?archived=1', "/admin/boarders/{$r1}",
+    'admin' => [$admin, ['/admin/dashboard', '/admin/inquiry-center', "/admin/inquiries/{$inquiry}", '/admin/boarders', '/admin/staff?view=boarders', '/admin/staff?view=boarders&archived=1', "/admin/boarders/{$r1}",
         '/admin/staff', '/admin/staff?view=staff', '/admin/rooms', '/admin/payments', '/admin/payments/record', '/admin/expenses', '/admin/penalty-rules', '/admin/occupancy', '/staff/dashboard',
         '/staff/maintenance', '/staff/maintenance/history', '/staff/incidents', '/staff/incidents/history', '/notifications', '/profile']],
     'staff' => [$staff, ['/staff/dashboard', '/staff/maintenance', '/staff/maintenance/history', '/staff/incidents', '/staff/incidents/history',

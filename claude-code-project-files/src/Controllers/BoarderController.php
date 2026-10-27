@@ -20,11 +20,22 @@ use RuntimeException;
 
 class BoarderController
 {
+    /** The Resident Directory: User Management's Boarders tab. */
+    private const DIRECTORY = '/admin/staff?view=boarders';
+
+    /** Where a resident action goes back to: a profile, the directory, or the Boarders page. Anything else gets $default. */
+    private static function safeReturn(string $default): string
+    {
+        $to = trim((string) ($_POST['return_to'] ?? ''));
+        return preg_match('#^/admin/boarders(/\d+)?$#', $to) || preg_match('#^/admin/staff\?view=boarders(&archived=1)?$#', $to)
+            ? $to : $default;
+    }
+
     public static function index(): void
     {
         \App\Services\HousekeepingService::applyDueMoveOuts(); // move-outs whose day has come
-        $showArchived = ($_GET['archived'] ?? '') === '1';
-        $boarders = BoarderProfile::all($showArchived);
+        // Current residents only: the archived list lives in the Resident Directory now.
+        $boarders = BoarderProfile::all(false);
         $rooms = Room::all();
         $beds = Bed::all();
         $roomTypes = \App\Models\RoomType::all(); // same offerings and vacancy counts as Rooms & Beds
@@ -234,14 +245,13 @@ class BoarderController
         }
 
         $id = (int) $userId;
-        $returnTo = trim((string) ($_POST['return_to'] ?? ''));
-        $redirectUrl = preg_match('#^/admin/boarders/\d+$#', $returnTo) ? $returnTo : '/admin/boarders';
+        $redirectUrl = self::safeReturn(self::DIRECTORY);
 
         // This route edits residents only; an id belonging to a staff or admin account is refused.
         $before = BoarderProfile::find($id);
         if ($before === null) {
             $_SESSION['flash_error'] = 'Boarder not found.';
-            header('Location: /admin/boarders');
+            header('Location: ' . self::DIRECTORY);
             exit;
         }
 
@@ -341,7 +351,7 @@ class BoarderController
             $_SESSION['flash_error'] = self::messageFor($e, 'The resident could not be removed. Please try again.');
         }
 
-        header('Location: /admin/boarders');
+        header('Location: ' . self::safeReturn(self::DIRECTORY));
         exit;
     }
 
@@ -357,7 +367,8 @@ class BoarderController
         } else {
             $_SESSION['flash_error'] = 'No archived resident with that number was found.';
         }
-        header('Location: /admin/boarders');
+        // The directory's archived rows send return_to; the email-clash banner on the Add Boarder form does not.
+        header('Location: ' . self::safeReturn('/admin/boarders'));
         exit;
     }
 
@@ -427,7 +438,7 @@ class BoarderController
             $balanceDetails = BillingService::calculateBalance($id, null, true);
         } catch (\RuntimeException $e) {
             $_SESSION['flash_error'] = "Rent cannot be worked out for {$boarder['name']}: " . $e->getMessage();
-            header('Location: /admin/boarders');
+            header('Location: ' . self::DIRECTORY);
             exit;
         }
         $dateBounds     = ['min' => \App\Services\DateRules::openingDate(), 'max' => \App\Services\DateRules::latestMoveIn(), 'maxOut' => \App\Services\DateRules::latestMoveOut()];

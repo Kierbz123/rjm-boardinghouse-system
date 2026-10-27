@@ -52,8 +52,10 @@ check(!$accepted || $loginWithDifferentTail !== '/portal/dashboard', 'a password
 check(flashHas($admin, $mk(['email' => 'n' . uniq() . '@t.test', 'name' => str_repeat('n', 151)]), '150 characters'), 'name over 150 refused');
 $xss = 'x' . uniq() . '@t.test';
 $mk(['email' => $xss, 'name' => '<script>alert(1)</script>']);
-$list = $admin->get('/admin/boarders', true);
-check(!$list->has('<script>alert(1)</script>') && $list->has('&lt;script&gt;'), 'stored XSS in a name is escaped');
+foreach (['/admin/staff?view=boarders', '/admin/boarders'] as $page) { // the Resident Directory, and the Assign to Bed list
+    $list = $admin->get($page, true);
+    check(!$list->has('<script>alert(1)</script>') && $list->has('&lt;script&gt;'), "stored XSS in a name is escaped on {$page}");
+}
 $occ = 'o' . uniq() . '@t.test';
 check(flashHas($admin, $mk(['email' => $occ, 'bed_id' => $beds[0], 'room_id' => $roomId]), 'already occupied') && !q1('SELECT COUNT(*) FROM users WHERE email = ?', [$occ]), 'an occupied bed is refused and the half-made account is rolled back');
 

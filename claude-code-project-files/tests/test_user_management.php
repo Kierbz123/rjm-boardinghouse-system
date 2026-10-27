@@ -80,8 +80,18 @@ section('The existing pages stay reachable');
 $staffTab = $admin->get('/admin/staff?view=staff');
 check($staffTab->has('Add a staff member') && $staffTab->has('id="add-staff"') && $staffTab->has('id="staff-' . $paulo . '"'), 'the Staff tab is the staff page, with anchors for the deep links');
 $r = $admin->get('/admin/staff?view=boarders');
-check($r->code === 302 && $r->loc === '/admin/boarders', 'the Boarders tab opens the Boarders page');
-check($admin->get('/admin/boarders')->has('data-user-tabs'), 'the Boarders page shows the same tabs');
+check($r->code === 200 && $r->has('Resident Directory') && $r->has('id="boarders-table"') && $r->has('initBoardersPage') && $r->has('data-user-tabs'),
+    'the Boarders tab is the Resident Directory, with its tabs and its search script');
+check($r->has('id="boarder-row-' . $res['id'] . '"') && !$r->has('id="boarder-row-' . $arch['id'] . '"'), 'it lists current residents and leaves out archived ones');
+check($r->has('href="/admin/staff?view=boarders" class="btn btn-sm btn-primary" aria-current="page"'), 'the Boarders tab is highlighted');
+check($admin->get('/admin/staff?view=boarders&archived=1')->has('id="boarder-row-' . $arch['id'] . '"'), 'Show archived lists the archived resident');
+$boardersPage = $admin->get('/admin/boarders');
+check($boardersPage->has('data-user-tabs') && $boardersPage->has('id="add-boarder"') && !$boardersPage->has('id="boarders-table"'),
+    'the Boarders page keeps Add Boarder and the tabs, without the directory');
+$r = $admin->post("/admin/boarders/{$res['id']}/info", ['name' => "Mira {$tag}", 'email' => $res['email'], 'status' => '', 'return_to' => '/admin/staff?view=boarders']);
+check($r->loc === '/admin/staff?view=boarders', 'saving a resident from the directory returns to the directory');
+$r = $admin->post("/admin/boarders/{$res['id']}/info", ['name' => "Mira {$tag}", 'email' => $res['email'], 'status' => '', 'return_to' => '//evil.example/admin/boarders']);
+check($r->loc === '/admin/staff?view=boarders', 'an outside return_to is ignored');
 
 section('Only the administrator gets in');
 check(seededClient('staff')->get('/admin/staff')->code === 403, 'staff get 403');

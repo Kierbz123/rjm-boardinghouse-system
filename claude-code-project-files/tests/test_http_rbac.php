@@ -359,8 +359,8 @@ http('POST', '/admin/boarders/3/delete', $jars['admin'], ['csrf_token' => $token
 check($q('SELECT status FROM users WHERE id = 3') === 'archived', 'boarder with payment history is archived, not deleted');
 check((int) $q('SELECT COUNT(*) FROM payments WHERE boarder_id = 3') === $paymentsBefore && $paymentsBefore > 0, 'their payments are kept');
 check($q('SELECT status FROM boarder_profiles WHERE user_id = 3') === 'moved_out' && $q('SELECT bed_id FROM boarder_profiles WHERE user_id = 3') === null, 'archived boarder is moved out with no bed');
-check(!str_contains(http('GET', '/admin/boarders', $jars['admin'])['body'], 'boarder@rjm.test'), 'hidden from the resident list');
-check(str_contains(http('GET', '/admin/boarders?archived=1', $jars['admin'])['body'], 'boarder@rjm.test'), 'listed under Show archived');
+check(!str_contains(http('GET', '/admin/staff?view=boarders', $jars['admin'])['body'], 'boarder@rjm.test'), 'hidden from the resident list');
+check(str_contains(http('GET', '/admin/staff?view=boarders&archived=1', $jars['admin'])['body'], 'boarder@rjm.test'), 'listed under Show archived');
 check(http('GET', '/portal/dashboard', loginAs('boarder@rjm.test', getenv('TEST_BOARDER_PASSWORD')))['code'] === 302, 'archived boarder cannot log in');
 http('POST', '/admin/boarders/3/restore', $jars['admin'], ['csrf_token' => $token]);
 check($q('SELECT status FROM users WHERE id = 3') === 'active', 'restore re-enables the account');
