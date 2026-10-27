@@ -411,6 +411,8 @@ $amenities = [
             .room-flipper { transition: none !important; }
             .room-preview-img { transition: none !important; transform: none !important; }
         }
+        .bp-room-poly:focus { outline: none; }
+        .bp-room-poly:focus-visible { stroke: #cf8047; stroke-width: 4; }
     </style>
     <script>
         // Decide before first paint: loader only on the first visit this session, never with reduced motion.
@@ -813,7 +815,7 @@ $amenities = [
 
                 <!-- SVG Viewport (Draggable Pan & Scroll Zoom) -->
                 <div class="relative w-full overflow-hidden cursor-grab active:cursor-grabbing select-none" id="blueprint-viewport" style="min-height: 520px; height: clamp(520px, 62vh, 720px);">
-                    <svg id="blueprint-svg" class="w-full h-full" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid meet">
+                    <svg id="blueprint-svg" class="w-full h-full" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid meet" role="group" aria-label="Site plan of the boarding house">
                         <!-- SVG elements dynamically generated -->
                     </svg>
 
@@ -838,7 +840,7 @@ $amenities = [
                 </div>
 
                 <!-- Interactive Spec Bar (Selected Room Details & Inquiry CTA) -->
-                <div id="blueprint-spec-bar" class="border-t border-white/10 bg-black/75 backdrop-blur-md px-6 py-4 flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between text-white">
+                <div id="blueprint-spec-bar" aria-live="polite" class="border-t border-white/10 bg-black/75 backdrop-blur-md px-6 py-4 flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between text-white">
                     <!-- Populated dynamically by script -->
                 </div>
             </div>
@@ -1774,7 +1776,7 @@ window.__INITIAL_BLUEPRINT_DATA__ = <?= json_encode($blueprintData ?? ['floors' 
             // Grounds (ghosted on upper floors, where only the north and south blocks have rooms)
             const zoneLabel = (x, y, text) => `<text x="${x}" y="${Y(y)}" ${mono} font-size="11" font-weight="600" fill="var(--bp-text-muted)" text-anchor="middle" letter-spacing="2">${text}</text>`;
             elements.push(`
-                <g class="select-none pointer-events-none" opacity="${isUpper ? 0.25 : 1}">
+                <g class="select-none pointer-events-none" aria-hidden="true" opacity="${isUpper ? 0.25 : 1}">
                     <rect x="70" y="${Y(52)}" width="1058" height="640" fill="none" stroke="var(--bp-dim)" stroke-width="1.2" stroke-dasharray="10,6" opacity="0.5"/>
                     <rect x="90" y="${Y(236)}" width="276" height="196" rx="14" fill="var(--bp-corridor-bg)"/>
                     ${zoneLabel(228, 338, 'RESTING AREA')}
@@ -1794,7 +1796,7 @@ window.__INITIAL_BLUEPRINT_DATA__ = <?= json_encode($blueprintData ?? ['floors' 
 
             // North block's external stair (concrete stair up to the 2F balcony)
             elements.push(`
-                <g class="select-none pointer-events-none">
+                <g class="select-none pointer-events-none" aria-hidden="true">
                     <rect x="587" y="${Y(188)}" width="46" height="62" fill="var(--bp-stair-bg)" stroke="var(--bp-wall-int)" stroke-width="1.5"/>
                     ${[0, 1, 2, 3, 4].map(i => `<line x1="589" y1="${Y(198 + i * 10)}" x2="631" y2="${Y(198 + i * 10)}" stroke="var(--bp-wall-int)" stroke-width="1" opacity="0.5"/>`).join('')}
                     <text x="610" y="${Y(264)}" ${mono} font-size="9" font-weight="bold" fill="#cf8047" text-anchor="middle">${isUpper ? 'DN 1F' : 'UP 2F'}</text>
@@ -1826,7 +1828,7 @@ window.__INITIAL_BLUEPRINT_DATA__ = <?= json_encode($blueprintData ?? ['floors' 
                     door = leaf(px, py, px - d, py) + arc(`M ${px} ${py + d} A ${d} ${d} 0 0 1 ${px - d} ${py}`);
                     windowLine = pane(x, y + (h - win) / 2, x, y + (h + win) / 2);
                 }
-                return `<g class="bp-window-group">${windowLine}</g><g class="bp-door-group">${door}</g>`;
+                return `<g class="bp-window-group" aria-hidden="true">${windowLine}</g><g class="bp-door-group" aria-hidden="true">${door}</g>`;
             };
 
             const renderSlot = (s, ghost) => {
@@ -1836,7 +1838,7 @@ window.__INITIAL_BLUEPRINT_DATA__ = <?= json_encode($blueprintData ?? ['floors' 
                 const fs = Math.min(w, h) < 90 ? 13 : 16;
                 if (!room) {
                     return `
-                        <g class="bp-room-unlisted select-none pointer-events-none">
+                        <g class="bp-room-unlisted select-none pointer-events-none" ${ghost ? 'aria-hidden="true"' : `role="img" aria-label="Room ${s.num}, not listed yet"`}>
                             <rect x="${x}" y="${y}" width="${w}" height="${h}" fill="var(--bp-corridor-bg)" stroke="var(--bp-dim)" stroke-width="1.5" stroke-dasharray="5,4" rx="3"/>
                             <text x="${cx}" y="${cy}" ${mono} font-size="${fs}" font-weight="bold" text-anchor="middle" fill="var(--bp-text-muted)">Room ${s.num}</text>
                             ${ghost ? '' : `<text x="${cx}" y="${cy + 15}" ${mono} font-size="9" text-anchor="middle" fill="var(--bp-dim)" letter-spacing="1">${s.type} · NOT LISTED</text>`}
@@ -1846,12 +1848,17 @@ window.__INITIAL_BLUEPRINT_DATA__ = <?= json_encode($blueprintData ?? ['floors' 
                 const isSelected = String(room.id) === String(state.selectedRoomId);
                 const statusFill = room.status === 'occupied' ? '#94a3b8' : (room.status === 'partially_occupied' ? '#f59e0b' : '#10b981');
                 const beds = Number(room.capacity) || 0;
+                const free = Number(room.vacant_beds) || 0;
+                const total = Number(room.total_beds) || beds;
+                const availability = free === 0 ? 'fully occupied' : `${free} of ${total} ${total === 1 ? 'bed' : 'beds'} free`;
+                const label = `Room ${room.room_number}, ${SITE_BLOCKS[s.block].name}, ${room.room_type_name || s.type}, ${availability}`
+                    .replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;');
                 return `
                     <g class="bp-room-group" data-room-id="${room.id}">
-                        <rect class="bp-room-poly ${isSelected ? 'is-selected' : ''}" data-room-id="${room.id}" data-room-num="${room.room_number}" x="${x}" y="${y}" width="${w}" height="${h}" fill="var(--bp-room-bg)" stroke="var(--bp-room-stroke)" stroke-width="2" rx="3"/>
-                        <circle cx="${x + 14}" cy="${y + 14}" r="3.5" fill="${statusFill}" class="pointer-events-none"/>
-                        <text class="bp-room-num font-mono font-bold select-none pointer-events-none" x="${cx}" y="${cy}" text-anchor="middle" font-size="${fs}" fill="var(--bp-text-primary)">Room ${room.room_number}</text>
-                        <g class="bp-dimension-group">
+                        <rect class="bp-room-poly ${isSelected ? 'is-selected' : ''}" data-room-id="${room.id}" data-room-num="${room.room_number}" tabindex="0" role="button" aria-pressed="${isSelected}" aria-label="${label}" x="${x}" y="${y}" width="${w}" height="${h}" fill="var(--bp-room-bg)" stroke="var(--bp-room-stroke)" stroke-width="2" rx="3"/>
+                        <circle cx="${x + 14}" cy="${y + 14}" r="3.5" fill="${statusFill}" class="pointer-events-none" aria-hidden="true"/>
+                        <text class="bp-room-num font-mono font-bold select-none pointer-events-none" aria-hidden="true" x="${cx}" y="${cy}" text-anchor="middle" font-size="${fs}" fill="var(--bp-text-primary)">Room ${room.room_number}</text>
+                        <g class="bp-dimension-group" aria-hidden="true">
                             <text class="bp-room-dim font-mono select-none pointer-events-none" x="${cx}" y="${cy + 15}" text-anchor="middle" font-size="9" font-weight="500" fill="var(--bp-text-muted)">${s.type} · ${beds} ${beds === 1 ? 'BED' : 'BEDS'}</text>
                         </g>
                         ${doorAndWindow(s, x, y, w, h)}
@@ -1867,7 +1874,7 @@ window.__INITIAL_BLUEPRINT_DATA__ = <?= json_encode($blueprintData ?? ['floors' 
                 elements.push(`
                     <g ${ghost ? 'opacity="0.25"' : ''}>
                         ${slots.map(s => renderSlot(s, ghost)).join('')}
-                        <rect x="${b.x}" y="${Y(b.y)}" width="${b.w}" height="${b.h}" fill="none" stroke="var(--bp-wall-ext)" stroke-width="6" class="pointer-events-none"/>
+                        <rect x="${b.x}" y="${Y(b.y)}" width="${b.w}" height="${b.h}" fill="none" stroke="var(--bp-wall-ext)" stroke-width="6" class="pointer-events-none" aria-hidden="true"/>
                     </g>
                 `);
             });
@@ -1899,32 +1906,55 @@ window.__INITIAL_BLUEPRINT_DATA__ = <?= json_encode($blueprintData ?? ['floors' 
                 innerSvg = generateFloorSvg(state.activeFloor, 0, false);
             }
 
+            svg.setAttribute('aria-label', state.activeFloor === 'all'
+                ? 'Site plan of the boarding house, all floors'
+                : `Site plan of the boarding house, ${state.activeFloor === '1' ? '1st' : '2nd'} floor`);
+            const focusedRoomId = document.activeElement && document.activeElement.classList && document.activeElement.classList.contains('bp-room-poly')
+                ? document.activeElement.dataset.roomId : null;
+
             svg.innerHTML = `
                 <defs>
                     <pattern id="bp-grid-pattern" width="40" height="40" patternUnits="userSpaceOnUse">
                         <path d="M 40 0 L 0 0 0 40" fill="none" stroke="var(--bp-bg-grid)" stroke-width="1"/>
                     </pattern>
                 </defs>
-                <rect width="100%" height="100%" fill="url(#bp-grid-pattern)" />
+                <rect width="100%" height="100%" fill="url(#bp-grid-pattern)" aria-hidden="true" />
                 <g id="bp-root-layer" transform="translate(${state.panX.toFixed(2)}, ${state.panY.toFixed(2)}) scale(${state.scale.toFixed(3)})">
                     ${innerSvg}
                 </g>
             `;
 
+            const selectRoom = (poly) => {
+                const roomId = poly.dataset.roomId;
+                state.selectedRoomId = roomId;
+
+                svg.querySelectorAll('.bp-room-poly').forEach(p => {
+                    const isMatch = (p.dataset.roomId === roomId);
+                    p.classList.toggle('is-selected', isMatch);
+                    p.setAttribute('aria-pressed', String(isMatch));
+                });
+
+                renderSpecBar();
+            };
+
             svg.querySelectorAll('.bp-room-poly').forEach(poly => {
                 poly.addEventListener('click', (ev) => {
                     ev.stopPropagation();
-                    const roomId = poly.dataset.roomId;
-                    state.selectedRoomId = roomId;
-
-                    svg.querySelectorAll('.bp-room-poly').forEach(p => {
-                        const isMatch = (p.dataset.roomId === roomId);
-                        p.classList.toggle('is-selected', isMatch);
-                    });
-
-                    renderSpecBar();
+                    selectRoom(poly);
+                });
+                poly.addEventListener('keydown', (ev) => {
+                    if (ev.key === 'Enter' || ev.key === ' ') {
+                        ev.preventDefault();
+                        selectRoom(poly);
+                    }
                 });
             });
+
+            // Live re-renders replace the SVG; keep keyboard focus on the room that had it.
+            if (focusedRoomId) {
+                const again = svg.querySelector(`.bp-room-poly[data-room-id="${focusedRoomId}"]`);
+                if (again) again.focus({ preventScroll: true });
+            }
 
             renderSpecBar();
         };
