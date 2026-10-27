@@ -61,6 +61,10 @@ $two = makeResident($admin);
 check(flashHas($admin, $admin->post('/admin/beds/assign', ['boarder_id' => $two['id'], 'bed_id' => $beds[0]]), 'already occupied'), 'assigning an occupied bed is refused');
 $admin->post('/admin/beds/assign', ['boarder_id' => $two['id'], 'bed_id' => $beds[1]]);
 check((int) q1('SELECT current_boarder_id FROM beds WHERE id = ?', [$beds[1]]) === $two['id'], 'assigning a free bed works');
+// The Assign Boarder dropdown on Rooms & Beds only (room/type selects on that page use the same option markup).
+$assignPicker = fn () => preg_match('#<select id="rooms-assign-boarder" name="boarder_id".*?</select>#s', $admin->get('/admin/rooms', true)->body, $m) ? $m[0] : '';
+$picker = $assignPicker();
+check(str_contains($picker, '<option value="' . $two['id'] . '">') && !$admin->get('/admin/rooms', true)->has('name="boarder_id" type="number"'), 'Rooms & Beds picks the boarder by name, not by typed user ID');
 check(flashHas($admin, $admin->post('/admin/beds/assign', ['boarder_id' => 999999, 'bed_id' => $beds[1]]), 'not found'), 'an unknown resident is refused');
 check(flashHas($admin, $admin->post('/admin/beds/assign', ['boarder_id' => 1, 'bed_id' => $beds[1]]), 'not found'), 'an admin account id cannot be given a bed');
 check((int) q1('SELECT COUNT(*) FROM beds WHERE status = "occupied"') === (int) q1('SELECT COUNT(DISTINCT current_boarder_id) FROM beds WHERE current_boarder_id IS NOT NULL'), 'no ghost or double-booked beds anywhere');
@@ -92,6 +96,8 @@ check($st['status'] !== 'moved_out' && $st['bed_id'] !== null, 'a FUTURE move-ou
 $dates(date('Y-m-d', strtotime('-75 days')), date('Y-m-d', strtotime('-10 days')));
 check(q1('SELECT status FROM boarder_profiles WHERE user_id = ?', [$two['id']]) === 'moved_out' && q1('SELECT bed_id FROM boarder_profiles WHERE user_id = ?', [$two['id']]) === null, 'a PAST move-out date marks moved_out and frees the bed');
 check(flashHas($admin, $admin->post('/admin/beds/assign', ['boarder_id' => $two['id'], 'bed_id' => $beds[1]]), 'moved-out'), 'a moved-out resident cannot be given a bed');
+$picker = $assignPicker();
+check($picker !== '' && !str_contains($picker, '<option value="' . $two['id'] . '">'), 'Rooms & Beds does not offer a moved-out resident for a bed');
 
 section('Remove / archive / restore (history must survive)');
 $del = makeResident($admin);

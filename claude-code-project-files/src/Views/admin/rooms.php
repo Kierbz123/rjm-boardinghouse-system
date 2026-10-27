@@ -219,12 +219,22 @@ $occupancyRate = $totalBeds > 0 ? round(($occupiedBeds / $totalBeds) * 100) : 0;
                     <h3 class="text-body font-semibold text-neutral-900">Assign Boarder</h3>
                 </div>
                 <?= \App\Support\Csrf::field() ?>
+                <?php $assignable = array_filter($boarders, fn($b) => $b['status'] !== 'moved_out'); // assignBed() refuses moved-out ?>
                 <div>
-                    <label class="block text-caption font-semibold text-neutral-600 mb-1">Boarder User ID</label>
-                    <input name="boarder_id" type="number" placeholder="Enter user ID" required class="input">
-                    <p class="text-caption text-neutral-400 mt-1">
-                        Find IDs in the <a href="/admin/boarders" class="text-primary-600 font-medium hover:underline">Boarders Directory</a>.
-                    </p>
+                    <label for="rooms-assign-boarder" class="block text-caption font-semibold text-neutral-600 mb-1">Select Boarder</label>
+                    <select id="rooms-assign-boarder" name="boarder_id" required class="input">
+                        <option value="">— Choose Boarder —</option>
+                        <?php foreach ($assignable as $b): ?>
+                            <option value="<?= (int) $b['user_id'] ?>">
+                                <?= htmlspecialchars($b['name']) ?> <?= !empty($b['bed_id']) ? '(Assigned: ' . htmlspecialchars(($b['room_number'] ?? '') . '/' . ($b['bed_label'] ?? '')) . ')' : '(Unassigned)' ?>
+                            </option>
+                        <?php endforeach; ?>
+                    </select>
+                    <?php if (!$assignable): ?>
+                        <p class="text-caption text-neutral-400 mt-1">
+                            No boarders to assign yet. Add one in the <a href="/admin/boarders" class="text-primary-600 font-medium hover:underline">Boarders Directory</a>.
+                        </p>
+                    <?php endif; ?>
                 </div>
                 <div>
                     <label for="rooms-assign-type" class="block text-caption font-semibold text-neutral-600 mb-1">Room Type</label>

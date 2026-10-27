@@ -14,9 +14,11 @@ class RoomController
 {
     public static function index(): void
     {
+        \App\Services\HousekeepingService::applyDueMoveOuts(); // so Assign Boarder never offers someone already gone
         $rooms = Room::all();
         $beds = Bed::all();
         $roomTypes = \App\Models\RoomType::all();
+        $boarders = \App\Models\BoarderProfile::all();
         $electricityBills = ElectricityBill::recent();
         $residentsPerRoom = ElectricityBill::residentsPerRoom();
         require __DIR__ . '/../Views/admin/rooms.php';
