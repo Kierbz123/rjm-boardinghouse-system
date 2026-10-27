@@ -930,6 +930,117 @@
   @media (max-width: 640px) { .ai-kbd { display: none; } }
   @media (prefers-reduced-motion: reduce) { #ai-chat-window { animation: none; } #ai-chat-fab { transition: none; } }
   .ai-analysis-box { background: var(--color-neutral-50); box-shadow: var(--shadow-card), inset 4px 0 0 var(--color-accent); border-radius: var(--radius-md); padding: 0.875rem 1rem; margin-top: 0.5rem; font-size: var(--text-body-sm); }
+  /* ══════════════════════════════════════════════════════════════
+     STYLE A: 2D SVG ARCHITECTURAL BLUEPRINT (PROPORTIONATE)
+     ══════════════════════════════════════════════════════════════ */
+  .bp-canvas-card {
+    position: relative;
+    border-radius: 2rem;
+    overflow: hidden;
+    transition: background-color 300ms ease, border-color 300ms ease;
+  }
+  .bp-canvas-card.theme-native {
+    background-color: #0c111a;
+    border-color: rgba(255, 255, 255, 0.12);
+  }
+  .bp-canvas-card.theme-cad {
+    background-color: #0a192f;
+    border-color: rgba(0, 240, 255, 0.3);
+  }
+
+  /* SVG Theme Variables */
+  .theme-native {
+    --bp-bg-grid: rgba(255, 255, 255, 0.05);
+    --bp-wall-ext: #f8fafc;
+    --bp-wall-int: rgba(248, 250, 252, 0.85);
+    --bp-col: #ffffff;
+    --bp-room-bg: rgba(255, 255, 255, 0.04);
+    --bp-room-hover: rgba(207, 128, 71, 0.24);
+    --bp-room-selected: rgba(207, 128, 71, 0.42);
+    --bp-room-stroke: rgba(255, 255, 255, 0.2);
+    --bp-room-stroke-selected: #cf8047;
+    --bp-text-primary: #ffffff;
+    --bp-text-muted: rgba(255, 255, 255, 0.6);
+    --bp-corridor-bg: rgba(255, 255, 255, 0.02);
+    --bp-stair-bg: rgba(255, 255, 255, 0.06);
+    --bp-window: #38bdf8;
+    --bp-door: #f8fafc;
+    --bp-door-arc: rgba(255, 255, 255, 0.45);
+    --bp-dim: rgba(255, 255, 255, 0.65);
+    --bp-dim-tick: rgba(255, 255, 255, 0.85);
+  }
+
+  .theme-cad {
+    --bp-bg-grid: rgba(0, 240, 255, 0.12);
+    --bp-wall-ext: #ffffff;
+    --bp-wall-int: rgba(255, 255, 255, 0.85);
+    --bp-col: #00f0ff;
+    --bp-room-bg: rgba(0, 240, 255, 0.035);
+    --bp-room-hover: rgba(0, 240, 255, 0.2);
+    --bp-room-selected: rgba(207, 128, 71, 0.45);
+    --bp-room-stroke: rgba(0, 240, 255, 0.35);
+    --bp-room-stroke-selected: #cf8047;
+    --bp-text-primary: #ffffff;
+    --bp-text-muted: #38bdf8;
+    --bp-corridor-bg: rgba(0, 240, 255, 0.02);
+    --bp-stair-bg: rgba(0, 240, 255, 0.07);
+    --bp-window: #00f0ff;
+    --bp-door: #00f0ff;
+    --bp-door-arc: #38bdf8;
+    --bp-dim: #38bdf8;
+    --bp-dim-tick: #00f0ff;
+  }
+
+  .bp-room-poly {
+    cursor: pointer;
+    transition: fill 180ms ease, stroke 180ms ease, filter 180ms ease;
+  }
+  .bp-room-poly:hover {
+    fill: var(--bp-room-hover) !important;
+    stroke: #cf8047 !important;
+  }
+  .bp-room-poly.is-selected {
+    fill: var(--bp-room-selected) !important;
+    stroke: var(--bp-room-stroke-selected) !important;
+    stroke-width: 3px !important;
+    filter: drop-shadow(0 0 10px rgba(207, 128, 71, 0.5));
+  }
+
+  .bp-hide-doors .bp-door-group {
+    display: none !important;
+  }
+  .bp-hide-dims .bp-dimension-group {
+    display: none !important;
+  }
+
+  .bp-toggle-btn.is-active {
+    background: var(--color-ink) !important;
+    color: #ffffff !important;
+  }
+  .bp-canvas-card.theme-cad .bp-toggle-btn.is-active {
+    background: rgba(0, 240, 255, 0.2) !important;
+    color: #ffffff !important;
+    box-shadow: inset 0 0 0 1px #00f0ff !important;
+  }
+  .bp-toggle-btn.is-active .bp-toggle-dot {
+    background-color: #10b981 !important;
+  }
+  .bp-toggle-btn:not(.is-active) .bp-toggle-dot {
+    background-color: #9ca3af !important;
+  }
+
+  .bp-canvas-card.theme-cad #blueprint-spec-bar {
+    background: #071322 !important;
+    border-top-color: rgba(0, 240, 255, 0.25) !important;
+  }
+  .bp-room-badge {
+    background-color: #cf8047;
+    color: #ffffff;
+  }
+  .bp-canvas-card.theme-cad .bp-room-badge {
+    background-color: #00f0ff !important;
+    color: #0a192f !important;
+  }
 }
 
 @layer utilities {
