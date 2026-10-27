@@ -27,6 +27,7 @@ class BoarderController
         $boarders = BoarderProfile::all($showArchived);
         $rooms = Room::all();
         $beds = Bed::all();
+        $roomTypes = \App\Models\RoomType::all(); // same offerings and vacancy counts as Rooms & Beds
 
         // What the admin typed before a failed submit wins over the inquiry it came from.
         $old = $_SESSION['old_boarder_input'] ?? [];
@@ -36,9 +37,15 @@ class BoarderController
             'name'           => $old['name'] ?? $conversion['inquiry']['name'] ?? '',
             'email'          => $old['email'] ?? $conversion['inquiry']['email'] ?? '',
             'contact_number' => $old['contact_number'] ?? $conversion['inquiry']['phone'] ?? '',
-            'room_id'        => (int) ($old['room_id'] ?? $conversion['room_id'] ?? 0),
-            'bed_id'         => (int) ($old['bed_id'] ?? 0),
             'inquiry_id'     => isset($conversion['inquiry']) ? (int) $conversion['inquiry']['id'] : 0,
+        ];
+        // Add Boarder creates the account only; Assign to Bed then opens on that boarder and,
+        // when they came from an inquiry, on the room type they asked for.
+        $assignPrefill = $_SESSION['assign_prefill'] ?? [];
+        unset($_SESSION['assign_prefill']);
+        $assignPrefill = [
+            'boarder_id'   => (int) ($assignPrefill['boarder_id'] ?? 0),
+            'room_type_id' => (int) ($assignPrefill['room_type_id'] ?? $conversion['room_type']['id'] ?? 0),
         ];
         require __DIR__ . '/../Views/admin/boarders.php';
     }
@@ -46,7 +53,7 @@ class BoarderController
     /**
      * Opening /admin/boarders?inquiry=N only fills the Add Boarder form for review; nothing is
      * created until the admin submits it. The inquiry is read from the database, never the URL.
-     * Picks the first room of the requested type that has a vacant bed; the bed is left to the admin.
+     * The requested room type preselects the Assign to Bed filter; the bed is left to the admin.
      */
     private static function conversionFor(int $inquiryId, array $rooms, array $beds): ?array
     {
@@ -64,24 +71,24 @@ class BoarderController
 
         $requested = trim((string) $inquiry['room_type']);
         $type = $requested !== '' ? \App\Models\RoomType::findByName($requested) : null;
-        $roomId = null;
+        $hasVacantBed = false;
         if ($type !== null) {
             $vacantRoomIds = array_map('intval', array_column(array_filter($beds, fn ($b) => $b['status'] === 'vacant'), 'room_id'));
             foreach ($rooms as $r) {
                 if ((int) $r['room_type_id'] === (int) $type['id'] && in_array((int) $r['id'], $vacantRoomIds, true)) {
-                    $roomId = (int) $r['id'];
+                    $hasVacantBed = true;
                     break;
                 }
             }
         }
         $notice = match (true) {
-            $type === null => "\"{$requested}\" is not one of the room types, so no room was picked. Choose one below if you want to assign a room now.",
-            $roomId === null => "No {$type['name']} has a vacant bed right now. Choose another room, or link a room to this type on Rooms & Beds.",
+            $type === null => "\"{$requested}\" is not one of the room types. After creating the account, pick a room type in Assign to Bed.",
+            !$hasVacantBed => "No {$type['name']} has a vacant bed right now. Assign another room type, or link a room to this type on Rooms & Beds.",
             default => null,
         };
         // Emails are unique: if this person already has an account, say so before the admin fills in a password.
         $existing = $inquiry['email'] ? User::findByEmail((string) $inquiry['email']) : null;
-        return ['inquiry' => $inquiry, 'room_type' => $type, 'room_id' => $roomId, 'notice' => $notice, 'existing' => $existing];
+        return ['inquiry' => $inquiry, 'room_type' => $type, 'notice' => $notice, 'existing' => $existing];
     }
 
     public static function create(): void
@@ -101,10 +108,9 @@ class BoarderController
 
         // A failed submit goes back to the form with what was typed (never the password)
         // and, when it came from an inquiry, still linked to it.
-        $fail = function (string $message) use ($name, $email, $contact, $bedId, $inquiryId): never {
+        $fail = function (string $message) use ($name, $email, $contact, $inquiryId): never {
             $_SESSION['flash_error'] = $message;
-            $_SESSION['old_boarder_input'] = ['name' => $name, 'email' => $email, 'contact_number' => $contact,
-                'room_id' => (int) ($_POST['room_id'] ?? 0), 'bed_id' => (int) $bedId, 'inquiry_id' => $inquiryId];
+            $_SESSION['old_boarder_input'] = ['name' => $name, 'email' => $email, 'contact_number' => $contact, 'inquiry_id' => $inquiryId];
             header('Location: /admin/boarders' . ($inquiryId > 0 ? "?inquiry={$inquiryId}" : ''));
             exit;
         };
@@ -137,14 +143,16 @@ class BoarderController
         $pdo->beginTransaction();
         try {
             $userId = User::create('boarder', $name, $email, $password);
-            $roomId = !empty($_POST['room_id']) ? (int) $_POST['room_id'] : null;
+            $roomId = null; // a room comes only with a bed
             if ($bedId) {
                 $bed = Bed::find($bedId) ?? throw new RuntimeException('Bed not found.');
                 $roomId = (int) $bed['room_id'];
                 Bed::assign($bedId, $userId);
             }
             BoarderProfile::create($userId, $roomId, $bedId, $contact !== '' ? $contact : null);
+            $requestedType = null;
             if ($inquiryId > 0) {
+                $requestedType = \App\Models\RoomType::findByName((string) (\App\Models\Inquiry::find($inquiryId)['room_type'] ?? ''));
                 \App\Models\Inquiry::markConverted($inquiryId, $userId);
             }
             self::audit('resident_created', $userId, $inquiryId > 0 ? ['inquiry_id' => $inquiryId] : []);
@@ -155,7 +163,11 @@ class BoarderController
             }
             $fail(self::messageFor($e, 'The resident could not be added. Please try again.'));
         }
-        $_SESSION['flash_success'] = "Added {$name}." . ($inquiryId > 0 ? " Inquiry #{$inquiryId} is marked as registered." : '');
+        $_SESSION['flash_success'] = "Added {$name}." . ($inquiryId > 0 ? " Inquiry #{$inquiryId} is marked as registered." : '')
+            . ($bedId ? '' : ' Assign a bed with Assign to Bed.');
+        if (!$bedId) {
+            $_SESSION['assign_prefill'] = ['boarder_id' => $userId, 'room_type_id' => (int) ($requestedType['id'] ?? 0)];
+        }
         header('Location: /admin/boarders');
         exit;
     }

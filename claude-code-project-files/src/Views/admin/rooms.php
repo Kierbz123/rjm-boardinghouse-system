@@ -227,11 +227,20 @@ $occupancyRate = $totalBeds > 0 ? round(($occupiedBeds / $totalBeds) * 100) : 0;
                     </p>
                 </div>
                 <div>
-                    <label class="block text-caption font-semibold text-neutral-600 mb-1">Select Vacant Bed</label>
-                    <select name="bed_id" required class="input">
+                    <label for="rooms-assign-type" class="block text-caption font-semibold text-neutral-600 mb-1">Room Type</label>
+                    <select id="rooms-assign-type" class="input" data-filters-beds="rooms-assign-bed">
+                        <option value="">— All room types —</option>
+                        <?php foreach ($roomTypes as $t): ?>
+                            <option value="<?= (int) $t['id'] ?>"><?= htmlspecialchars($t['name']) ?> (<?= (int) $t['vacant_bed_count'] ?> vacant)</option>
+                        <?php endforeach; ?>
+                    </select>
+                </div>
+                <div>
+                    <label for="rooms-assign-bed" class="block text-caption font-semibold text-neutral-600 mb-1">Select Vacant Bed</label>
+                    <select id="rooms-assign-bed" name="bed_id" required class="input">
                         <option value="">— Choose Vacant Bed —</option>
                         <?php foreach ($beds as $b): if ($b['status'] === 'vacant'): ?>
-                            <option value="<?= (int) $b['id'] ?>"><?= htmlspecialchars($b['room_number'] . ' / ' . $b['label']) ?></option>
+                            <option value="<?= (int) $b['id'] ?>" data-room-type="<?= (int) ($b['room_type_id'] ?? 0) ?>"><?= htmlspecialchars($b['room_number'] . ' / ' . $b['label']) ?></option>
                         <?php endif; endforeach; ?>
                     </select>
                 </div>

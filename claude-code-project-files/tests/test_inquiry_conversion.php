@@ -70,7 +70,10 @@ check((bool) preg_match('#href="/admin/inquiry-center"\s+class="sidebar-nav-item
 $form = $admin->get("/admin/boarders?inquiry={$inqId}");
 check($form->code === 200 && $form->has('value="Kierby ' . $tag . '"') && $form->has('value="' . $email . '"') && $form->has('value="+639676355474"'), 'name, email and phone are filled in');
 check($form->has('name="inquiry_id" value="' . $inqId . '"'), 'the form carries the inquiry id');
-check((bool) preg_match('#<option value="' . $room['id'] . '"\s+selected>#', $form->body), 'a vacant Solo Executive Room is preselected');
+check(!$form->has('id="add_boarder_room"') && !$form->has('id="add_boarder_bed"'), 'Add Boarder no longer asks for a room or bed');
+check((bool) preg_match('#id="assign-room-type".*?<option value="' . $soloId . '"\s+selected>Solo Executive Room \(\d+ vacant\)#s', $form->body), 'Assign to Bed opens on the requested room type');
+check((bool) preg_match('#id="assign-bed".*?<option value="' . $room['beds'][0] . '" data-room-type="' . $soloId . '">#s', $form->body), 'each vacant bed carries its room type for the filter');
+check((bool) preg_match('#id="rooms-assign-type".*?<option value="' . $soloId . '">#s', $admin->get('/admin/rooms')->body), 'Rooms & Beds has the same Room Type filter');
 check(!$form->has('name="password" value='), 'no password is filled in');
 check((int) q1('SELECT COUNT(*) FROM users WHERE email = ?', [$email]) === 0, 'opening the form creates nothing');
 check(!$admin->get('/admin/boarders')->has("Kierby {$tag}"), 'an ordinary visit to Boarders is not prefilled');
@@ -120,3 +123,18 @@ section('Adding a boarder without an inquiry still works');
 $plain = 'plain' . uniq() . '@t.test';
 $admin->post('/admin/boarders', ['name' => 'Plain Boarder', 'email' => $plain, 'password' => 'Tmp-convert-heron-dune']);
 check((int) q1('SELECT COUNT(*) FROM users WHERE email = ?', [$plain]) === 1, 'a boarder is created as before');
+$plainId = (int) q1('SELECT id FROM users WHERE email = ?', [$plain]);
+$after = $admin->get('/admin/boarders');
+check((bool) preg_match('#<option value="' . $plainId . '"\s+selected>#', $after->body) && $after->has('Assign a bed with Assign to Bed.'), 'the new boarder is preselected in Assign to Bed');
+check(!(bool) preg_match('#<option value="' . $plainId . '"\s+selected>#', $admin->get('/admin/boarders')->body), 'the preselection is used once');
+
+section('A converted inquiry carries its room type into Assign to Bed');
+$tag2 = uniq();
+q("INSERT INTO inquiries (name, phone, email, room_type, source) VALUES (?, '09170000002', ?, 'Solo Executive Room', 'website')", ["Solo {$tag2}", "solo{$tag2}@t.test"]);
+$soloInq = (int) q1('SELECT id FROM inquiries WHERE email = ?', ["solo{$tag2}@t.test"]);
+$admin->post('/admin/boarders', ['name' => "Solo {$tag2}", 'email' => "solo{$tag2}@t.test", 'password' => 'Tmp-convert-heron-dune', 'inquiry_id' => $soloInq]);
+$soloUser = (int) q1('SELECT id FROM users WHERE email = ?', ["solo{$tag2}@t.test"]);
+$after = $admin->get('/admin/boarders')->body;
+check($soloUser > 0 && (bool) preg_match('#<option value="' . $soloUser . '"\s+selected>#', $after)
+    && (bool) preg_match('#id="assign-room-type".*?<option value="' . $soloId . '"\s+selected>#s', $after), 'the new boarder and their requested room type are preselected');
+check(q1('SELECT bed_id FROM boarder_profiles WHERE user_id = ?', [$soloUser]) === null, 'no bed is given until the admin assigns one');

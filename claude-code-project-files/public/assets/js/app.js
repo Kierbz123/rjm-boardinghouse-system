@@ -110,3 +110,24 @@
         document.querySelectorAll('.is-loading[aria-busy]').forEach(clear);
     });
 })();
+
+// A Room Type select (data-filters-beds="<bed select id>") narrows that select to the vacant beds
+// whose option carries the same data-room-type. Options are rebuilt, not hidden: Safari ignores
+// display:none on <option>.
+(function () {
+    document.querySelectorAll('select[data-filters-beds]').forEach(function (typeSelect) {
+        var bedSelect = document.getElementById(typeSelect.dataset.filtersBeds);
+        if (!bedSelect) return;
+        var placeholder = bedSelect.options[0];
+        var beds = Array.prototype.slice.call(bedSelect.options, 1);
+        function filter() {
+            var type = typeSelect.value, kept = bedSelect.value;
+            var shown = beds.filter(function (o) { return !type || o.dataset.roomType === type; });
+            bedSelect.replaceChildren.apply(bedSelect, [placeholder].concat(shown));
+            placeholder.textContent = shown.length || !type ? '— Choose Vacant Bed —' : '— No vacant bed of this type —';
+            bedSelect.value = shown.some(function (o) { return o.value === kept; }) ? kept : '';
+        }
+        typeSelect.addEventListener('change', filter);
+        filter();
+    });
+})();

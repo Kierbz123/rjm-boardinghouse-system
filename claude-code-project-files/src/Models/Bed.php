@@ -9,7 +9,7 @@ class Bed
 {
     public static function all(): array
     {
-        $sql = 'SELECT beds.*, rooms.room_number, u.name AS boarder_name
+        $sql = 'SELECT beds.*, rooms.room_number, rooms.room_type_id, u.name AS boarder_name
                 FROM beds
                 JOIN rooms ON rooms.id = beds.room_id
                 LEFT JOIN users u ON u.id = beds.current_boarder_id

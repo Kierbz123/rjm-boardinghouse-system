@@ -4,17 +4,7 @@ ob_start();
 $error = $_SESSION['flash_error'] ?? null; unset($_SESSION['flash_error']);
 $success = $_SESSION['flash_success'] ?? null; unset($_SESSION['flash_success']);
 
-// Filter vacant beds and available rooms
 $vacantBeds = array_values(array_filter($beds ?? [], fn($b) => ($b['status'] ?? '') === 'vacant'));
-
-// Map vacant beds by room_id
-$vacantBedsByRoom = [];
-foreach ($vacantBeds as $b) {
-    $vacantBedsByRoom[(int) $b['room_id']][] = $b;
-}
-
-// Only rooms that have at least one vacant bed
-$availableRooms = array_values(array_filter($rooms ?? [], fn($r) => !empty($vacantBedsByRoom[(int) $r['id']])));
 
 // Overview statistics
 $totalBoarders      = count($boarders);
@@ -925,30 +915,6 @@ $totalBalancesOwed  = array_sum(array_column($boarders, 'outstanding_balance'));
                             </button>
                         </div>
                     </div>
-                    <div>
-                        <label for="add_boarder_room" class="field-label">
-                            Room <span class="font-normal text-neutral-400">(optional)</span>
-                        </label>
-                        <select id="add_boarder_room" name="room_id" class="field-select">
-                            <option value="">— Skip room assignment —</option>
-                            <?php foreach ($availableRooms as $r): ?>
-                                <option value="<?= (int) $r['id'] ?>" <?= (int) $r['id'] === $addForm['room_id'] ? 'selected' : '' ?>>Room <?= htmlspecialchars($r['room_number']) ?><?= !empty($r['room_type_name']) ? ' · ' . htmlspecialchars($r['room_type_name']) : '' ?> (<?= count($vacantBedsByRoom[(int)$r['id']] ?? []) ?> vacant)</option>
-                            <?php endforeach; ?>
-                        </select>
-                    </div>
-                    <div>
-                        <label for="add_boarder_bed" class="field-label">
-                            Bed <span class="font-normal text-neutral-400">(optional)</span>
-                        </label>
-                        <select id="add_boarder_bed" name="bed_id" class="field-select">
-                            <option value="">— Select a room first —</option>
-                            <?php foreach ($vacantBeds as $b): ?>
-                                <option value="<?= (int) $b['id'] ?>" data-room-id="<?= (int) $b['room_id'] ?>" style="display:none;" <?= (int) $b['id'] === $addForm['bed_id'] ? 'selected' : '' ?>>
-                                    Room <?= htmlspecialchars($b['room_number']) ?> — <?= htmlspecialchars($b['label']) ?>
-                                </option>
-                            <?php endforeach; ?>
-                        </select>
-                    </div>
                 </div>
                 <div class="mgmt-btn-wrap">
                     <button class="btn btn-primary w-full !py-2 !text-xs font-semibold">
@@ -970,18 +936,27 @@ $totalBalancesOwed  = array_sum(array_column($boarders, 'outstanding_balance'));
                         <select name="boarder_id" required class="field-select">
                             <option value="">— Choose Boarder —</option>
                             <?php foreach ($boarders as $b): ?>
-                                <option value="<?= (int) $b['user_id'] ?>">
+                                <option value="<?= (int) $b['user_id'] ?>" <?= (int) $b['user_id'] === $assignPrefill['boarder_id'] ? 'selected' : '' ?>>
                                     <?= htmlspecialchars($b['name']) ?> <?= !empty($b['bed_id']) ? '(Assigned: ' . htmlspecialchars(($b['room_number'] ?? '') . '/' . ($b['bed_label'] ?? '')) . ')' : '(Unassigned)' ?>
                                 </option>
                             <?php endforeach; ?>
                         </select>
                     </div>
                     <div>
-                        <label class="field-label">Select Vacant Bed</label>
-                        <select name="bed_id" required class="field-select">
+                        <label for="assign-room-type" class="field-label">Room Type</label>
+                        <select id="assign-room-type" class="field-select" data-filters-beds="assign-bed">
+                            <option value="">— All room types —</option>
+                            <?php foreach ($roomTypes as $t): ?>
+                                <option value="<?= (int) $t['id'] ?>" <?= (int) $t['id'] === $assignPrefill['room_type_id'] ? 'selected' : '' ?>><?= htmlspecialchars($t['name']) ?> (<?= (int) $t['vacant_bed_count'] ?> vacant)</option>
+                            <?php endforeach; ?>
+                        </select>
+                    </div>
+                    <div>
+                        <label for="assign-bed" class="field-label">Select Vacant Bed</label>
+                        <select id="assign-bed" name="bed_id" required class="field-select">
                             <option value="">— Choose Vacant Bed —</option>
                             <?php foreach ($vacantBeds as $b): ?>
-                                <option value="<?= (int) $b['id'] ?>">Room <?= htmlspecialchars($b['room_number']) ?> / Bed <?= htmlspecialchars($b['label']) ?></option>
+                                <option value="<?= (int) $b['id'] ?>" data-room-type="<?= (int) ($b['room_type_id'] ?? 0) ?>">Room <?= htmlspecialchars($b['room_number']) ?> / Bed <?= htmlspecialchars($b['label']) ?></option>
                             <?php endforeach; ?>
                         </select>
                     </div>
@@ -1320,43 +1295,7 @@ $totalBalancesOwed  = array_sum(array_column($boarders, 'outstanding_balance'));
 <script>
 (function() {
     function initBoardersPage() {
-        // 1. Room → Bed cascading select (Add Boarder form)
-        const roomSelect = document.getElementById('add_boarder_room');
-        const bedSelect  = document.getElementById('add_boarder_bed');
-        if (roomSelect && bedSelect) {
-            const allBedOptions = Array.from(bedSelect.querySelectorAll('option[data-room-id]'));
-            const keptBed = (allBedOptions.find(o => o.selected) || {}).value || '';
-            const fillBeds = function() {
-                const selectedRoomId = roomSelect.value;
-                bedSelect.value = '';
-                if (!selectedRoomId) {
-                    bedSelect.innerHTML = '<option value="">— Select a room first —</option>';
-                    return;
-                }
-                const matchingBeds = allBedOptions.filter(opt => opt.getAttribute('data-room-id') === selectedRoomId);
-                bedSelect.innerHTML = '<option value="">— Choose vacant bed —</option>';
-                if (matchingBeds.length === 0) {
-                    bedSelect.innerHTML = '<option value="">— No vacant beds in this room —</option>';
-                } else {
-                    matchingBeds.forEach(opt => {
-                        const clone = opt.cloneNode(true);
-                        clone.style.display = '';
-                        clone.removeAttribute('selected');
-                        bedSelect.appendChild(clone);
-                    });
-                }
-            };
-            roomSelect.addEventListener('change', fillBeds);
-            // A room picked by the server (inquiry or a failed submit) shows its beds straight away.
-            if (roomSelect.value) {
-                fillBeds();
-                if (keptBed && bedSelect.querySelector('option[value="' + keptBed + '"]')) {
-                    bedSelect.value = keptBed;
-                }
-            }
-        }
-
-        // 2. Password visibility toggle
+        // 1. Password visibility toggle
         const toggleBtn     = document.getElementById('toggle-boarder-password');
         const passwordInput = document.getElementById('add-boarder-password');
         const eyeOpen       = document.getElementById('eye-open-boarder');
