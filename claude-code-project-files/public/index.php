@@ -103,6 +103,7 @@ $router = new Router();
 // --- Landing Page ---
 $router->add('GET', '/', [LandingController::class, 'index']);
 $router->add('GET', '/landing', [LandingController::class, 'index']);
+$router->add('GET', '/api/blueprint/rooms', [LandingController::class, 'blueprintJson']);
 $router->add('POST', '/inquire', [LandingController::class, 'handleInquiry']);
 
 // --- Auth ---

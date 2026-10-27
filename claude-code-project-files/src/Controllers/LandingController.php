@@ -76,6 +76,7 @@ class LandingController
                     'period'   => $t['price_unit'] === 'bed' ? '/ bed / month' : '/ month',
                     'capacity' => $t['capacity_label'],
                     'features' => $t['feature_list'],
+                    'image'    => '/assets/images/rooms/room_' . $t['code'] . '.jpg',
                 ];
             }
         } catch (\Throwable $e) {
@@ -105,12 +106,124 @@ class LandingController
             \App\Support\Logger::warn('Landing stats unavailable: ' . $e->getMessage());
         }
 
+        $blueprintData = self::blueprintData();
+
         $inquirySuccess = $_SESSION['flash_inquiry_success'] ?? null;
         unset($_SESSION['flash_inquiry_success']);
         $inquiryError = $_SESSION['flash_inquiry_error'] ?? null;
         unset($_SESSION['flash_inquiry_error']);
 
         require __DIR__ . '/../Views/shared/landing.php';
+    }
+
+    /**
+     * Live blueprint room and floor dataset, queried directly from the database;
+     * the room list is empty when the database has no rooms yet.
+     */
+    public static function blueprintData(): array
+    {
+        try {
+            $pdo = Database::getConnection();
+            $stmt = $pdo->query('
+                SELECT r.id,
+                       r.room_number,
+                       r.floor,
+                       r.capacity,
+                       r.base_price,
+                       r.room_type_id,
+                       rt.name AS room_type_name,
+                       rt.code AS room_type_code,
+                       rt.capacity_label,
+                       COUNT(b.id) AS total_beds,
+                       COALESCE(SUM(CASE WHEN b.status = "vacant" THEN 1 ELSE 0 END), 0) AS vacant_beds,
+                       COALESCE(SUM(CASE WHEN b.status = "occupied" THEN 1 ELSE 0 END), 0) AS occupied_beds
+                FROM rooms r
+                LEFT JOIN room_types rt ON rt.id = r.room_type_id
+                LEFT JOIN beds b ON b.room_id = r.id
+                GROUP BY r.id
+                ORDER BY r.floor ASC, r.room_number ASC
+            ');
+            $rawRooms = $stmt->fetchAll(\PDO::FETCH_ASSOC);
+        } catch (\Throwable $e) {
+            \App\Support\Logger::warn('Blueprint query failed: ' . $e->getMessage());
+            $rawRooms = [];
+        }
+
+        $rooms = [];
+        $floorsSet = [];
+
+        foreach ($rawRooms as $row) {
+            $floorRaw = trim((string) ($row['floor'] ?? ''));
+            $roomNum = trim((string) ($row['room_number'] ?? ''));
+
+            // Deduce floor number if floor is missing/blank
+            if ($floorRaw === '' || $floorRaw === null) {
+                if (preg_match('/^(\d+)/', $roomNum, $matches)) {
+                    $numVal = (int) $matches[1];
+                    $floor = $numVal >= 100 ? (int) floor($numVal / 100) : 1;
+                } else {
+                    $floor = 1;
+                }
+            } else {
+                $floor = preg_replace('/\D/', '', $floorRaw);
+                $floor = $floor !== '' ? (int) $floor : 1;
+            }
+            if ($floor < 1) $floor = 1;
+
+            $floorsSet[$floor] = true;
+
+            $capacity = (int) $row['capacity'];
+            $totalBeds = (int) $row['total_beds'];
+            $vacantBeds = (int) $row['vacant_beds'];
+            $occupiedBeds = (int) $row['occupied_beds'];
+
+            // Status determination
+            $status = 'vacant';
+            if ($totalBeds > 0 && $vacantBeds === 0) {
+                $status = 'occupied';
+            } elseif ($occupiedBeds > 0) {
+                $status = 'partially_occupied';
+            }
+
+            $rooms[] = [
+                'id'             => (int) $row['id'],
+                'room_number'    => $roomNum,
+                'floor'          => (string) $floor,
+                'floor_number'   => $floor,
+                'capacity'       => $capacity,
+                'base_price'     => (float) $row['base_price'],
+                'room_type_name' => $row['room_type_name'] ?? ($capacity === 1 ? 'Solo Executive Room' : ($capacity === 2 ? 'Twin Sharing Suite' : 'Bedspace Sanctuary')),
+                'room_type_code' => $row['room_type_code'] ?? ($capacity === 1 ? 'solo' : ($capacity === 2 ? 'twin' : 'quad')),
+                'capacity_label' => $row['capacity_label'] ?? ($capacity . ' ' . ($capacity === 1 ? 'Resident' : 'Beds')),
+                'total_beds'     => $totalBeds,
+                'vacant_beds'    => $vacantBeds,
+                'occupied_beds'  => $occupiedBeds,
+                'status'         => $status,
+            ];
+        }
+
+        // The landing page draws the compound's fixed site plan (two storeys); rooms not in the
+        // database yet are shown there as "Not listed", so no demo rooms are invented here.
+        $floorsSet += [1 => true, 2 => true];
+        ksort($floorsSet);
+        $floors = array_map('strval', array_keys($floorsSet));
+
+        return [
+            'floors' => $floors,
+            'rooms'  => $rooms,
+            'updated_at' => date('c'),
+        ];
+    }
+
+    /**
+     * Public JSON endpoint for the live architectural blueprint.
+     */
+    public static function blueprintJson(): never
+    {
+        header('Content-Type: application/json; charset=UTF-8');
+        header('Cache-Control: no-cache, no-store, must-revalidate');
+        echo json_encode(self::blueprintData());
+        exit;
     }
 
     /** Public room inquiry form on the landing page. */
