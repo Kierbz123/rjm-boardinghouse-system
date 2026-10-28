@@ -138,18 +138,22 @@ class NotificationDispatcher
         Notification::create($boarderId, 'payment_rejected', $message, '/portal/payments/new');
     }
 
-    public static function rentDue(int $boarderId, string $billingPeriod, float $amount, string $dueDate): void
+    /** Sent ONLY to the boarder. Returns false when the same reminder was already sent today (no duplicate). */
+    public static function rentDue(int $boarderId, string $billingPeriod, float $amount, string $dueDate): bool
     {
-        // Sent ONLY to the boarder
         $label = BillingService::periodLabel($billingPeriod);
         $due = new \DateTimeImmutable($dueDate);
         $when = $due < new \DateTimeImmutable('today') ? 'was due on' : 'is due on';
-        Notification::create(
-            $boarderId,
-            'rent_due',
-            "Rent for {$label} (₱" . number_format($amount, 2) . ") {$when} " . $due->format('M j, Y') . '. Pay by GCash, Maya or bank transfer, then upload your receipt.',
-            '/portal/payments/new'
+        $message = "Rent for {$label} (₱" . number_format($amount, 2) . ") {$when} " . $due->format('M j, Y') . '. Pay by GCash, Maya or bank transfer, then upload your receipt.';
+        $seen = \App\Database::getConnection()->prepare(
+            "SELECT 1 FROM notifications WHERE user_id = ? AND type = 'rent_due' AND message = ? AND created_at >= CURDATE() LIMIT 1"
         );
+        $seen->execute([$boarderId, $message]);
+        if ($seen->fetchColumn()) {
+            return false;
+        }
+        Notification::create($boarderId, 'rent_due', $message, '/portal/payments/new');
+        return true;
     }
 
     /** Sent ONLY to the boarder: their equal share of the room's electricity bill. */

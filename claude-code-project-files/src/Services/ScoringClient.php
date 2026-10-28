@@ -74,6 +74,22 @@ class ScoringClient
         ];
     }
 
+    private const DECAY_PER_DAY = 2;
+    private const DECAY_CAP = 30;
+
+    /**
+     * An unresolved request climbs the longer it waits: +2 points per full day, at most +30.
+     * Derived at read time from the stored base score, so nothing is written and a reopened request restarts cleanly.
+     *
+     * @return array{score: float, tier: string}
+     */
+    public static function withDecay(float $baseScore, int $hoursWaiting): array
+    {
+        $bonus = min(intdiv(max($hoursWaiting, 0), 24) * self::DECAY_PER_DAY, self::DECAY_CAP);
+        $score = min($baseScore + $bonus, 100.0);
+        return ['score' => $score, 'tier' => self::getTierForScore($score)];
+    }
+
     private static function getTierForScore(float $score): string
     {
         return match (true) {

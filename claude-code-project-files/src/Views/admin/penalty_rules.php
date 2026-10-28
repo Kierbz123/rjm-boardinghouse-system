@@ -510,6 +510,8 @@ $totalPenaltyAmount = array_sum(array_map(fn($p) => (float) ($p['amount'] ?? 0),
                     </tbody>
                 </table>
             </div>
+                                            <input type="text" name="reason" required maxlength="160" placeholder="Reason (required)"
+                                                   aria-label="Reason for settling penalty #<?= (int) $p['id'] ?> without a payment" class="input input-sm !py-1 text-xs bg-white w-36">
         </div>
     </div>
 </div>

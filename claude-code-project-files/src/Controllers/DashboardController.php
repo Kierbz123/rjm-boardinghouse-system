@@ -24,19 +24,16 @@ class DashboardController
         $activeSos = (int) $pdo->query("SELECT COUNT(*) FROM sos_alerts WHERE status != 'resolved'")->fetchColumn();
         
         // Get maintenance counts by tier (optimized query)
-        $openByTier = $pdo->query("SELECT priority_tier, COUNT(*) AS c FROM maintenance_requests WHERE status != 'resolved' GROUP BY priority_tier")->fetchAll();
+        // Counted on the time-decayed tier, so this card agrees with the staff queue.
+        $tierCounts = array_count_values(array_map(fn ($r) => $r['priority_tier'] ?? 'unscored', \App\Models\MaintenanceRequest::openDecayed()));
+        $openByTier = array_map(fn ($tier, $c) => ['priority_tier' => $tier, 'c' => $c], array_keys($tierCounts), $tierCounts);
         
         // Get recent expenses with staff names (limit to 5)
         $recentExpenses = $pdo->query("SELECT expenses.*, users.name AS staff_name FROM expenses JOIN users ON users.id = expenses.staff_id ORDER BY expenses.created_at DESC LIMIT 5")->fetchAll();
         
-        // Optimize occupancy: only take snapshot if not already taken today
-        $todaySnapshot = $pdo->query("SELECT * FROM occupancy_snapshots WHERE DATE(created_at) = CURDATE() LIMIT 1")->fetch();
-        if (!$todaySnapshot) {
-            OccupancySnapshot::takeToday();
-            $occupancy = OccupancySnapshot::latest();
-        } else {
-            $occupancy = $todaySnapshot;
-        }
+        // Refresh today's snapshot on every visit (as the Occupancy page does), so the card follows bed changes made later today.
+        OccupancySnapshot::takeToday();
+        $occupancy = OccupancySnapshot::latest();
 
         $collections = \App\Services\BillingService::collectionsSummary();
 
@@ -49,13 +46,7 @@ class DashboardController
         $pdo = Database::getConnection();
         
         // Get maintenance queue (optimized with LIMIT)
-        $queue = $pdo->query("SELECT maintenance_requests.*, users.name AS boarder_name, rooms.room_number
-                FROM maintenance_requests
-                JOIN users ON users.id = maintenance_requests.boarder_id
-                LEFT JOIN rooms ON rooms.id = maintenance_requests.room_id
-                WHERE maintenance_requests.status != 'resolved'
-                ORDER BY FIELD(maintenance_requests.priority_tier, 'critical','high','medium','low'), maintenance_requests.created_at ASC
-                LIMIT 100")->fetchAll();
+        $queue = \App\Models\MaintenanceRequest::queueSorted();
         
         // Get active SOS alerts (optimized with LIMIT)
         $activeSos = $pdo->query("SELECT sos_alerts.*, users.name AS boarder_name, rooms.room_number

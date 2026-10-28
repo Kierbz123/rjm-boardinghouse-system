@@ -166,10 +166,11 @@ $b = new Client('B', $base2);
 $b->login('admin@rjm.test', pw('admin'));
 $mh = curl_multi_init();
 $handles = [];
-foreach (['A' => $a, 'B' => $b] as $k => $cl) {
+// Different amounts: the same admin entering the same amount twice within 30 s is (correctly) refused as a double click.
+foreach (['A' => [$a, 1000], 'B' => [$b, 1000.50]] as $k => [$cl, $amt]) {
     $ch = curl_init(($cl->base ?? getenv('TEST_BASE_URL')) . '/admin/payments/record');
     curl_setopt_array($ch, [CURLOPT_RETURNTRANSFER => true, CURLOPT_COOKIEJAR => $cl->jar, CURLOPT_COOKIEFILE => $cl->jar, CURLOPT_POST => true,
-        CURLOPT_POSTFIELDS => http_build_query(['csrf_token' => $cl->token(), 'boarder_id' => $race['id'], 'amount' => 1000, 'payment_method' => 'cash', 'received_on' => date('Y-m-d')]),
+        CURLOPT_POSTFIELDS => http_build_query(['csrf_token' => $cl->token(), 'boarder_id' => $race['id'], 'amount' => $amt, 'payment_method' => 'cash', 'received_on' => date('Y-m-d')]),
         CURLOPT_TIMEOUT => 60]);
     curl_multi_add_handle($mh, $ch);
     $handles[$k] = $ch;
@@ -182,4 +183,4 @@ $codes = array_map(fn ($ch) => curl_getinfo($ch, CURLINFO_HTTP_CODE), $handles);
 $rows = q('SELECT receipt_number FROM payments WHERE boarder_id = ? AND payment_method = "cash"', [$race['id']]);
 check(count($rows) === 2 && count(array_unique(array_column($rows, 'receipt_number'))) === 2, 'both are recorded, each with its own receipt number', json_encode([$codes, $rows]));
 $allocated = (float) q1('SELECT COALESCE(SUM(amount), 0) FROM payment_allocations WHERE boarder_id = ?', [$race['id']]);
-check(abs($allocated - 2000.0) < 0.005, 'and together they are allocated exactly once (₱2,000)', (string) $allocated);
+check(abs($allocated - 2000.50) < 0.005, 'and together they are allocated exactly once (₱2,000.50)', (string) $allocated);

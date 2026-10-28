@@ -7,15 +7,15 @@ Source: `../FUNCTIONALITY-AUDIT-2026-10-14.md`. Finding ids (F-xx) and work pack
 
 | # | Feature | Status | Gaps against this spec |
 |---|---|---|---|
-| 1 | Repair priority | Built (rule-based PHP) | No time-decay; no staff assignment or notes; resident cannot cancel; labelled "AI" although it is a keyword table (F-18, WP-11) |
+| 1 | Repair priority | Built (rule-based PHP) | Time-decay built 28 Oct (+2 per full day waiting, max +30, worked out when read); re-opening a resolved request needs a reason, kept in `audit_log` (F-18, 28 Oct). No staff assignment or notes; resident cannot cancel; labelled "AI" although it is a keyword table (F-18, WP-11) |
 | 2 | SOS and incidents | Built | No resolver / false-alarm record, no SOS history page, no "people involved" on incidents (F-23, WP-15). No in-system CCTV page (see §2) |
-| 3 | Command Center | Built | Occupancy card can show a stale snapshot; status pills are static text (F-12, F-26) |
+| 3 | Command Center | Built | Status pills are static text (F-26). Occupancy card refreshes on every visit and repair counts use the decayed tier (fixed 28 Oct) |
 | 4 | Expense logging | Partly | Admin-only (spec says staff); no date field, no receipt upload, no edit or void (F-19, WP-12) |
-| 5 | Ledger export | Built (CSV only) | No PDF; payments counted by submission date unlike the dashboard (F-11, WP-7) |
+| 5 | Ledger export | Built (CSV only) | No PDF. Fixed 28 Oct: payments dated by approval (agrees with the dashboard), "receivable" counts unpaid penalties only, last CSV line no longer cut off (F-11, F-32) |
 | 6 | Occupancy trend | Partly | A snapshot is taken only when an admin opens a page, so days are missing (F-12) |
 | 7 | Payment proof and review | Built | No cash / walk-in payment entry (F-13, WP-6); payment account numbers on the Pay Rent page are fixed text (F-14, WP-10) |
 | 8 | Bed mapping | Built | A list, not a card grid; no `bed_assignments` history |
-| 9 | Penalties | Built | Late-fee check and reminders are manual (no scheduler); "Mark paid" is really a waiver with no reason (F-06, WP-5); reminders can be sent twice (F-15) |
+| 9 | Penalties | Built | Late-fee check and reminders are manual (no scheduler); "Mark paid" (a waiver) now requires a reason and records who and why (F-06, fixed 28 Oct; a separate "paid in cash" path is the Record Payment form). Reminders: the same one goes out at most once a day (F-15, fixed 28 Oct) |
 | 10 | Status life | Partly | No automatic transitions (pending → active, scheduled move-out); a future move-out date moves the resident out at once (F-05, F-17, WP-3, WP-9) |
 | 11 | Notifications | Built | In-app only; e-mail is planned behind an off-by-default queue (WP-9); no paging or pruning (F-28) |
 
@@ -25,7 +25,7 @@ Source: `../FUNCTIONALITY-AUDIT-2026-10-14.md`. Finding ids (F-xx) and work pack
   - Keyword severity dictionary matched as whole words (e.g. "fire", "flood", "gas leak", "exposed wire" → high severity; "squeaky", "cosmetic" → low)
   - Category base-severity weight
   - Media presence bonus (a request with photo/video ranks above an identical one without)
-  - Time-decay: an unresolved request's priority score ticks up the longer it waits — **specified, not yet built** (F-18)
+  - Time-decay: an unresolved request's priority score ticks up the longer it waits: +2 per full day, at most +30 (`ScoringClient::withDecay`, applied when the queue is read by `MaintenanceRequest::openDecayed`; the stored score stays the submitted one)
   - Output: numeric priority score → mapped to **Critical / High / Medium / Low**
 - Maintenance Staff queue is sorted by tier then oldest first, with the score/tier visibly shown.
 - Never call an external LLM API for scoring (breaks the no-outbound-calls rule in `CLAUDE.md`). The optional local Ollama model only powers separate helper buttons (improve description, suggest category, analyse ticket, summarise queue). Real photo/video damage detection is a stretch goal, not planned.

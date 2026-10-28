@@ -12,9 +12,9 @@ class LedgerBuilder
     {
         $sql = "SELECT 'Payment received' AS type, p.id, u.name AS user_name, u.email AS user_email,
                        CONCAT('Rent/penalty payment for ', p.billing_period) AS description,
-                       COALESCE(p.approved_amount, p.claimed_amount) AS amount, p.verification_status AS status, p.created_at AS at
+                       COALESCE(p.approved_amount, p.claimed_amount) AS amount, p.verification_status AS status, COALESCE(p.reviewed_at, p.created_at) AS at
                 FROM payments p JOIN users u ON u.id = p.boarder_id
-                WHERE p.verification_status IN ('auto-matched','admin-approved') AND p.created_at BETWEEN ? AND ?
+                WHERE p.verification_status IN ('auto-matched','admin-approved') AND COALESCE(p.reviewed_at, p.created_at) BETWEEN ? AND ?
                 UNION ALL
                 SELECT 'Expense', e.id, u.name, u.email, CONCAT(e.category, IF(e.description IS NULL, '', CONCAT(': ', e.description))),
                        e.amount, 'recorded', e.created_at
@@ -44,7 +44,10 @@ class LedgerBuilder
                 $r['status'],
                 date('Y-m-d H:i', strtotime($r['at'])),
             ]);
-            $totals[$r['type']] += (float) $r['amount'];
+            // Paid or waived penalties stay listed above but are no longer owed, so they are not "receivable".
+            if ($r['type'] !== 'Penalty charged' || $r['status'] === 'unpaid') {
+                $totals[$r['type']] += (float) $r['amount'];
+            }
         }
 
         // Penalties are money owed, not money in, so they are not part of the net.

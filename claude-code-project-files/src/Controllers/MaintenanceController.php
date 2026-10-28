@@ -140,6 +140,16 @@ class MaintenanceController
             header('Location: /staff/maintenance');
             exit;
         }
+        // Re-opening a resolved repair needs a reason, kept in the audit log with who did it.
+        if ($request['status'] === 'resolved' && $status !== 'resolved') {
+            $reason = trim((string) ($_POST['reason'] ?? ''));
+            if ($reason === '' || mb_strlen($reason) > 255) {
+                $_SESSION['flash_error'] = 'Give a reason (up to 255 characters) to re-open a resolved request.';
+                header('Location: /staff/maintenance');
+                exit;
+            }
+            \App\Services\AuditLog::record($userId, 'maintenance_reopened', 'maintenance_request', (int) $id, ['to' => $status, 'reason' => $reason]);
+        }
         MaintenanceRequest::updateStatus((int) $id, $status, $userId);
 
         if ($request['status'] !== $status) {

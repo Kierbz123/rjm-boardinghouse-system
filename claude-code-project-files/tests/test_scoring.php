@@ -26,5 +26,14 @@ check($s('Small paint scratch on the wall')['tier'] === 'low', 'cosmetic = low')
 check($s('x', 'other', true)['score'] === 15.0, 'photo/video adds 10 to the base');
 check($s(str_repeat('fire smoke explosion ', 50), 'structural')['score'] === 100.0, 'score caps at 100');
 
+// Time-decay: +2 points per full day waiting, capped at +30, never above 100.
+$d = fn (float $score, int $hours) => ScoringClient::withDecay($score, $hours);
+check($d(13.0, 0) === ['score' => 13.0, 'tier' => 'low'], 'no wait, no change');
+check($d(13.0, 47)['score'] === 15.0, 'only full days count (47 h = 1 day = +2)');
+check($d(13.0, 8 * 24)['tier'] === 'medium', 'a low request waiting 8 days climbs to medium');
+check($d(30.0, 13 * 24)['tier'] === 'high', 'a medium request waiting 13 days climbs to high');
+check($d(60.0, 100 * 24)['score'] === 90.0 && $d(60.0, 100 * 24)['tier'] === 'critical', 'decay is capped at +30');
+check($d(95.0, 100 * 24)['score'] === 100.0, 'decay never passes 100');
+
 echo $failures === 0 ? "All scoring checks passed.\n" : "{$failures} scoring check(s) failed.\n";
 exit($failures === 0 ? 0 : 1);

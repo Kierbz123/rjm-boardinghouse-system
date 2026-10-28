@@ -919,9 +919,11 @@ input[type="date"].profile-input {
                                 </td>
                                 <td style="text-align:right;">
                                     <?php if (!$isPaid): ?>
-                                        <form method="post" action="/admin/penalties/<?= (int) $p['id'] ?>/mark-paid" class="inline">
+                                        <form method="post" action="/admin/penalties/<?= (int) $p['id'] ?>/mark-paid" class="inline-flex items-center justify-end gap-1.5">
                                             <?= \App\Support\Csrf::field() ?>
                                             <input type="hidden" name="return_to" value="/admin/boarders/<?= $id ?>">
+                                            <input type="text" name="reason" required maxlength="160" placeholder="Reason (required)"
+                                                   aria-label="Reason for settling penalty #<?= (int) $p['id'] ?> without a payment" class="input input-sm !py-1 text-xs bg-white w-36">
                                             <button type="submit" class="profile-btn profile-btn-secondary !py-1 !px-2.5 !text-xs font-semibold text-emerald-700 hover:text-emerald-900 hover:bg-emerald-50 cursor-pointer">
                                                 Mark Paid
                                             </button>

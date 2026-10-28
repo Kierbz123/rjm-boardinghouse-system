@@ -18,7 +18,7 @@ class LedgerController
         $filename = 'rjm_ledger_' . date('Y-m-d_H-i-s') . '.csv';
         header('Content-Type: text/csv; charset=UTF-8');
         header('Content-Disposition: attachment; filename="' . $filename . '"');
-        header('Content-Length: ' . strlen($csv));
+        header('Content-Length: ' . (strlen($csv) + 3)); // + the 3-byte BOM echoed below
         header('Pragma: no-cache');
         header('Expires: 0');
         

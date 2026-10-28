@@ -214,7 +214,9 @@ $scripted = ['POST /api/sos', 'POST /api/maintenance/score-preview', 'POST /api/
     // Only on screen when an inquiry's email already has an account; clicked through in test_inquiry_conversion.php.
     'POST /admin/inquiries/{id}/link-boarder',
     // The Staff tab's one reset dialog gets each row's action by script; clicked through in test_staff_accounts.php.
-    'POST /admin/staff/{id}/password'];
+    'POST /admin/staff/{id}/password',
+    // Penalties are admin-only (owner decision, 15 Oct); the route stays so a staff POST gets a 403, and no form points at it.
+    'POST /staff/penalties/issue'];
 $unreachable = [];
 foreach ($routes as [$rm, $pattern]) {
     if ($rm === 'POST' && empty($reached["POST {$pattern}"]) && !in_array("POST {$pattern}", $scripted, true)) {
@@ -365,11 +367,11 @@ check((int) one('SELECT COUNT(*) FROM penalties WHERE reason = ?', ["audit off {
 http('POST', "/admin/penalty-rules/{$ruleId}/toggle", $admin, ['csrf_token' => $adminT, 'active' => '1']);
 check((int) one('SELECT active FROM penalty_rules WHERE id = ?', [$ruleId]) === 1, 'rule reactivated');
 $owedBefore = (float) App\Services\BillingService::calculateBalance($r1)['total_outstanding'];
-http('POST', "/admin/penalties/{$penalty}/mark-paid", $admin, ['csrf_token' => $adminT]);
+http('POST', "/admin/penalties/{$penalty}/mark-paid", $admin, ['csrf_token' => $adminT, 'reason' => "audit waiver {$tag}"]);
 $pen = row('SELECT status, waived_by, paid_at FROM penalties WHERE id = ?', [$penalty]);
 check($pen['status'] === 'paid' && (int) $pen['waived_by'] === 1 && $pen['paid_at'] !== null, 'penalty marked paid, with the admin who did it');
 check(abs($owedBefore - 50 - (float) App\Services\BillingService::calculateBalance($r1)['total_outstanding']) < 0.01, 'the resident\'s balance dropped by the penalty');
-http('POST', "/admin/penalties/{$penalty}/mark-paid", $admin, ['csrf_token' => $adminT]);
+http('POST', "/admin/penalties/{$penalty}/mark-paid", $admin, ['csrf_token' => $adminT, 'reason' => 'twice']);
 check(str_contains(http('GET', '/admin/penalty-rules', $admin)['body'], 'already been marked as paid'), 'marking it paid twice is refused');
 $r = http('POST', '/admin/penalties/issue', $admin, ['csrf_token' => $adminT, 'boarder_id' => $r1, 'rule_id' => $ruleId, 'amount' => '5000000', 'reason' => "audit big {$tag}"]);
 check((int) one('SELECT COUNT(*) FROM penalties WHERE reason = ?', ["audit big {$tag}"]) === 0, 'an oversized penalty is refused');

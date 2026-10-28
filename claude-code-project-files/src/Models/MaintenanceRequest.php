@@ -24,17 +24,38 @@ class MaintenanceRequest
         return (int) Database::getConnection()->lastInsertId();
     }
 
-    /** Sorted by priority tier (not submission time) per FEATURES.md §1. Optimized with LIMIT. */
+    /**
+     * Every unresolved request with the time-decayed score and tier (FEATURES.md §1), most urgent first,
+     * then oldest first. `priority_tier` / `severity_score` hold the decayed values; `base_tier` is what
+     * the request was scored at when it was submitted.
+     */
+    public static function openDecayed(): array
+    {
+        $rows = Database::getConnection()->query(
+            "SELECT maintenance_requests.*, users.name AS boarder_name, rooms.room_number,
+                    TIMESTAMPDIFF(HOUR, maintenance_requests.created_at, NOW()) AS hours_waiting
+             FROM maintenance_requests
+             JOIN users ON users.id = maintenance_requests.boarder_id
+             LEFT JOIN rooms ON rooms.id = maintenance_requests.room_id
+             WHERE maintenance_requests.status != 'resolved'"
+        )->fetchAll();
+        $rank = ['critical' => 0, 'high' => 1, 'medium' => 2, 'low' => 3];
+        foreach ($rows as &$r) {
+            $r['base_tier'] = $r['priority_tier'];
+            if (!$r['scoring_pending'] && $r['severity_score'] !== null) {
+                $d = \App\Services\ScoringClient::withDecay((float) $r['severity_score'], (int) $r['hours_waiting']);
+                $r['severity_score'] = $d['score'];
+                $r['priority_tier'] = $d['tier'];
+            }
+        }
+        unset($r);
+        usort($rows, fn ($a, $b) => [$rank[$a['priority_tier']] ?? 4, $a['created_at']] <=> [$rank[$b['priority_tier']] ?? 4, $b['created_at']]);
+        return $rows;
+    }
+
     public static function queueSorted(): array
     {
-        $sql = "SELECT maintenance_requests.*, users.name AS boarder_name, rooms.room_number
-                FROM maintenance_requests
-                JOIN users ON users.id = maintenance_requests.boarder_id
-                LEFT JOIN rooms ON rooms.id = maintenance_requests.room_id
-                WHERE maintenance_requests.status != 'resolved'
-                ORDER BY FIELD(maintenance_requests.priority_tier, 'critical','high','medium','low'), maintenance_requests.created_at ASC
-                LIMIT 100";
-        return Database::getConnection()->query($sql)->fetchAll();
+        return array_slice(self::openDecayed(), 0, 100);
     }
 
     public static function find(int $id): ?array

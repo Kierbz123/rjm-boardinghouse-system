@@ -181,7 +181,14 @@ class PenaltyController
             $redirectUrl = $returnTo;
         }
 
-        $result = Penalty::markPaid($penaltyId, (int) ($_SESSION['user_id'] ?? 0));
+        // Settling without a payment is a waiver: who and why are recorded (penalties.waived_by / waive_reason).
+        $reason = trim((string) ($_POST['reason'] ?? ''));
+        if ($reason === '' || mb_strlen($reason) > 160) {
+            $_SESSION['flash_error'] = 'Give a reason (up to 160 characters) for settling this penalty without a payment.';
+            header('Location: ' . $redirectUrl);
+            exit;
+        }
+        $result = Penalty::markPaid($penaltyId, (int) ($_SESSION['user_id'] ?? 0), $reason);
 
         if (!$result['ok']) {
             $_SESSION['flash_error'] = $result['error'] ?? 'Could not mark penalty as paid.';
@@ -266,7 +273,7 @@ class PenaltyController
         }
         $pdo = Database::getConnection();
         $active = $pdo->query("SELECT user_id FROM boarder_profiles WHERE status IN ('active', 'on_notice')")->fetchAll();
-        $sent = 0;
+        $sent = $already = 0;
         foreach ($active as $b) {
             $boarderId = (int) $b['user_id'];
             try {
@@ -278,11 +285,11 @@ class PenaltyController
             // Remind about the oldest unpaid rent cycle, with its own due date.
             $period = array_key_first($balance['unpaid_rent']);
             if ($period !== null) {
-                NotificationDispatcher::rentDue($boarderId, $period, $balance['unpaid_rent'][$period], $balance['rent_due_dates'][$period]);
-                $sent++;
+                NotificationDispatcher::rentDue($boarderId, $period, $balance['unpaid_rent'][$period], $balance['rent_due_dates'][$period])
+                    ? $sent++ : $already++;
             }
         }
-        $_SESSION['flash_info'] = "Rent-due reminder sent to {$sent} boarder(s).";
+        $_SESSION['flash_info'] = "Rent-due reminder sent to {$sent} boarder(s)." . ($already ? " {$already} already had today's reminder." : '');
         header('Location: /admin/penalty-rules');
         exit;
     }

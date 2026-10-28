@@ -47,7 +47,11 @@ check(flashHas($staff, $staff->post("/staff/maintenance/{$mid}/status", ['status
 $staff->post("/staff/maintenance/{$mid}/status", ['status' => 'resolved']);
 check(q1('SELECT status FROM maintenance_requests WHERE id = ?', [$mid]) === 'resolved' && (int) q1('SELECT resolved_by FROM maintenance_requests WHERE id = ?', [$mid]) > 0, 'resolved, recording who resolved it');
 $staff->post("/staff/maintenance/{$mid}/status", ['status' => 'open']);
-knownDefect('F-18', q1('SELECT status FROM maintenance_requests WHERE id = ?', [$mid]) === 'resolved', 'a resolved repair cannot be silently re-opened without a reason');
+check(q1('SELECT status FROM maintenance_requests WHERE id = ?', [$mid]) === 'resolved', 'a resolved repair cannot be silently re-opened without a reason');
+$staff->post("/staff/maintenance/{$mid}/status", ['status' => 'open', 'reason' => 'Leak came back']);
+check(q1('SELECT status FROM maintenance_requests WHERE id = ?', [$mid]) === 'open'
+    && (int) q1("SELECT COUNT(*) FROM audit_log WHERE action = 'maintenance_reopened' AND entity_id = ? AND details LIKE ?", [$mid, '%Leak came back%']) === 1,
+    'with a reason it re-opens, and the reason and who did it are in the audit log');
 check($staff->get('/staff/maintenance/history?page=99999')->code === 200 && $staff->get('/staff/maintenance/history?page=-5')->code === 200, 'history paging survives huge and negative page numbers');
 check(!$other->get('/portal/dashboard')->has('exposed wire'), "another resident's dashboard does not show the request");
 $media = q1('SELECT media_path FROM maintenance_requests WHERE id = ?', [$mid]);

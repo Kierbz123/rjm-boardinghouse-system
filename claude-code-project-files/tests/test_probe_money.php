@@ -105,16 +105,18 @@ check(flashHas($admin, $admin->post('/admin/penalties/issue', ['boarder_id' => $
 $admin->post("/admin/penalty-rules/{$rule}/toggle", ['active' => '0']);
 check(flashHas($admin, $admin->post('/admin/penalties/issue', ['boarder_id' => $B, 'rule_id' => $rule, 'amount' => 5]), 'deactivated'), 'a deactivated rule cannot be used');
 $admin->post("/admin/penalty-rules/{$rule}/toggle", ['active' => '1']);
-$admin->post("/admin/penalties/{$manual['id']}/mark-paid");
-$wr = q('SELECT status, waive_reason FROM penalties WHERE id = ?', [$manual['id']])[0];
+check(flashHas($admin, $admin->post("/admin/penalties/{$manual['id']}/mark-paid", ['reason' => '  ']), 'reason')
+    && q1('SELECT status FROM penalties WHERE id = ?', [$manual['id']]) === 'unpaid', '"Mark paid" without a reason is refused and leaves the penalty unpaid');
+$admin->post("/admin/penalties/{$manual['id']}/mark-paid", ['reason' => 'Agreed with resident']);
+$wr = q('SELECT status, waive_reason, waived_by FROM penalties WHERE id = ?', [$manual['id']])[0];
 check($wr['status'] === 'paid', '"Mark paid" settles the penalty');
-knownDefect('F-06', !empty($wr['waive_reason']), 'settling a penalty without payment records a reason', 'waive_reason=' . var_export($wr['waive_reason'], true));
-check(flashHas($admin, $admin->post("/admin/penalties/{$manual['id']}/mark-paid"), 'already'), 'settling twice is refused');
+check($wr['waive_reason'] === 'Agreed with resident' && (int) $wr['waived_by'] > 0, 'settling a penalty without payment records who and why', 'waive_reason=' . var_export($wr['waive_reason'], true));
+check(flashHas($admin, $admin->post("/admin/penalties/{$manual['id']}/mark-paid", ['reason' => 'again']), 'already'), 'settling twice is refused');
 $admin->post('/admin/notifications/rent-due');
 $n1 = (int) q1('SELECT COUNT(*) FROM notifications WHERE user_id = ? AND type = "rent_due"', [$B]);
 $admin->post('/admin/notifications/rent-due');
 $n2 = (int) q1('SELECT COUNT(*) FROM notifications WHERE user_id = ? AND type = "rent_due"', [$B]);
-knownDefect('F-15', $n1 === $n2, 'pressing "send rent-due reminders" twice does not send duplicates', "{$n1} -> {$n2}");
+check($n1 === $n2, 'pressing "send rent-due reminders" twice does not send duplicates', "{$n1} -> {$n2}");
 
 section('Ledger and expenses');
 check(flashHas($admin, $admin->post('/admin/expenses', ['category' => 'Repairs', 'amount' => 1500.5, 'description' => '=HYPERLINK("http://evil","x")']), 'recorded'), 'record an expense');
@@ -140,11 +142,11 @@ $admin->post("/admin/payments/{$oldPid}/approve", ['approved_amount' => 1000]);
 $csv = $admin->get("/admin/ledger/export?from={$from}&to=" . date('Y-m-d'));
 preg_match('/"TOTAL PAYMENTS RECEIVED",,,,,([0-9.]+)/', $csv->body, $m);
 $collected = \App\Services\BillingService::collectionsSummary()['collected_this_month'];
-knownDefect('F-11', isset($m[1]) && abs((float) $m[1] - $collected) < 0.01, 'the ledger and the dashboard agree on what was collected this month', 'ledger=' . ($m[1] ?? '?') . " dashboard={$collected}");
+check(isset($m[1]) && abs((float) $m[1] - $collected) < 0.01, 'the ledger and the dashboard agree on what was collected this month', 'ledger=' . ($m[1] ?? '?') . " dashboard={$collected}");
 preg_match('/"PENALTIES CHARGED \(receivable\)",,,,,([0-9.]+)/', $csv->body, $m2);
 $unpaid = (float) q1("SELECT COALESCE(SUM(amount), 0) FROM penalties WHERE status = 'unpaid' AND applied_at >= ?", [$from]);
-knownDefect('F-11', isset($m2[1]) && abs((float) $m2[1] - $unpaid) < 0.01, 'the ledger "receivable" counts only penalties still unpaid', 'ledger=' . ($m2[1] ?? '?') . " unpaid={$unpaid}");
+check(isset($m2[1]) && abs((float) $m2[1] - $unpaid) < 0.01, 'the ledger "receivable" counts only penalties still unpaid', 'ledger=' . ($m2[1] ?? '?') . " unpaid={$unpaid}");
 
 // F-32 (found while porting this probe): the CSV's Content-Length ignores the 3-byte BOM, so clients cut the last total.
 $tail = $admin->get("/admin/ledger/export?from={$from}&to=" . date('Y-m-d'));
-knownDefect('F-32', (bool) preg_match('/"PENALTIES CHARGED \(receivable\)",,,,,\d+\.\d\d\s*$/', $tail->body), 'the last line of the ledger CSV arrives complete (two decimals)', 'ends with: ' . substr(trim($tail->body), -12));
+check((bool) preg_match('/"PENALTIES CHARGED \(receivable\)",,,,,\d+\.\d\d\s*$/', $tail->body), 'the last line of the ledger CSV arrives complete (two decimals)', 'ends with: ' . substr(trim($tail->body), -12));

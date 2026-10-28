@@ -165,4 +165,4 @@ $admin->post('/admin/beds/assign', ['boarder_id' => $extra['id'], 'bed_id' => $r
 $real = (int) q1('SELECT COUNT(*) FROM beds WHERE status = "occupied"');
 $admin->get('/admin/dashboard', true);
 $snapshot = (int) q1('SELECT occupied_beds FROM occupancy_snapshots WHERE snapshot_date = CURDATE()');
-knownDefect('F-12', $snapshot === $real, 'the dashboard occupancy follows bed changes made after the first visit today', "beds occupied now={$real}, dashboard uses {$snapshot}");
+check($snapshot === $real, 'the dashboard occupancy follows bed changes made after the first visit today', "beds occupied now={$real}, dashboard uses {$snapshot}");
