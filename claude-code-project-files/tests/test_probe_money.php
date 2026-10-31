@@ -125,12 +125,12 @@ check(flashHas($admin, $admin->post('/admin/expenses', ['category' => 'X', 'amou
 check(flashHas($admin, $admin->post('/admin/expenses', ['category' => 'X', 'amount' => 99999999]), 'greater than zero'), 'an amount above 10,000,000 is refused');
 $admin->post('/admin/expenses', ['category' => '=1+1', 'amount' => 5, 'description' => '@SUM(A1)']);
 $from = date('Y-m-01');
-$csv = $admin->get("/admin/ledger/export?from={$from}&to=" . date('Y-m-d'));
+$csv = $admin->get("/admin/ledger/export?format=csv&from={$from}&to=" . date('Y-m-d'));
 check($csv->code === 200 && str_contains($csv->headers['content-type'] ?? '', 'text/csv') && str_starts_with($csv->body, "\xEF\xBB\xBF"), 'the ledger exports a CSV with a byte-order mark');
 check(str_contains($csv->body, "'=1+1"), 'formula-looking text is neutralised in the CSV');
 check($staff->get('/admin/ledger/export')->code === 403, 'staff cannot export the ledger');
-check($admin->get('/admin/ledger/export?from=garbage&to=also')->code === 200, 'garbage dates fall back safely');
-preg_match('/"TOTAL PAYMENTS RECEIVED",,,,,([0-9.]+)/', $csv->body, $m);
+check($admin->get('/admin/ledger/export?format=csv&from=garbage&to=also')->code === 200, 'garbage dates fall back safely');
+preg_match('/"TOTAL PAYMENTS RECEIVED",,,,,,([0-9.]+)/', $csv->body, $m);
 $sum = (float) q1("SELECT COALESCE(SUM(COALESCE(approved_amount, claimed_amount)), 0) FROM payments WHERE verification_status IN ('admin-approved','auto-matched') AND created_at >= ?", [$from]);
 check(isset($m[1]) && abs((float) $m[1] - $sum) < 0.01, 'the ledger payment total equals the approved payments in the period', 'csv=' . ($m[1] ?? '?') . " db={$sum}");
 
@@ -139,14 +139,56 @@ $old = makeResident($admin, null, 40);
 $oldPid = submitReceipt($old['client'], 1000, 'GC-' . uniq());
 db()->prepare('UPDATE payments SET created_at = DATE_SUB(created_at, INTERVAL 40 DAY) WHERE id = ?')->execute([$oldPid]);
 $admin->post("/admin/payments/{$oldPid}/approve", ['approved_amount' => 1000]);
-$csv = $admin->get("/admin/ledger/export?from={$from}&to=" . date('Y-m-d'));
-preg_match('/"TOTAL PAYMENTS RECEIVED",,,,,([0-9.]+)/', $csv->body, $m);
+$csv = $admin->get("/admin/ledger/export?format=csv&from={$from}&to=" . date('Y-m-d'));
+preg_match('/"TOTAL PAYMENTS RECEIVED",,,,,,([0-9.]+)/', $csv->body, $m);
 $collected = \App\Services\BillingService::collectionsSummary()['collected_this_month'];
 check(isset($m[1]) && abs((float) $m[1] - $collected) < 0.01, 'the ledger and the dashboard agree on what was collected this month', 'ledger=' . ($m[1] ?? '?') . " dashboard={$collected}");
-preg_match('/"PENALTIES CHARGED \(receivable\)",,,,,([0-9.]+)/', $csv->body, $m2);
+preg_match('/"PENALTIES CHARGED \(receivable\)",,,,,,([0-9.]+)/', $csv->body, $m2);
 $unpaid = (float) q1("SELECT COALESCE(SUM(amount), 0) FROM penalties WHERE status = 'unpaid' AND applied_at >= ?", [$from]);
 check(isset($m2[1]) && abs((float) $m2[1] - $unpaid) < 0.01, 'the ledger "receivable" counts only penalties still unpaid', 'ledger=' . ($m2[1] ?? '?') . " unpaid={$unpaid}");
 
 // F-32 (found while porting this probe): the CSV's Content-Length ignores the 3-byte BOM, so clients cut the last total.
-$tail = $admin->get("/admin/ledger/export?from={$from}&to=" . date('Y-m-d'));
-check((bool) preg_match('/"PENALTIES CHARGED \(receivable\)",,,,,\d+\.\d\d\s*$/', $tail->body), 'the last line of the ledger CSV arrives complete (two decimals)', 'ends with: ' . substr(trim($tail->body), -12));
+$tail = $admin->get("/admin/ledger/export?format=csv&from={$from}&to=" . date('Y-m-d'));
+check((bool) preg_match('/"PENALTIES CHARGED \(receivable\)",,,,,,\d+\.\d\d\s*$/', $tail->body), 'the last line of the ledger CSV arrives complete (two decimals)', 'ends with: ' . substr(trim($tail->body), -12));
+
+// Accounting template: the last running balance equals total debits minus total credits.
+preg_match('/"NET \(payments - expenses\)",,,,,,(-?[0-9.]+)/', $tail->body, $net);
+$rows = array_filter(array_map('str_getcsv', preg_split('/\r?\n/', ltrim($tail->body, "\xEF\xBB\xBF"))), fn ($r) => count($r) === 11 && preg_match('/^\d{4}-/', $r[0]));
+$lastBal = $rows ? (float) end($rows)[8] : 0.0;
+check(isset($net[1]) && abs($lastBal - (float) $net[1]) < 0.01, 'the ledger running balance ends at the NET total', 'balance=' . $lastBal . ' net=' . ($net[1] ?? '?'));
+
+// The default download is a real .xlsx (statement in the owner's template + general ledger). This PHP has no zip
+// extension, so read the stored entries straight from the archive's central directory.
+$admin->post('/admin/expenses', ['category' => 'Supplies', 'amount' => 12, 'description' => 'Pipes <1"> & fittings']);
+$wb = $admin->get("/admin/ledger/export?from={$from}&to=" . date('Y-m-d'));
+$unzip = function (string $zip): array {
+    $files = [];
+    $eocd = strrpos($zip, "PK\x05\x06");
+    if ($eocd === false) {
+        return $files;
+    }
+    $e = unpack('vcount/Vsize/Voffset', substr($zip, $eocd + 10, 10));
+    for ($p = $e['offset'], $i = 0; $i < $e['count']; $i++) {
+        $h = unpack('vmethod/x4/Vcrc/Vcsize/Vsize/vnlen/velen/vclen/x8/Vlocal', substr($zip, $p + 10, 36));
+        $name = substr($zip, $p + 46, $h['nlen']);
+        $l = unpack('vnlen/velen', substr($zip, $h['local'] + 26, 4));
+        $body = substr($zip, $h['local'] + 30 + $l['nlen'] + $l['elen'], $h['csize']);
+        $files[$name] = ($h['method'] === 0 && crc32($body) === $h['crc']) ? $body : null;
+        $p += 46 + $h['nlen'] + $h['elen'] + $h['clen'];
+    }
+    return $files;
+};
+$parts = $unzip($wb->body);
+$ok = $wb->code === 200 && str_contains($wb->headers['content-type'] ?? '', 'spreadsheetml.sheet') && str_contains($wb->headers['content-disposition'] ?? '', '.xlsx') && str_starts_with($wb->body, 'PK');
+foreach (['[Content_Types].xml', '_rels/.rels', 'xl/workbook.xml', 'xl/_rels/workbook.xml.rels', 'xl/styles.xml', 'xl/worksheets/sheet1.xml', 'xl/worksheets/sheet2.xml'] as $part) {
+    $ok = $ok && isset($parts[$part]) && @simplexml_load_string($parts[$part]) !== false;
+}
+check($ok, 'Export Ledger downloads an .xlsx whose parts are intact (checksums) and well-formed XML', implode(',', array_keys($parts)));
+check(str_contains($parts['xl/workbook.xml'] ?? '', 'name="Statement"') && str_contains($parts['xl/workbook.xml'] ?? '', 'name="General Ledger"'), 'it has a Statement sheet and a General Ledger sheet');
+check(str_contains($parts['xl/worksheets/sheet2.xml'] ?? '', 'Pipes &lt;1&quot;&gt; &amp; fittings'), 'text typed by users is escaped in the workbook');
+// The statement's last column is this month: its Total Cash Received must equal the CSV total and the dashboard.
+$sheet = @simplexml_load_string($parts['xl/worksheets/sheet1.xml'] ?? '<x/>');
+$sheet->registerXPathNamespace('m', 'http://schemas.openxmlformats.org/spreadsheetml/2006/main');
+$tot = $sheet->xpath('//m:row[m:c/m:is/m:t="Total Cash Received"]/m:c[4]/m:v');
+check(isset($tot[0], $m[1]) && abs((float) $tot[0] - $collected) < 0.01 && abs((float) $tot[0] - (float) $m[1]) < 0.01, 'the statement\'s Total Cash Received this month matches the CSV and the dashboard', 'statement=' . ($tot[0] ?? '?') . " dashboard={$collected}");
+check($staff->get('/admin/ledger/export')->code === 403, 'staff cannot download the workbook');

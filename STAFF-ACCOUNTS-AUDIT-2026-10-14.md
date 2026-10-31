@@ -13,7 +13,7 @@ Severity is for this app as deployed: a localhost system with an optional, hand-
 |---|---|---|---|---|---|
 | S-01 | Temp password | A password the admin typed was permanent: neither *create* nor *reset* set `must_change_password`, so the admin knew every staff password indefinitely. | **High** | old `StaffController.php:35`, `PasswordResetService.php:29` | Mark it temporary on create and on every admin reset → **fixed** |
 | S-02 | Temp password | Temporary passwords never expired. | **High** | no column existed | `temp_password_expires_at`, 72 h, checked at login → **fixed** |
-| S-03 | Policy | Minimum 8 characters. NIST SP 800-63B-4 requires 15 when the password is the only factor, and this app has no MFA. | **High** | old `Support/PasswordPolicy.php:13` | 15 characters (code points) → **fixed, for every account** (one shared rule) |
+| S-03 | Policy | Minimum 8 characters. NIST SP 800-63B-4 requires 15 when the password is the only factor, and this app has no MFA. | **High** | old `Support/PasswordPolicy.php:13` | 15 characters (code points) → **fixed, for every account** (one shared rule). **Relaxed to 10 characters on 24 Oct 2026** (owner decision; guessability check unchanged) |
 | S-04 | Policy | No check against common or context words (site name, "rjm", own name or e-mail), and no reason given. | Med | same file | Local check of common words, keyboard runs, site name, own name/e-mail, with a reason in the message → **fixed** (no breached-password corpus, see R-2) |
 | S-05 | Audit | Create, deactivate and reactivate left no trace; reset went only to the text log. | **High** | old `StaffController.php`; `audit_log` existed (0034) but was unused here | Write `audit_log` rows (actor, target, UTC timestamp, IP, action) and add a per-person history → **fixed** |
 | S-06 | Copy | The counter says "bytes" while the hint said "At least 8 characters". | Low | old `Views/admin/staff.php:27` | Hint gives both limits and why → **fixed** |
@@ -42,7 +42,7 @@ Severity is for this app as deployed: a localhost system with an optional, hand-
 
 - **bcrypt limit: keep option (a)**, reject anything over 72 bytes on the server with a plain message. It was already done and is enforced in the model, so no controller can bypass it, and it needs no hash migration. 72 bytes still allows 64+ ASCII characters (NIST's "at least 64"). With many emoji or CJK characters it falls short; Argon2id (`PASSWORD_ARGON2ID` is available in this PHP) would remove the cap, with rehash on login. Upgrade path: R-3.
 - **Invite link vs temporary password: temporary password.** The app may not send e-mail until WP-9 (CLAUDE.md, "What NOT to do"), so an e-mailed single-use link is not possible yet. The admin-typed password is now single-purpose: it only opens "choose your password", expires after **72 hours** (**ASSUMPTION**, `User::TEMP_PASSWORD_HOURS`), and is replaced on first sign-in. When WP-9 lands, the invite link becomes the default and this flow the fallback.
-- **MFA: none, so 15 characters minimum**, applied to everyone (residents too), because the codebase has one password rule (WP-2). Existing passwords keep working; the rule applies when a password is set.
+- **MFA: none, so 15 characters minimum**, applied to everyone (residents too), because the codebase has one password rule (WP-2). Existing passwords keep working; the rule applies when a password is set. *24 Oct 2026: the owner relaxed the minimum to 10 characters for every account, knowingly below the NIST figure; the 72-byte cap, the repeated-character check and the guessability check are unchanged.*
 - **Role model (proposal, not built):**
 
   | Permission | Maintenance | Incidents | SOS responder | Supervisor |
@@ -59,7 +59,7 @@ Severity is for this app as deployed: a localhost system with an optional, hand-
 
 | File | Change |
 |---|---|
-| `src/Support/PasswordPolicy.php` | 15 characters minimum and 72 bytes maximum; guessability check (common words, keyboard runs, site name, own name/e-mail; fewer than 5 distinct characters refused); `problem()/assert()` take the account's name/e-mail as context |
+| `src/Support/PasswordPolicy.php` | 15 characters minimum (10 since 24 Oct 2026) and 72 bytes maximum; guessability check (common words, keyboard runs, site name, own name/e-mail; fewer than 5 distinct characters refused); `problem()/assert()` take the account's name/e-mail as context |
 | `src/Models/User.php` | e-mail lower-cased on create; `markPasswordTemporary`, `temporaryPasswordExpired`, `recordLogin`; `markPasswordChosen` clears the expiry |
 | `src/Controllers/AuthController.php` | an expired temporary password is refused (said only after the right password, so it reveals no accounts); last sign-in recorded |
 | `src/Services/PasswordResetService.php` | admin resets (staff and residents) are temporary and audited (with IP); context-aware policy |
@@ -68,7 +68,7 @@ Severity is for this app as deployed: a localhost system with an optional, hand-
 | `src/Models/SosAlert.php` | `openAcknowledgedBy()` |
 | `src/Controllers/ProfileController.php` | own name/e-mail rejected as a new password |
 | `src/Views/admin/staff.php` | new intro, hint and confirmation text; show-password; "Last sign-in"; temporary-password badges; per-person history; retention note |
-| `src/Views/shared/profile.php`, `admin/boarder_profile.php`, `admin/boarders.php`, `src/Services/AssistantService.php` | "8 characters" text changed to the 15-character rule (the profile page no longer recommends symbols) |
+| `src/Views/shared/profile.php`, `admin/boarder_profile.php`, `admin/boarders.php`, `src/Services/AssistantService.php` | "8 characters" text changed to the 15-character rule (the profile page no longer recommends symbols); since 24 Oct 2026 it states 10 characters |
 | `database/migrations/0042_temporary_passwords_and_last_login.sql` (+ `.down.sql`) | adds `users.temp_password_expires_at`, `users.last_login_at`; lower-cases stored e-mails |
 | `tests/test_staff_accounts.php` | new (see §5) |
 | `tests/lib.php`, `test_probe_admin`, `test_probe_ops`, `test_http_rbac`, `test_wp01_credentials`, `test_wp02_input_hardening`, `test_billing`, `test_boarder_profile`, `test_z_feature_audit`, `test_inquiry_conversion` | password literals raised to 15+ characters; new staff and reset residents now go through "choose your password" first |
@@ -85,7 +85,7 @@ E-mail templates: none. The app may not send mail until WP-9.
 ## 5. Tests
 
 `tests/test_staff_accounts.php` covers:
-- password boundaries: 14/15 characters, 72/73 bytes, CJK, accented letters, emoji at 72/76 bytes;
+- password boundaries: 14/15 characters (9/10 since 24 Oct 2026), 72/73 bytes, CJK, accented letters, emoji at 72/76 bytes;
 - guessable and context passwords refused with a reason;
 - e-mail trim, lower-case, and case-insensitive duplicates (also against a deactivated account);
 - forced change on first sign-in;

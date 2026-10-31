@@ -122,7 +122,24 @@ $amenities = [
         .no-loader #loader { display: none; }
 
         /* Hero & Cinematic Background Layer */
-        #home { position: relative; isolation: isolate; border-radius: 0 0 2rem 2rem; min-height: 100svh; }
+        #home { position: relative; isolation: isolate; border-radius: 0 0 2rem 2rem; min-height: 100svh; touch-action: pan-y; }
+
+        /* Hero marquee: draggable photo strip behind the hero content (driven by JS, not @keyframes) */
+        .hero-marquee { position: absolute; inset: 0; z-index: 0; overflow: hidden; border-radius: inherit; pointer-events: none; }
+        .hm-track { position: absolute; top: 50%; left: 0; display: flex; width: max-content; gap: .75rem; padding-block: 1rem; margin-top: -11rem; user-select: none; will-change: transform; }
+        .hm-slide { width: 15rem; height: 20rem; flex-shrink: 0; border-radius: 1rem; overflow: hidden; background: var(--color-surface); }
+        .hm-slide img { width: 100%; height: 100%; object-fit: cover; pointer-events: none; -webkit-user-drag: none; }
+        .hm-scrim { position: absolute; inset: 0; background: linear-gradient(90deg, rgb(255 255 255 / .82) 0%, rgb(255 255 255 / .6) 55%, rgb(255 255 255 / .45) 100%); }
+        .hm-mask { position: absolute; left: 0; right: 0; height: 80px; z-index: 1; }
+        .hm-mask svg { display: block; width: 100%; height: 100%; }
+        .hm-mask.top { top: 0; } .hm-mask.bottom { bottom: 0; }
+        @media (min-width: 640px) {
+            .hm-track { gap: 1rem; margin-top: -17rem; }
+            .hm-slide { width: 20rem; height: 32rem; }
+            .hm-mask { height: 100px; }
+        }
+        #home.hm-ready { cursor: grab; }
+        #home.hm-dragging { cursor: grabbing; user-select: none; }
 
         .watermark { position: absolute; inset-inline: 0; text-align: center; font-weight: 700; line-height: 1; letter-spacing: -.04em; font-size: clamp(7rem, 22vw, 18rem); pointer-events: none; user-select: none; }
         #home .watermark { bottom: 4.5rem; z-index: 3; color: rgb(10 10 10 / .2); transition: color 700ms ease; }
@@ -413,6 +430,121 @@ $amenities = [
         }
         .bp-room-poly:focus { outline: none; }
         .bp-room-poly:focus-visible { stroke: #cf8047; stroke-width: 4; }
+
+        /* From Uiverse.io by david-mohseni */ 
+        .wrapper {
+            display: inline-flex;
+            list-style: none;
+            height: auto;
+            width: 100%;
+            padding-top: 2rem;
+            padding-left: 0;
+            margin: 0 -10px;
+            font-family: inherit;
+            justify-content: flex-start;
+            align-items: center;
+        }
+
+        .wrapper .icon {
+            position: relative;
+            background: #fff;
+            border-radius: 50%;
+            margin: 10px;
+            width: 50px;
+            height: 50px;
+            font-size: 18px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            box-shadow: 0 10px 10px rgba(0, 0, 0, 0.1);
+            cursor: pointer;
+            transition: all 0.2s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+            color: #1e293b;
+        }
+
+        .wrapper .icon a {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            height: 100%;
+            color: inherit;
+            border-radius: 50%;
+            text-decoration: none;
+        }
+
+        .wrapper .tooltip {
+            position: absolute;
+            top: 0;
+            font-size: 14px;
+            background: #fff;
+            color: #fff;
+            padding: 5px 8px;
+            border-radius: 5px;
+            box-shadow: 0 10px 10px rgba(0, 0, 0, 0.1);
+            opacity: 0;
+            pointer-events: none;
+            white-space: nowrap;
+            transition: all 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+        }
+
+        .wrapper .tooltip::before {
+            position: absolute;
+            content: "";
+            height: 8px;
+            width: 8px;
+            background: #fff;
+            bottom: -3px;
+            left: 50%;
+            transform: translate(-50%) rotate(45deg);
+            transition: all 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+        }
+
+        .wrapper .icon:hover .tooltip,
+        .wrapper .icon:focus-within .tooltip {
+            top: -45px;
+            opacity: 1;
+            visibility: visible;
+            pointer-events: auto;
+        }
+
+        .wrapper .icon:hover span,
+        .wrapper .icon:hover .tooltip,
+        .wrapper .icon:focus-within span,
+        .wrapper .icon:focus-within .tooltip {
+            text-shadow: 0px -1px 0px rgba(0, 0, 0, 0.1);
+        }
+
+        .wrapper .facebook:hover,
+        .wrapper .facebook:focus-within,
+        .wrapper .facebook:hover .tooltip,
+        .wrapper .facebook:focus-within .tooltip,
+        .wrapper .facebook:hover .tooltip::before,
+        .wrapper .facebook:focus-within .tooltip::before {
+            background: #1877f2;
+            color: #fff;
+        }
+
+        .wrapper .twitter:hover,
+        .wrapper .twitter:focus-within,
+        .wrapper .twitter:hover .tooltip,
+        .wrapper .twitter:focus-within .tooltip,
+        .wrapper .twitter:hover .tooltip::before,
+        .wrapper .twitter:focus-within .tooltip::before {
+            background: #1da1f2;
+            color: #fff;
+        }
+
+        .wrapper .instagram:hover,
+        .wrapper .instagram:focus-within,
+        .wrapper .instagram:hover .tooltip,
+        .wrapper .instagram:focus-within .tooltip,
+        .wrapper .instagram:hover .tooltip::before,
+        .wrapper .instagram:focus-within .tooltip::before {
+            background: #e4405f;
+            color: #fff;
+        }
     </style>
     <script>
         // Decide before first paint: loader only on the first visit this session, never with reduced motion.
@@ -461,7 +593,7 @@ $amenities = [
         <span class="ml-auto flex items-center gap-2 pr-2 text-xs text-neutral-600 max-xl:hidden" aria-label="Local time in Tupi">
             <span class="tabular font-medium text-ink" data-clock-time>—</span>
             <span aria-hidden="true">·</span>
-            <a class="hover:text-ink" href="<?= !empty($c['primary_tel']) ? $e($c['primary_tel']) : 'javascript:void(0);' ?>"><?= $e($c['primary_phone'] ?? '') ?></a>
+            <button type="button" class="hover:text-ink transition-colors cursor-pointer" data-copy-phone="<?= $e($c['primary_phone'] ?? '') ?>" title="Click to copy phone number"><span><?= $e($c['primary_phone'] ?? '') ?></span></button>
         </span>
         <a href="<?= $e($dashboardUrl ?? '/login') ?>" class="ml-auto flex-none rounded-full px-4 py-2 text-sm font-medium shadow-[inset_0_0_0_1px_var(--color-line)] transition-colors hover:bg-white xl:ml-0"><?= $dashboardUrl ? 'My dashboard' : 'Log in' ?></a>
         <button type="button" class="flex-none rounded-full bg-ink px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-ink-soft max-sm:hidden" data-open-inquiry>Ask about a room</button>
@@ -474,6 +606,17 @@ $amenities = [
 <main id="main">
     <!-- Hero -->
     <section id="home" aria-label="Introduction">
+        <?php $heroSlides = ['house_exterior.jpg', 'rooms/room_solo.jpg', 'house_compound.jpg', 'rooms/room_twin.jpg', 'landing-bg.jpg', 'rooms/room_quad.jpg', 'hero-rain-plate.jpg']; ?>
+        <div class="hero-marquee" aria-hidden="true">
+            <div class="hm-track" data-hm-track>
+                <?php foreach ([...$heroSlides, ...$heroSlides] as $i => $slide): ?>
+                <div class="hm-slide"><img src="/assets/images/<?= $e($slide) ?>" alt="" draggable="false" decoding="async" loading="<?= $i < 3 ? 'eager' : 'lazy' ?>"></div>
+                <?php endforeach; ?>
+            </div>
+            <div class="hm-scrim"></div>
+            <div class="hm-mask top"><svg viewBox="0 0 1440 100" preserveAspectRatio="none"><path d="M0 0H1440V50C1440 50 1200 100 720 100C240 100 0 50 0 50V0Z" fill="white"/></svg></div>
+            <div class="hm-mask bottom"><svg viewBox="0 0 1440 100" preserveAspectRatio="none"><path d="M0 100H1440V50C1440 50 1200 0 720 0C240 0 0 50 0 50V100Z" fill="white"/></svg></div>
+        </div>
         <div class="watermark rise" style="transition-delay:300ms" aria-hidden="true">RJM</div>
 
         <div class="shell hero-grid" data-intro>
@@ -954,14 +1097,16 @@ $amenities = [
                             <span>SEAIT Campus (3 min walk)</span>
                             <svg class="mark text-[0.65rem] text-neutral-400" aria-hidden="true"><use href="#i-arrow-ur"/></svg>
                         </a>
-                        <span class="transit-badge">
+                        <a href="https://www.google.com/maps/dir/?api=1&travelmode=walking&origin=6.340433,124.935983&destination=6.3461957,124.9358150" target="_blank" rel="noopener" class="transit-badge" title="Walking route to Crossing Rubber / Highway on Google Maps">
                             <span class="text-accent font-semibold">0.6 km</span>
                             <span>Crossing Rubber / Highway</span>
-                        </span>
-                        <span class="transit-badge">
+                            <svg class="mark text-[0.65rem] text-neutral-400" aria-hidden="true"><use href="#i-arrow-ur"/></svg>
+                        </a>
+                        <a href="https://www.google.com/maps/dir/?api=1&travelmode=walking&origin=6.340433,124.935983&destination=6.3320136,124.9494007" target="_blank" rel="noopener" class="transit-badge" title="Walking route to Tupi Public Market on Google Maps">
                             <span class="text-accent font-semibold">1.8 km</span>
                             <span>Tupi Public Market</span>
-                        </span>
+                            <svg class="mark text-[0.65rem] text-neutral-400" aria-hidden="true"><use href="#i-arrow-ur"/></svg>
+                        </a>
                     </div>
                 </div>
 
@@ -1022,14 +1167,11 @@ $amenities = [
                         </div>
                     </div>
                     <div class="mt-1">
-                        <a href="<?= !empty($c['primary_tel']) ? $e($c['primary_tel']) : 'javascript:void(0);' ?>" class="text-sm sm:text-base font-semibold text-neutral-900 hover:text-accent transition-colors block truncate">
-                            <?= $e($c['primary_phone'] ?? '') ?>
-                        </a>
+                        <button type="button" class="text-sm sm:text-base font-semibold text-neutral-900 hover:text-accent transition-colors block truncate text-left cursor-pointer" data-copy-phone="<?= $e($c['primary_phone'] ?? '') ?>" title="Click to copy phone number">
+                            <span><?= $e($c['primary_phone'] ?? '') ?></span>
+                        </button>
                     </div>
-                    <div class="mt-auto pt-2 border-t border-line/60 flex items-center justify-between">
-                        <span class="text-[0.75rem] text-neutral-500">Smart / TNT / Dito</span>
-                        <a href="<?= !empty($c['primary_tel']) ? $e($c['primary_tel']) : 'javascript:void(0);' ?>" class="text-xs font-semibold text-accent hover:underline">Tap to call →</a>
-                    </div>
+                    <p class="text-[0.75rem] text-neutral-500 mt-auto pt-2 border-t border-line/60">Smart / TNT / Dito</p>
                 </div>
 
                 <!-- Card 4: Landline Office -->
@@ -1044,14 +1186,11 @@ $amenities = [
                         </div>
                     </div>
                     <div class="mt-1">
-                        <a href="<?= !empty($c['landline_tel']) ? $e($c['landline_tel']) : 'javascript:void(0);' ?>" class="text-sm sm:text-base font-semibold text-neutral-900 hover:text-accent transition-colors block truncate">
-                            <?= $e($c['landline'] ?? '') ?>
-                        </a>
+                        <button type="button" class="text-sm sm:text-base font-semibold text-neutral-900 hover:text-accent transition-colors block truncate text-left cursor-pointer" data-copy-phone="<?= $e($c['landline'] ?? '') ?>" title="Click to copy phone number">
+                            <span><?= $e($c['landline'] ?? '') ?></span>
+                        </button>
                     </div>
-                    <div class="mt-auto pt-2 border-t border-line/60 flex items-center justify-between">
-                        <span class="text-[0.75rem] text-neutral-500">South Cotabato line</span>
-                        <a href="<?= !empty($c['landline_tel']) ? $e($c['landline_tel']) : 'javascript:void(0);' ?>" class="text-xs font-semibold text-accent hover:underline">Call office →</a>
-                    </div>
+                    <p class="text-[0.75rem] text-neutral-500 mt-auto pt-2 border-t border-line/60">South Cotabato line</p>
                 </div>
             </div>
         </div>
@@ -1078,10 +1217,55 @@ $amenities = [
                 </ul>
             </div>
             <div>
-                <p class="text-xs text-white/50">Follow</p>
-                <ul class="mt-4 space-y-2 text-sm">
-                    <li><a class="opacity-75 hover:opacity-100" href="<?= !empty($c['facebook_url']) ? $e($c['facebook_url']) : 'javascript:void(0);' ?>" target="_blank" rel="noopener">Facebook</a></li>
-                    <li><a class="opacity-75 hover:opacity-100" href="<?= !empty($c['messenger_url']) ? $e($c['messenger_url']) : 'javascript:void(0);' ?>" target="_blank" rel="noopener">Messenger</a></li>
+                <!-- From Uiverse.io by david-mohseni --> 
+                <ul class="wrapper">
+                    <li class="icon facebook">
+                        <span class="tooltip">Facebook</span>
+                        <a href="<?= !empty($c['facebook_url']) ? $e($c['facebook_url']) : 'https://facebook.com/rjmboardinghouse' ?>" target="_blank" rel="noopener" aria-label="Facebook">
+                            <svg
+                                viewBox="0 0 320 512"
+                                height="1.2em"
+                                fill="currentColor"
+                                xmlns="http://www.w3.org/2000/svg"
+                            >
+                                <path
+                                    d="M279.14 288l14.22-92.66h-88.91v-60.13c0-25.35 12.42-50.06 52.24-50.06h40.42V6.26S260.43 0 225.36 0c-73.22 0-121.08 44.38-121.08 124.72v70.62H22.89V288h81.39v224h100.17V288z"
+                                ></path>
+                            </svg>
+                        </a>
+                    </li>
+                    <li class="icon twitter">
+                        <span class="tooltip">Twitter</span>
+                        <a href="<?= !empty($c['twitter_url']) ? $e($c['twitter_url']) : 'https://twitter.com/rjmboardinghouse' ?>" target="_blank" rel="noopener" aria-label="Twitter">
+                            <svg
+                                height="1.8em"
+                                fill="currentColor"
+                                viewBox="0 0 48 48"
+                                xmlns="http://www.w3.org/2000/svg"
+                                class="twitter"
+                            >
+                                <path
+                                    d="M42,12.429c-1.323,0.586-2.746,0.977-4.247,1.162c1.526-0.906,2.7-2.351,3.251-4.058c-1.428,0.837-3.01,1.452-4.693,1.776C34.967,9.884,33.05,9,30.926,9c-4.08,0-7.387,3.278-7.387,7.32c0,0.572,0.067,1.129,0.193,1.67c-6.138-0.308-11.582-3.226-15.224-7.654c-0.64,1.082-1,2.349-1,3.686c0,2.541,1.301,4.778,3.285,6.096c-1.211-0.037-2.351-0.374-3.349-0.914c0,0.022,0,0.055,0,0.086c0,3.551,2.547,6.508,5.923,7.181c-0.617,0.169-1.269,0.263-1.941,0.263c-0.477,0-0.942-0.054-1.392-0.135c0.94,2.902,3.667,5.023,6.898,5.086c-2.528,1.96-5.712,3.134-9.174,3.134c-0.598,0-1.183-0.034-1.761-0.104C9.268,36.786,13.152,38,17.321,38c13.585,0,21.017-11.156,21.017-20.834c0-0.317-0.01-0.633-0.025-0.945C39.763,15.197,41.013,13.905,42,12.429"
+                                ></path>
+                            </svg>
+                        </a>
+                    </li>
+                    <li class="icon instagram">
+                        <span class="tooltip">Instagram</span>
+                        <a href="<?= !empty($c['instagram_url']) ? $e($c['instagram_url']) : 'https://instagram.com/rjmboardinghouse' ?>" target="_blank" rel="noopener" aria-label="Instagram">
+                            <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                height="1.2em"
+                                fill="currentColor"
+                                class="bi bi-instagram"
+                                viewBox="0 0 16 16"
+                            >
+                                <path
+                                    d="M8 0C5.829 0 5.556.01 4.703.048 3.85.088 3.269.222 2.76.42a3.917 3.917 0 0 0-1.417.923A3.927 3.927 0 0 0 .42 2.76C.222 3.268.087 3.85.048 4.7.01 5.555 0 5.827 0 8.001c0 2.172.01 2.444.048 3.297.04.852.174 1.433.372 1.942.205.526.478.972.923 1.417.444.445.89.719 1.416.923.51.198 1.09.333 1.942.372C5.555 15.99 5.827 16 8 16s2.444-.01 3.298-.048c.851-.04 1.434-.174 1.943-.372a3.916 3.916 0 0 0 1.416-.923c.445-.445.718-.891.923-1.417.197-.509.332-1.09.372-1.942C15.99 10.445 16 10.173 16 8s-.01-2.445-.048-3.299c-.04-.851-.175-1.433-.372-1.941a3.926 3.926 0 0 0-.923-1.417A3.911 3.911 0 0 0 13.24.42c-.51-.198-1.092-.333-1.943-.372C10.443.01 10.172 0 7.998 0h.003zm-.717 1.442h.718c2.136 0 2.389.007 3.232.046.78.035 1.204.166 1.486.275.373.145.64.319.92.599.28.28.453.546.598.92.11.281.24.705.275 1.485.039.843.047 1.096.047 3.231s-.008 2.389-.047 3.232c-.035.78-.166 1.203-.275 1.485a2.47 2.47 0 0 1-.599.919c-.28.28-.546.453-.92.598-.28.11-.704.24-1.485.276-.843.038-1.096.047-3.232.047s-2.39-.009-3.233-.047c-.78-.036-1.203-.166-1.485-.276a2.478 2.478 0 0 1-.92-.598 2.48 2.48 0 0 1-.6-.92c-.109-.281-.24-.705-.275-1.485-.038-.843-.046-1.096-.046-3.233 0-2.136.008-2.388.046-3.231.036-.78.166-1.204.276-1.486.145-.373.319-.64.599-.92.28-.28.546-.453.92-.598.282-.11.705-.24 1.485-.276.738-.034 1.024-.044 2.515-.045v.002zm4.988 1.328a.96.96 0 1 0 0 1.92.96.96 0 0 0 0-1.92zm-4.27 1.122a4.109 4.109 0 1 0 0 8.217 4.109 4.109 0 0 0 0-8.217zm0 1.441a2.667 2.667 0 1 1 0 5.334 2.667 2.667 0 0 1 0-5.334z"
+                                ></path>
+                            </svg>
+                        </a>
+                    </li>
                 </ul>
             </div>
             <div>
@@ -1149,7 +1333,7 @@ $amenities = [
                 <div aria-hidden="true" style="position:absolute;left:-10000px;width:1px;height:1px;overflow:hidden"><label>Website <input type="text" name="website" tabindex="-1" autocomplete="off"></label></div>
                 <div class="grid gap-4 sm:grid-cols-2">
                     <div class="field"><label for="inq-name">Name</label><input id="inq-name" name="name" class="input" required maxlength="150" autocomplete="name"></div>
-                    <div class="field"><label for="inq-phone">Mobile number</label><input id="inq-phone" name="phone" type="tel" inputmode="numeric" class="input" required pattern="09[0-9]{9}" maxlength="11" minlength="11" autocomplete="tel" title="11-digit Philippine mobile number starting with 09 (e.g. 09171234567)" oninput="this.value = this.value.replace(/\D/g, '').slice(0, 11)"></div>
+                    <div class="field"><label for="inq-phone">Mobile number</label><input id="inq-phone" name="phone" type="tel" inputmode="numeric" class="input" required pattern="09[0-9]{9}" autocomplete="tel" data-digits="11" title="11-digit Philippine mobile number starting with 09 (e.g. 09171234567)"></div>
                 </div>
                 <div class="grid gap-4 sm:grid-cols-2">
                     <div class="field"><label for="inq-room">Room</label>
@@ -1298,6 +1482,46 @@ window.__INITIAL_BLUEPRINT_DATA__ = <?= json_encode($blueprintData ?? ['floors' 
     };
     $$('[data-card-step]').forEach(b => b.addEventListener('click', () => { idx = (idx + Number(b.dataset.cardStep) + items.length) % items.length; render(); }));
     render();
+
+    // ---- Hero marquee: auto-crawl, drag with inertia, seamless wrap over a duplicated strip ----
+    const hmTrack = $('[data-hm-track]'), home = $('#home');
+    if (hmTrack && home) {
+        const SPEED = 0.8;
+        let offset = 0, velocity = 0, dragging = false, startX = 0, startOffset = 0, lastX = 0, lastT = 0, raf = 0, visible = true;
+        const wrap = () => {
+            const half = hmTrack.scrollWidth / 2;
+            if (half > 0) { if (offset <= -half) offset += half; if (offset > 0) offset -= half; }
+            hmTrack.style.transform = `translate3d(${offset}px,0,0)`;
+        };
+        const tick = () => {
+            if (!dragging) {
+                if (Math.abs(velocity) > 0.1) { offset += velocity; velocity *= 0.95; }
+                else { velocity = 0; if (!reduce) offset -= SPEED; }
+            }
+            wrap();
+            raf = (visible && !document.hidden) ? requestAnimationFrame(tick) : 0;
+        };
+        const start = () => { if (!raf && visible && !document.hidden) raf = requestAnimationFrame(tick); };
+        home.classList.add('hm-ready');
+        home.addEventListener('pointerdown', ev => {
+            if (ev.button !== 0 || ev.target.closest('a, button, input, select, textarea, label, .liquid-glass')) return;
+            dragging = true; velocity = 0; startX = lastX = ev.clientX; startOffset = offset; lastT = performance.now();
+            home.setPointerCapture(ev.pointerId); home.classList.add('hm-dragging'); start();
+        });
+        home.addEventListener('pointermove', ev => {
+            if (!dragging) return;
+            const now = performance.now(), dt = Math.max(1, now - lastT);
+            velocity = ((ev.clientX - lastX) / dt) * 16;
+            lastX = ev.clientX; lastT = now;
+            offset = startOffset + (ev.clientX - startX);
+        });
+        const end = () => { if (!dragging) return; dragging = false; home.classList.remove('hm-dragging'); };
+        home.addEventListener('pointerup', end);
+        home.addEventListener('pointercancel', end);
+        new IntersectionObserver(([en]) => { visible = en.isIntersecting; start(); }).observe(home);
+        document.addEventListener('visibilitychange', start);
+        start();
+    }
 
     // ---- Count-up stats ----
     const counters = $$('[data-count]');
@@ -2086,31 +2310,41 @@ window.__INITIAL_BLUEPRINT_DATA__ = <?= json_encode($blueprintData ?? ['floors' 
         });
     });
 
-    // ---- Copy Address & Location Handler ----
-    const copyTriggers = $$('[data-copy-address], [data-copy-location]');
+    // ---- Copy Address, Location & Phone Handler ----
+    const copyTriggers = $$('[data-copy-address], [data-copy-location], [data-copy-phone]');
     copyTriggers.forEach(btn => {
-        btn.addEventListener('click', async () => {
-            const val = btn.dataset.copyLocation || btn.dataset.copyAddress;
-            const span = btn.querySelector('span');
+        btn.addEventListener('click', async (e) => {
+            if (e) e.preventDefault();
+            const val = btn.dataset.copyPhone || btn.dataset.copyLocation || btn.dataset.copyAddress;
+            if (!val) return;
+            const span = btn.querySelector('span') || btn;
+            const copySuccess = () => {
+                if (span) {
+                    const orig = btn.dataset.origCopyText || span.textContent;
+                    btn.dataset.origCopyText = orig;
+                    span.textContent = 'Copied!';
+                    if (btn._copyTimeout) clearTimeout(btn._copyTimeout);
+                    btn._copyTimeout = setTimeout(() => {
+                        span.textContent = orig;
+                        delete btn.dataset.origCopyText;
+                    }, 2000);
+                }
+            };
             try {
                 await navigator.clipboard.writeText(val);
-                if (span) {
-                    const orig = span.textContent;
-                    span.textContent = 'Copied!';
-                    setTimeout(() => { span.textContent = orig; }, 2000);
-                }
+                copySuccess();
             } catch (err) {
                 const ta = document.createElement('textarea');
                 ta.value = val;
+                ta.style.position = 'fixed';
+                ta.style.opacity = '0';
                 document.body.appendChild(ta);
                 ta.select();
-                document.execCommand('copy');
+                try {
+                    document.execCommand('copy');
+                    copySuccess();
+                } catch (ex) {}
                 document.body.removeChild(ta);
-                if (span) {
-                    const orig = span.textContent;
-                    span.textContent = 'Copied!';
-                    setTimeout(() => { span.textContent = orig; }, 2000);
-                }
             }
         });
     });

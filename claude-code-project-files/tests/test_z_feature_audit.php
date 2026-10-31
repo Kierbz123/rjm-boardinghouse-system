@@ -279,7 +279,7 @@ echo "== Resident record: details, dates, notes, restore ==\n";
 http('POST', "/admin/boarders/{$r1}/info", $admin, ['csrf_token' => $adminT, 'name' => 'Audit One Edited', 'email' => $email1, 'contact_number' => '0917 000 1111',
     'emergency_contact_number' => '0918 222 3333', 'return_to' => "/admin/boarders/{$r1}"]);
 $p = row('SELECT u.name, bp.contact_number, bp.emergency_contact_number FROM users u JOIN boarder_profiles bp ON bp.user_id = u.id WHERE u.id = ?', [$r1]);
-check($p['name'] === 'Audit One Edited' && $p['contact_number'] === '0917 000 1111' && $p['emergency_contact_number'] === '0918 222 3333', 'details edit saved');
+check($p['name'] === 'Audit One Edited' && $p['contact_number'] === '09170001111' && $p['emergency_contact_number'] === '09182223333', 'details edit saved as digits only');
 http('POST', "/admin/boarders/{$r1}/info", $admin, ['csrf_token' => $adminT, 'name' => 'X', 'email' => 'admin@rjm.test']);
 check(one('SELECT email FROM users WHERE id = ?', [$r1]) === $email1, 'an email that belongs to another account is refused');
 http('POST', '/admin/boarders/1/info', $admin, ['csrf_token' => $adminT, 'name' => 'Hijacked', 'email' => 'hijack@rjm.test']);
@@ -306,7 +306,7 @@ check(loginAs($email1, $pw1)[1] === '', 'five wrong passwords lock the account, 
 $hashBefore = one('SELECT password_hash FROM users WHERE id = ?', [$r1]);
 http('POST', "/admin/boarders/{$r1}/password", $admin, ['csrf_token' => $adminT, 'new_password' => 'short']);
 http('POST', "/admin/boarders/{$r1}/password", $admin, ['csrf_token' => $adminT, 'new_password' => str_repeat('Ab1!', 19)]);
-check(one('SELECT password_hash FROM users WHERE id = ?', [$r1]) === $hashBefore, 'a password under 15 characters or over 72 bytes is refused');
+check(one('SELECT password_hash FROM users WHERE id = ?', [$r1]) === $hashBefore, 'a password under 10 characters or over 72 bytes is refused');
 check(App\Services\PasswordResetService::byAdmin(['id' => 1, 'role' => 'admin', 'email' => 'admin@rjm.test'], $newPassword(), 1) !== null
     && password_verify(getenv('TEST_ADMIN_PASSWORD'), (string) one('SELECT password_hash FROM users WHERE id = 1')), 'the reset service itself refuses an admin account');
 check(http('POST', "/admin/boarders/{$r1}/password", $staff, ['csrf_token' => $staffT, 'new_password' => $newPassword()])['code'] === 403, 'staff cannot reset a resident password');
@@ -340,10 +340,10 @@ check(password_verify($pw1c, (string) one('SELECT password_hash FROM users WHERE
 echo "== Resident's own profile ==\n";
 http('POST', '/profile/update', $res, ['csrf_token' => $resT, 'name' => 'Audit One Self', 'email' => $email1, 'contact_number' => '0999 123 4567', 'emergency_contact_number' => '']);
 $p = row('SELECT u.name, bp.contact_number, bp.emergency_contact_number FROM users u JOIN boarder_profiles bp ON bp.user_id = u.id WHERE u.id = ?', [$r1]);
-check($p['name'] === 'Audit One Self' && $p['contact_number'] === '0999 123 4567' && $p['emergency_contact_number'] === null, 'profile edit saved');
+check($p['name'] === 'Audit One Self' && $p['contact_number'] === '09991234567' && $p['emergency_contact_number'] === null, 'profile edit saved as digits only');
 $r = http('POST', '/profile/update', $res, ['csrf_token' => $resT, 'name' => 'Audit One Self', 'email' => $email1, 'contact_number' => str_repeat('9', 60)]);
-check($r['code'] === 302 && !hasPhpError(http('GET', '/profile', $res)['body']) && one('SELECT contact_number FROM boarder_profiles WHERE user_id = ?', [$r1]) === '0999 123 4567',
-    'a 60-character contact number is refused with a message, not an error page');
+check($r['code'] === 302 && !hasPhpError(http('GET', '/profile', $res)['body']) && one('SELECT contact_number FROM boarder_profiles WHERE user_id = ?', [$r1]) === '09991234567',
+    'a 60-digit contact number is refused with a message, not an error page');
 http('POST', '/profile/update', $res, ['csrf_token' => $resT, 'name' => 'X', 'email' => 'staff@rjm.test']);
 check(one('SELECT email FROM users WHERE id = ?', [$r1]) === $email1, 'taking another account\'s email is refused');
 
@@ -435,8 +435,8 @@ check($e && $e['amount'] === '250.75' && (int) $e['staff_id'] === 1, 'expense sa
 http('POST', '/admin/expenses', $admin, ['csrf_token' => $adminT, 'category' => '', 'amount' => '10', 'description' => "audit bad {$tag}"]);
 http('POST', '/admin/expenses', $admin, ['csrf_token' => $adminT, 'category' => 'Repairs', 'amount' => '-1', 'description' => "audit bad {$tag}"]);
 check((int) one('SELECT COUNT(*) FROM expenses WHERE description = ?', ["audit bad {$tag}"]) === 0, 'an expense with no category or a negative amount is refused');
-$csv = http('GET', '/admin/ledger/export?from=' . date('Y-m-01') . '&to=' . date('Y-m-d'), $admin);
-check(str_contains($csv['headers'], 'text/csv') && str_contains($csv['body'], 'Type,ID,"User Name"') && str_contains($csv['body'], "audit expense {$tag}"), 'ledger export is a CSV that contains the expense just recorded');
+$csv = http('GET', '/admin/ledger/export?format=csv&from=' . date('Y-m-01') . '&to=' . date('Y-m-d'), $admin);
+check(str_contains($csv['headers'], 'text/csv') && str_contains($csv['body'], 'Date,"Reference No.",Type') && str_contains($csv['body'], "audit expense {$tag}"), 'ledger export is a CSV that contains the expense just recorded');
 check(http('GET', '/admin/ledger/export', $staff)['code'] === 403, 'staff cannot export the ledger');
 http('GET', '/admin/occupancy', $admin);
 $snap = row('SELECT * FROM occupancy_snapshots WHERE DATE(created_at) = CURDATE() ORDER BY id DESC LIMIT 1');

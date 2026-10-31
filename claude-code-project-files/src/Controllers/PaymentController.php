@@ -162,19 +162,62 @@ class PaymentController
     public static function recordForm(): void
     {
         $pdo = Database::getConnection();
-        $residents = $pdo->query("SELECT u.id, u.name, r.room_number, bp.status
-            FROM users u JOIN boarder_profiles bp ON bp.user_id = u.id LEFT JOIN rooms r ON r.id = bp.room_id
+        $residents = $pdo->query("SELECT u.id, u.name, u.email, r.room_number, b.label AS bed_label, bp.contact_number AS phone, bp.status, bp.move_in_date, r.base_price
+            FROM users u JOIN boarder_profiles bp ON bp.user_id = u.id LEFT JOIN rooms r ON r.id = bp.room_id LEFT JOIN beds b ON b.id = bp.bed_id
             WHERE u.role = 'boarder' AND u.archived_at IS NULL AND bp.status IN ('active', 'on_notice', 'moved_out')
+            ORDER BY u.name")->fetchAll();
+        // Not moved in yet: nothing is billed, so they cannot be picked, but the page says who is waiting.
+        $pending = $pdo->query("SELECT u.id, u.name, r.room_number
+            FROM users u JOIN boarder_profiles bp ON bp.user_id = u.id LEFT JOIN rooms r ON r.id = bp.room_id
+            WHERE u.role = 'boarder' AND u.archived_at IS NULL AND bp.status = 'pending'
             ORDER BY u.name")->fetchAll();
         $selected = (int) ($_GET['boarder'] ?? 0);
         $balance = null;
+        $selectedResident = null;
         foreach ($residents as $r) {
             if ((int) $r['id'] === $selected) {
+                $selectedResident = $r;
                 $balance = BillingService::calculateBalance($selected, $pdo, true); // showing it must not write
+                break;
             }
         }
+
+        $selectedHistory = [];
+        if ($selected > 0) {
+            $stmt = $pdo->prepare("SELECT id, receipt_number, received_on, claimed_amount, approved_amount, payment_method, reference_number, created_at
+                FROM payments
+                WHERE boarder_id = ? AND verification_status <> 'rejected'
+                ORDER BY id DESC LIMIT 4");
+            $stmt->execute([$selected]);
+            $selectedHistory = $stmt->fetchAll();
+        }
+
+        $recentManualPayments = $pdo->query("SELECT p.id, p.boarder_id, p.receipt_number, p.received_on, p.claimed_amount, p.approved_amount, p.payment_method, p.reference_number, p.created_at,
+                u.name AS resident_name, r.room_number
+            FROM payments p
+            JOIN users u ON u.id = p.boarder_id
+            LEFT JOIN boarder_profiles bp ON bp.user_id = u.id
+            LEFT JOIN rooms r ON r.id = bp.room_id
+            WHERE p.recorded_by_role IS NOT NULL AND p.verification_status <> 'rejected'
+            ORDER BY p.id DESC
+            LIMIT 5")->fetchAll();
+
+        $today = date('Y-m-d');
+        $monthStart = date('Y-m-01');
+        $stmtKpi = $pdo->prepare("SELECT 
+            COUNT(CASE WHEN received_on = ? THEN 1 END) AS count_today,
+            COALESCE(SUM(CASE WHEN received_on = ? THEN COALESCE(approved_amount, claimed_amount) END), 0) AS total_today,
+            COUNT(CASE WHEN received_on >= ? THEN 1 END) AS count_month,
+            COALESCE(SUM(CASE WHEN received_on >= ? THEN COALESCE(approved_amount, claimed_amount) END), 0) AS total_month
+        FROM payments
+        WHERE recorded_by_role IS NOT NULL AND verification_status <> 'rejected'");
+        $stmtKpi->execute([$today, $today, $monthStart, $monthStart]);
+        $kpis = $stmtKpi->fetch() ?: ['count_today' => 0, 'total_today' => 0.0, 'count_month' => 0, 'total_month' => 0.0];
+
         $error = $_SESSION['flash_error'] ?? null;
         unset($_SESSION['flash_error']);
+        $success = $_SESSION['flash_success'] ?? null;
+        unset($_SESSION['flash_success']);
         require __DIR__ . '/../Views/admin/payment_record.php';
     }
 

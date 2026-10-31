@@ -19,7 +19,7 @@ class Expense
     {
         $sql = 'SELECT expenses.*, users.name AS staff_name
                 FROM expenses JOIN users ON users.id = expenses.staff_id
-                ORDER BY expenses.created_at DESC';
+                ORDER BY expenses.created_at DESC, expenses.id DESC';
         return Database::getConnection()->query($sql)->fetchAll();
     }
 

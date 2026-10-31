@@ -66,71 +66,111 @@ $stats = $stats ?? [];
         </div>
     <?php endif; ?>
 
-    <!-- Summary KPI Metric Cards (Generous padding & corner clearance) -->
-    <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+    <!-- Summary KPI Metric Cards -->
+    <div class="kpi-grid">
         <!-- Metric 1: Role -->
-        <div class="reveal-card card metric-accent-primary" style="background: #ffffff; border: 1px solid #e6e5e2; border-radius: 1rem; padding: 1.25rem 1.375rem; box-shadow: 0 1px 3px rgba(10, 10, 10,0.05);">
-            <p class="text-caption font-semibold text-neutral-500 uppercase tracking-wider">Account Role</p>
-            <p class="text-2xl font-bold text-neutral-900 mt-1.5 capitalize"><?= htmlspecialchars($role) ?></p>
-            <p class="text-caption text-neutral-400 mt-1">
-                <?= $role === 'admin' ? 'Superadmin clearance' : ($role === 'boarder' ? 'Resident status' : 'Operations staff') ?>
-            </p>
-        </div>
+        <a href="#account-identity" class="reveal-card kpi-card metric-accent-primary">
+            <div class="kpi-card-header">
+                <span class="kpi-label">Account Role</span>
+                <span class="kpi-icon"><?= \App\Support\Icon::svg('shield') ?></span>
+            </div>
+            <div class="kpi-value capitalize"><?= htmlspecialchars($role) ?></div>
+            <div class="kpi-subtext">
+                <span class="text-neutral-400">
+                    <?= $role === 'admin' ? 'Superadmin clearance' : ($role === 'boarder' ? 'Resident status' : 'Operations staff') ?>
+                </span>
+            </div>
+        </a>
 
         <!-- Metric 2: Account Status -->
-        <div class="reveal-card card metric-accent-success" style="background: #ffffff; border: 1px solid #e6e5e2; border-radius: 1rem; padding: 1.25rem 1.375rem; box-shadow: 0 1px 3px rgba(10, 10, 10,0.05);">
-            <p class="text-caption font-semibold text-neutral-500 uppercase tracking-wider">Status</p>
-            <p class="text-2xl font-bold text-emerald-700 mt-1.5 capitalize"><?= htmlspecialchars($user['status'] ?? 'Active') ?></p>
-            <p class="text-caption text-neutral-400 mt-1">Account in good standing</p>
-        </div>
+        <a href="#account-identity" class="reveal-card kpi-card metric-accent-success">
+            <div class="kpi-card-header">
+                <span class="kpi-label">Status</span>
+                <span class="kpi-icon"><?= \App\Support\Icon::svg('check-circle') ?></span>
+            </div>
+            <div class="kpi-value text-emerald-700 capitalize"><?= htmlspecialchars($user['status'] ?? 'Active') ?></div>
+            <div class="kpi-subtext">
+                <span class="text-neutral-400">Account in good standing</span>
+            </div>
+        </a>
 
-        <!-- Metric 3: Role Specific Indicator -->
+        <!-- Metric 3 & 4: Role Specific Indicators -->
         <?php if ($role === 'boarder'): ?>
-            <div class="reveal-card card metric-accent-warning" style="background: #ffffff; border: 1px solid #e6e5e2; border-radius: 1rem; padding: 1.25rem 1.375rem; box-shadow: 0 1px 3px rgba(10, 10, 10,0.05);">
-                <p class="text-caption font-semibold text-neutral-500 uppercase tracking-wider">Assigned Unit</p>
-                <p class="text-2xl font-bold text-neutral-900 mt-1.5">
+            <a href="/portal/dashboard" class="reveal-card kpi-card metric-accent-warning">
+                <div class="kpi-card-header">
+                    <span class="kpi-label">Assigned Unit</span>
+                    <span class="kpi-icon"><?= \App\Support\Icon::svg('home') ?></span>
+                </div>
+                <div class="kpi-value">
                     <?= !empty($stats['room_number']) ? 'Room ' . htmlspecialchars($stats['room_number']) : 'Pending' ?>
-                </p>
-                <p class="text-caption text-neutral-400 mt-1">
-                    <?= !empty($stats['bed_label']) ? htmlspecialchars($stats['bed_label']) : 'Bed not allocated' ?>
-                </p>
-            </div>
-            <div class="reveal-card card metric-accent-info" style="background: #ffffff; border: 1px solid #e6e5e2; border-radius: 1rem; padding: 1.25rem 1.375rem; box-shadow: 0 1px 3px rgba(10, 10, 10,0.05);">
-                <p class="text-caption font-semibold text-neutral-500 uppercase tracking-wider">Monthly Rent</p>
-                <p class="text-2xl font-bold text-neutral-900 mt-1.5">
+                </div>
+                <div class="kpi-subtext">
+                    <span class="text-neutral-400">
+                        <?= !empty($stats['bed_label']) ? htmlspecialchars($stats['bed_label']) : 'Bed not allocated' ?>
+                    </span>
+                </div>
+            </a>
+            <a href="/portal/payments/new" class="reveal-card kpi-card metric-accent-info">
+                <div class="kpi-card-header">
+                    <span class="kpi-label">Monthly Rent</span>
+                    <span class="kpi-icon"><?= \App\Support\Icon::svg('credit-card') ?></span>
+                </div>
+                <div class="kpi-value">
                     ₱<?= number_format((float) ($stats['base_price'] ?? 0), 2) ?>
-                </p>
-                <p class="text-caption text-neutral-400 mt-1">
-                    <?= (int) ($stats['payments_count'] ?? 0) ?> payment<?= ($stats['payments_count'] ?? 0) !== 1 ? 's' : '' ?> recorded
-                </p>
-            </div>
+                </div>
+                <div class="kpi-subtext">
+                    <span class="text-neutral-400">
+                        <?= (int) ($stats['payments_count'] ?? 0) ?> payment<?= ($stats['payments_count'] ?? 0) !== 1 ? 's' : '' ?> recorded
+                    </span>
+                </div>
+            </a>
         <?php elseif ($role === 'admin'): ?>
-            <div class="reveal-card card metric-accent-warning" style="background: #ffffff; border: 1px solid #e6e5e2; border-radius: 1rem; padding: 1.25rem 1.375rem; box-shadow: 0 1px 3px rgba(10, 10, 10,0.05);">
-                <p class="text-caption font-semibold text-neutral-500 uppercase tracking-wider">Total Residents</p>
-                <p class="text-2xl font-bold text-neutral-900 mt-1.5"><?= (int) ($stats['total_boarders'] ?? 0) ?></p>
-                <p class="text-caption text-neutral-400 mt-1">Registered in boardinghouse</p>
-            </div>
-            <div class="reveal-card card metric-accent-info" style="background: #ffffff; border: 1px solid #e6e5e2; border-radius: 1rem; padding: 1.25rem 1.375rem; box-shadow: 0 1px 3px rgba(10, 10, 10,0.05);">
-                <p class="text-caption font-semibold text-neutral-500 uppercase tracking-wider">Beds Occupancy</p>
-                <p class="text-2xl font-bold text-neutral-900 mt-1.5"><?= (int) ($stats['occupied_beds'] ?? 0) ?></p>
-                <p class="text-caption text-neutral-400 mt-1"><?= (int) ($stats['vacant_beds'] ?? 0) ?> vacant beds available</p>
-            </div>
+            <a href="/admin/staff?view=boarders" class="reveal-card kpi-card metric-accent-warning">
+                <div class="kpi-card-header">
+                    <span class="kpi-label">Total Residents</span>
+                    <span class="kpi-icon"><?= \App\Support\Icon::svg('users') ?></span>
+                </div>
+                <div class="kpi-value"><?= (int) ($stats['total_boarders'] ?? 0) ?></div>
+                <div class="kpi-subtext">
+                    <span class="text-neutral-400">Registered in boardinghouse</span>
+                </div>
+            </a>
+            <a href="/admin/occupancy" class="reveal-card kpi-card metric-accent-info">
+                <div class="kpi-card-header">
+                    <span class="kpi-label">Beds Occupancy</span>
+                    <span class="kpi-icon"><?= \App\Support\Icon::svg('bed') ?></span>
+                </div>
+                <div class="kpi-value"><?= (int) ($stats['occupied_beds'] ?? 0) ?></div>
+                <div class="kpi-subtext">
+                    <span class="text-neutral-400"><?= (int) ($stats['vacant_beds'] ?? 0) ?> vacant beds available</span>
+                </div>
+            </a>
         <?php else: ?>
-            <div class="reveal-card card metric-accent-warning" style="background: #ffffff; border: 1px solid #e6e5e2; border-radius: 1rem; padding: 1.25rem 1.375rem; box-shadow: 0 1px 3px rgba(10, 10, 10,0.05);">
-                <p class="text-caption font-semibold text-neutral-500 uppercase tracking-wider">Maintenance Queue</p>
-                <p class="text-2xl font-bold text-neutral-900 mt-1.5"><?= (int) ($stats['active_queue'] ?? 0) ?></p>
-                <p class="text-caption text-neutral-400 mt-1">Active repair requests</p>
-            </div>
-            <div class="reveal-card card metric-accent-info" style="background: #ffffff; border: 1px solid #e6e5e2; border-radius: 1rem; padding: 1.25rem 1.375rem; box-shadow: 0 1px 3px rgba(10, 10, 10,0.05);">
-                <p class="text-caption font-semibold text-neutral-500 uppercase tracking-wider">Open Incidents</p>
-                <p class="text-2xl font-bold text-neutral-900 mt-1.5"><?= (int) ($stats['open_incidents'] ?? 0) ?></p>
-                <p class="text-caption text-neutral-400 mt-1">Unresolved reports</p>
-            </div>
+            <a href="/staff/maintenance" class="reveal-card kpi-card metric-accent-warning">
+                <div class="kpi-card-header">
+                    <span class="kpi-label">Maintenance Queue</span>
+                    <span class="kpi-icon"><?= \App\Support\Icon::svg('wrench') ?></span>
+                </div>
+                <div class="kpi-value"><?= (int) ($stats['active_queue'] ?? 0) ?></div>
+                <div class="kpi-subtext">
+                    <span class="text-neutral-400">Active repair requests</span>
+                </div>
+            </a>
+            <a href="/staff/incidents" class="reveal-card kpi-card metric-accent-info">
+                <div class="kpi-card-header">
+                    <span class="kpi-label">Open Incidents</span>
+                    <span class="kpi-icon"><?= \App\Support\Icon::svg('shield-alert') ?></span>
+                </div>
+                <div class="kpi-value"><?= (int) ($stats['open_incidents'] ?? 0) ?></div>
+                <div class="kpi-subtext">
+                    <span class="text-neutral-400">Unresolved reports</span>
+                </div>
+            </a>
         <?php endif; ?>
     </div>
 
     <!-- Section 1: Identity & Credentials Summary Card (Generous Padding & Corner Clearance) -->
-    <div class="reveal-card" style="background: #ffffff; border: 1px solid #e6e5e2; border-radius: 1.125rem; padding: 1.75rem 2rem; box-shadow: 0 2px 8px rgba(10, 10, 10,0.05);">
+    <div class="reveal-card" id="account-identity" style="background: #ffffff; border: 1px solid #e6e5e2; border-radius: 1.125rem; padding: 1.75rem 2rem; box-shadow: 0 2px 8px rgba(10, 10, 10,0.05);">
         <!-- Card Header: Clean flex row with NO straight line divider -->
         <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 1rem; margin-bottom: 1.5rem;">
             <div>
@@ -455,28 +495,30 @@ $stats = $stats ?? [];
                         <label for="profile-contact" class="block text-caption font-semibold text-neutral-700 uppercase tracking-wider mb-1.5">
                             Personal Phone Number
                         </label>
-                        <input type="text"
+                        <input type="tel"
+                                inputmode="numeric"
+                                data-digits="15"
                                 id="profile-contact"
                                 name="contact_number"
                                 class="input w-full"
                                 style="border-radius: 0.625rem; padding: 0.65rem 0.875rem; font-size: 0.875rem;"
-                                placeholder="e.g. 0917-123-4567"
-                                value="<?= htmlspecialchars($boarderProfile['contact_number'] ?? '') ?>"
-                                maxlength="50" />
+                                placeholder="e.g. 09171234567"
+                                value="<?= htmlspecialchars($boarderProfile['contact_number'] ?? '') ?>" />
                     </div>
 
                     <div>
                         <label for="profile-emergency" class="block text-caption font-semibold text-neutral-700 uppercase tracking-wider mb-1.5">
                             Emergency Contact Number
                         </label>
-                        <input type="text"
+                        <input type="tel"
+                                inputmode="numeric"
+                                data-digits="15"
                                 id="profile-emergency"
                                 name="emergency_contact_number"
                                 class="input w-full"
                                 style="border-radius: 0.625rem; padding: 0.65rem 0.875rem; font-size: 0.875rem;"
-                                placeholder="e.g. 0918-987-6543 (Parent / Guardian)"
-                                value="<?= htmlspecialchars($boarderProfile['emergency_contact_number'] ?? '') ?>"
-                                maxlength="50" />
+                                placeholder="e.g. 09189876543 (Parent / Guardian)"
+                                value="<?= htmlspecialchars($boarderProfile['emergency_contact_number'] ?? '') ?>" />
                     </div>
                 <?php endif; ?>
             </div>
@@ -527,8 +569,8 @@ $stats = $stats ?? [];
                            name="new_password"
                            class="input w-full"
                            style="border-radius: 0.625rem; padding: 0.65rem 0.875rem; font-size: 0.875rem;"
-                           placeholder="At least 15 characters"
-                           minlength="15"
+                           placeholder="At least 10 characters"
+                           minlength="10"
                            required />
                 </div>
 
@@ -542,7 +584,7 @@ $stats = $stats ?? [];
                            class="input w-full"
                            style="border-radius: 0.625rem; padding: 0.65rem 0.875rem; font-size: 0.875rem;"
                            placeholder="Re-type new password"
-                           minlength="15"
+                           minlength="10"
                            required />
                 </div>
             </div>
@@ -552,7 +594,7 @@ $stats = $stats ?? [];
                     ℹ
                 </div>
                 <div class="leading-relaxed pt-0.5">
-                    <strong class="text-neutral-800 font-semibold">Password Requirements:</strong> Use at least 15 characters; a short phrase of unrelated words is easy to remember and hard to guess. No symbols or numbers are required. At most 72 bytes: accented letters and emoji take more than one. Avoid your name, your e-mail and the boarding house name.
+                    <strong class="text-neutral-800 font-semibold">Password Requirements:</strong> Use at least 10 characters. No symbols or numbers are required. At most 72 bytes: accented letters and emoji take more than one. Avoid your name, your e-mail and the boarding house name.
                 </div>
             </div>
 

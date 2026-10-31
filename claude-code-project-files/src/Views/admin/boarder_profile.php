@@ -587,11 +587,11 @@ input[type="date"].profile-input {
                         </div>
                         <div class="profile-field">
                             <label class="profile-label">Primary Contact Number</label>
-                            <input type="text" name="contact_number" value="<?= htmlspecialchars($boarder['contact_number'] ?? '') ?>" placeholder="e.g. 09123456789" maxlength="50" class="profile-input">
+                            <input type="tel" inputmode="numeric" data-digits="15" name="contact_number" value="<?= htmlspecialchars($boarder['contact_number'] ?? '') ?>" placeholder="e.g. 09123456789" class="profile-input">
                         </div>
                         <div class="profile-field">
                             <label class="profile-label">Emergency Contact Number</label>
-                            <input type="text" name="emergency_contact_number" value="<?= htmlspecialchars($boarder['emergency_contact_number'] ?? '') ?>" placeholder="e.g. 09987654321" maxlength="50" class="profile-input">
+                            <input type="tel" inputmode="numeric" data-digits="15" name="emergency_contact_number" value="<?= htmlspecialchars($boarder['emergency_contact_number'] ?? '') ?>" placeholder="e.g. 09987654321" class="profile-input">
                         </div>
                     </div>
                 </div>
@@ -1217,9 +1217,9 @@ input[type="date"].profile-input {
             <?= \App\Support\Csrf::field() ?>
             <div>
                 <label for="reset-new-password" class="block text-xs font-semibold text-neutral-700 mb-1">New temporary password</label>
-                <input id="reset-new-password" name="new_password" type="password" data-max-bytes="72" required minlength="15" maxlength="72"
+                <input id="reset-new-password" name="new_password" type="password" data-max-bytes="72" required minlength="10" maxlength="72"
                        autocomplete="new-password" class="input w-full" aria-describedby="reset-password-hint">
-                <p id="reset-password-hint" class="text-[11px] text-neutral-400 mt-1.5">At least 15 characters (a short phrase works well), at most 72 bytes. Tell the resident in person; it is not sent anywhere. It works for 72 hours and they must choose their own password when they sign in.</p>
+                <p id="reset-password-hint" class="text-[11px] text-neutral-400 mt-1.5">At least 10 characters, at most 72 bytes. Tell the resident in person; it is not sent anywhere. It works for 72 hours and they must choose their own password when they sign in.</p>
             </div>
             <div class="flex justify-end pt-1">
                 <button type="submit" class="profile-btn profile-btn-primary">

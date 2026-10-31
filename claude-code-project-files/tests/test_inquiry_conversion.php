@@ -96,7 +96,7 @@ $userId = (int) q1('SELECT id FROM users WHERE email = ?', [$email]);
 check($userId > 0, 'the boarder account is created');
 $inq = q('SELECT converted_user_id, status FROM inquiries WHERE id = ?', [$inqId])[0];
 check((int) $inq['converted_user_id'] === $userId && $inq['status'] === 'closed', 'the inquiry records the account and is closed');
-check(q1('SELECT contact_number FROM boarder_profiles WHERE user_id = ?', [$userId]) === '+639676355474', 'the phone becomes the contact number');
+check(q1('SELECT contact_number FROM boarder_profiles WHERE user_id = ?', [$userId]) === '639676355474', 'the phone becomes the contact number, digits only');
 check((int) q1('SELECT current_boarder_id FROM beds WHERE id = ?', [$room['beds'][0]]) === $userId, 'the chosen bed is assigned');
 
 $admin->post('/admin/boarders', ['name' => "Kierby {$tag}", 'email' => "again{$tag}@t.test", 'password' => 'Tmp-convert-heron-dune', 'inquiry_id' => $inqId]);

@@ -214,7 +214,11 @@
         btn.addEventListener('click', async function () {
             const draft = descTextarea.value.trim();
             if (!draft) {
-                alert('Please type a brief description first before asking AI to improve it.');
+                await showAlertModal({
+                    title: 'Description Needed',
+                    message: 'Please type a brief description first before asking AI to improve it.',
+                    type: 'info'
+                });
                 descTextarea.focus();
                 return;
             }
@@ -242,14 +246,22 @@
                 clearTimeout(slowHintTimer);
 
                 if (!res.ok) {
-                    alert(res.data.error || 'Failed to improve description. Ollama might be busy or offline.');
+                    await showAlertModal({
+                        title: 'AI Assistant',
+                        message: res.data.error || 'Failed to improve description. Ollama might be busy or offline.',
+                        type: 'warning'
+                    });
                     return;
                 }
 
                 const improved = res.data.reply;
                 showImprovementModal(draft, improved, descTextarea);
             } catch (e) {
-                alert('Error connecting to AI service.');
+                await showAlertModal({
+                    title: 'Service Error',
+                    message: 'Error connecting to AI service.',
+                    type: 'danger'
+                });
             } finally {
                 clearTimeout(slowHintTimer);
                 btn.classList.remove('ai-loading');
@@ -319,7 +331,11 @@
         btn.addEventListener('click', async function () {
             const desc = descTextarea.value.trim();
             if (!desc) {
-                alert('Please enter a description first so AI can analyze the problem category.');
+                await showAlertModal({
+                    title: 'Description Needed',
+                    message: 'Please enter a description first so AI can analyze the problem category.',
+                    type: 'info'
+                });
                 descTextarea.focus();
                 return;
             }
@@ -335,7 +351,11 @@
                 });
 
                 if (!res.ok) {
-                    alert(res.data.error || 'Failed to detect category.');
+                    await showAlertModal({
+                        title: 'AI Assistant',
+                        message: res.data.error || 'Failed to detect category.',
+                        type: 'warning'
+                    });
                     return;
                 }
 
@@ -355,7 +375,11 @@
                     showToast('Suggested category: ' + category, 'info');
                 }
             } catch (e) {
-                alert('Error connecting to AI service.');
+                await showAlertModal({
+                    title: 'Service Error',
+                    message: 'Error connecting to AI service.',
+                    type: 'danger'
+                });
             } finally {
                 btn.classList.remove('ai-loading');
                 btn.innerHTML = origHtml;

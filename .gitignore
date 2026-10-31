@@ -1,0 +1,8 @@
+# Local Claude desktop preview server config (contains machine-specific temp paths; see AGENTS.md)
+/.claude/launch.json
+
+# Local manuscript drafts and exported preview documents
+/Claude outputs/
+
+# Root-level scratch ERD renders (canonical ERD lives in claude-code-project-files/docs/database/)
+/boardinghouse-erd*

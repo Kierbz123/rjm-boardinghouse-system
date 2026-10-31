@@ -7,13 +7,13 @@ Source: `../FUNCTIONALITY-AUDIT-2026-10-14.md`. Finding ids (F-xx) and work pack
 
 | # | Feature | Status | Gaps against this spec |
 |---|---|---|---|
-| 1 | Repair priority | Built (rule-based PHP) | Time-decay built 28 Oct (+2 per full day waiting, max +30, worked out when read); re-opening a resolved request needs a reason, kept in `audit_log` (F-18, 28 Oct). No staff assignment or notes; resident cannot cancel; labelled "AI" although it is a keyword table (F-18, WP-11) |
-| 2 | SOS and incidents | Built | No resolver / false-alarm record, no SOS history page, no "people involved" on incidents (F-23, WP-15). No in-system CCTV page (see §2) |
+| 1 | Repair priority | Built (rule-based PHP) | Time-decay built 28 Oct (+2 per full day waiting, max +30, worked out when read); re-opening a resolved request needs a reason, kept in `audit_log` (F-18, 28 Oct). Maintenance History gained search, status and priority filters and whole-set counts (WP-21, 29 Oct). No staff assignment or notes; resident cannot cancel; labelled "AI" although it is a keyword table (F-18, WP-11) |
+| 2 | SOS and incidents | Built | Incident History gained search, a status filter and whole-set counts (WP-21, 29 Oct). No resolver / false-alarm record, no SOS history page, no "people involved" on incidents (F-23, WP-15). No in-system CCTV page (see §2) |
 | 3 | Command Center | Built | Status pills are static text (F-26). Occupancy card refreshes on every visit and repair counts use the decayed tier (fixed 28 Oct) |
 | 4 | Expense logging | Partly | Admin-only (spec says staff); no date field, no receipt upload, no edit or void (F-19, WP-12) |
-| 5 | Ledger export | Built (CSV only) | No PDF. Fixed 28 Oct: payments dated by approval (agrees with the dashboard), "receivable" counts unpaid penalties only, last CSV line no longer cut off (F-11, F-32) |
+| 5 | Ledger export | Built (Excel workbook + CSV) | Export Ledger downloads a styled .xlsx workbook (statement in the owner's green template, last 3 months side by side, plus the general ledger); `?format=csv` gives the plain CSV. No PDF. Fixed 28 Oct: payments dated by approval (agrees with the dashboard), "receivable" counts unpaid penalties only, last CSV line no longer cut off (F-11, F-32) |
 | 6 | Occupancy trend | Partly | A snapshot is taken only when an admin opens a page, so days are missing (F-12) |
-| 7 | Payment proof and review | Built | No cash / walk-in payment entry (F-13, WP-6); payment account numbers on the Pay Rent page are fixed text (F-14, WP-10) |
+| 7 | Payment proof and review | Built | Approve / reject / reverse are written to `audit_log` (WP-21, 29 Oct). The claimed-vs-expected mismatch is still only a warning icon in the admin table, compared against the whole balance rather than the rent, and is not stored or notified. Payment account numbers on the Pay Rent page are fixed text (F-14, WP-10) |
 | 8 | Bed mapping | Built | A list, not a card grid; no `bed_assignments` history |
 | 9 | Penalties | Built | Late-fee check and reminders are manual (no scheduler); "Mark paid" (a waiver) now requires a reason and records who and why (F-06, fixed 28 Oct; a separate "paid in cash" path is the Record Payment form). Reminders: the same one goes out at most once a day (F-15, fixed 28 Oct) |
 | 10 | Status life | Partly | No automatic transitions (pending → active, scheduled move-out); a future move-out date moves the resident out at once (F-05, F-17, WP-3, WP-9) |

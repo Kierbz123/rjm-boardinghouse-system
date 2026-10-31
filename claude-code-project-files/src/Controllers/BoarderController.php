@@ -16,6 +16,7 @@ use App\Services\NotificationDispatcher;
 use App\Services\PasswordResetService;
 use App\Database;
 use App\Support\Csrf;
+use App\Support\Phone;
 use RuntimeException;
 
 class BoarderController
@@ -58,6 +59,9 @@ class BoarderController
             'boarder_id'   => (int) ($assignPrefill['boarder_id'] ?? 0),
             'room_type_id' => (int) ($assignPrefill['room_type_id'] ?? $conversion['room_type']['id'] ?? 0),
         ];
+        // The address typed before a failed submit may belong to someone (often an archived resident,
+        // hidden from the default list): the view names them and offers Restore instead of a dead end.
+        $emailConflict = !empty($old['email']) ? User::findByEmail((string) $old['email']) : null;
         require __DIR__ . '/../Views/admin/boarders.php';
     }
 
@@ -112,7 +116,8 @@ class BoarderController
 
         $name = trim((string) ($_POST['name'] ?? ''));
         $email = trim((string) ($_POST['email'] ?? ''));
-        $contact = trim((string) ($_POST['contact_number'] ?? ''));
+        $contactRaw = $_POST['contact_number'] ?? '';
+        $contact = Phone::digits($contactRaw);
         $password = (string) ($_POST['password'] ?? '');
         $bedId = !empty($_POST['bed_id']) ? (int) $_POST['bed_id'] : null;
         $inquiryId = max(0, (int) ($_POST['inquiry_id'] ?? 0));
@@ -135,8 +140,8 @@ class BoarderController
         if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
             $fail('Please enter a valid email address.');
         }
-        if ($contact !== '' && !preg_match('/^[0-9+()\-\s]{7,20}$/', $contact)) {
-            $fail('Please enter a valid contact number.');
+        if (($phoneProblem = Phone::problem($contactRaw)) !== null) {
+            $fail($phoneProblem);
         }
         if (($problem = \App\Support\PasswordPolicy::problem($password)) !== null) {
             $fail($problem);
@@ -145,8 +150,11 @@ class BoarderController
         // Bug found during Phase 8 QA pass: creating a boarder with an email that
         // already exists threw an uncaught PDO integrity-constraint exception
         // (caught only by the generic 500 handler). Check first, fail gracefully.
-        if (User::findByEmail($email) !== null) {
-            $fail('That email is already in use.');
+        // Emails stay unique even for archived residents (WP-4), so name who holds it.
+        if (($owner = User::findByEmail($email)) !== null) {
+            $fail($owner['status'] === 'archived'
+                ? "That email belongs to {$owner['name']}, an archived resident. Restore them instead of creating a second account."
+                : 'That email is already in use.');
         }
 
         // Account, bed, profile and the inquiry's conversion are saved together or not at all.
@@ -257,8 +265,10 @@ class BoarderController
 
         $name = trim((string) ($_POST['name'] ?? ''));
         $email = trim((string) ($_POST['email'] ?? ''));
-        $contactNumber = trim((string) ($_POST['contact_number'] ?? ''));
-        $emergencyContactNumber = trim((string) ($_POST['emergency_contact_number'] ?? ''));
+        $contactRaw = $_POST['contact_number'] ?? '';
+        $emergencyRaw = $_POST['emergency_contact_number'] ?? '';
+        $contactNumber = Phone::digits($contactRaw);
+        $emergencyContactNumber = Phone::digits($emergencyRaw);
         $status = trim((string) ($_POST['status'] ?? ''));
         $note = trim((string) ($_POST['note'] ?? $_POST['reason'] ?? ''));
 
@@ -272,8 +282,8 @@ class BoarderController
             header('Location: ' . $redirectUrl);
             exit;
         }
-        if (mb_strlen($contactNumber) > 50 || mb_strlen($emergencyContactNumber) > 50) {
-            $_SESSION['flash_error'] = 'Contact numbers must be 50 characters or fewer.';
+        if (($phoneProblem = Phone::problem($contactRaw) ?? Phone::problem($emergencyRaw, false, 'emergency contact number')) !== null) {
+            $_SESSION['flash_error'] = $phoneProblem;
             header('Location: ' . $redirectUrl);
             exit;
         }

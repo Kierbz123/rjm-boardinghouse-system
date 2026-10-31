@@ -40,34 +40,57 @@ $resolvedCount = count(array_filter($incidents ?? [], fn($i) => !empty($i['resol
     <?php endif; ?>
 
     <!-- KPI Metric Cards -->
-    <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
-        <div class="reveal-card card p-4 metric-accent-primary">
-            <p class="text-caption font-semibold text-neutral-500 uppercase tracking-wider">Total Recorded</p>
-            <p class="text-3xl font-bold text-neutral-900 mt-1.5"><?= $totalIncidents ?></p>
-            <p class="text-caption text-neutral-400 mt-1">Lifetime incident logs</p>
-        </div>
-        <div class="reveal-card card p-4 metric-accent-warning">
-            <p class="text-caption font-semibold text-neutral-500 uppercase tracking-wider">Open Cases</p>
-            <p class="text-3xl font-bold <?= $openCount > 0 ? 'text-amber-600' : 'text-neutral-900' ?> mt-1.5"><?= $openCount ?></p>
-            <p class="text-caption text-neutral-400 mt-1"><?= $openCount > 0 ? 'Awaiting resolution' : 'All cases closed' ?></p>
-        </div>
-        <div class="reveal-card card p-4 metric-accent-success">
-            <p class="text-caption font-semibold text-neutral-500 uppercase tracking-wider">Resolved Cases</p>
-            <p class="text-3xl font-bold text-neutral-900 mt-1.5"><?= $resolvedCount ?></p>
-            <p class="text-caption text-neutral-400 mt-1">Closed with staff notes</p>
-        </div>
-        <div class="reveal-card card p-4 metric-accent-info">
-            <p class="text-caption font-semibold text-neutral-500 uppercase tracking-wider">Registry Engine</p>
-            <p class="text-3xl font-bold text-neutral-900 mt-1.5">Active</p>
-            <p class="text-caption text-neutral-400 mt-1"><?= $isStaff ? 'Independent staff log' : 'Resident reporting log' ?></p>
-        </div>
+    <div class="kpi-grid">
+        <a href="#incidents-table-card" class="reveal-card kpi-card metric-accent-primary" title="View all incident logs">
+            <div class="kpi-card-header">
+                <span class="kpi-label">Total Recorded</span>
+                <span class="kpi-icon"><?= \App\Support\Icon::svg('shield-alert') ?></span>
+            </div>
+            <div class="kpi-value"><?= $totalIncidents ?></div>
+            <div class="kpi-subtext">
+                <span class="text-neutral-400">Lifetime incident logs</span>
+            </div>
+        </a>
+
+        <a href="#incidents-table-card" class="reveal-card kpi-card metric-accent-warning" title="View open cases">
+            <div class="kpi-card-header">
+                <span class="kpi-label">Open Cases</span>
+                <span class="kpi-icon"><?= \App\Support\Icon::svg('alert-triangle') ?></span>
+            </div>
+            <div class="kpi-value <?= $openCount > 0 ? 'text-amber-600' : 'text-neutral-900' ?>"><?= $openCount ?></div>
+            <div class="kpi-subtext">
+                <span class="text-neutral-400"><?= $openCount > 0 ? 'Awaiting resolution' : 'All cases closed' ?></span>
+            </div>
+        </a>
+
+        <a href="/staff/incidents/history" class="reveal-card kpi-card metric-accent-success" title="View resolved incidents in archive">
+            <div class="kpi-card-header">
+                <span class="kpi-label">Resolved Cases</span>
+                <span class="kpi-icon"><?= \App\Support\Icon::svg('shield-check') ?></span>
+            </div>
+            <div class="kpi-value"><?= $resolvedCount ?></div>
+            <div class="kpi-subtext">
+                <span class="text-neutral-400">Closed with staff notes</span>
+            </div>
+        </a>
+
+        <a href="#log-incident-form" class="reveal-card kpi-card metric-accent-info" title="Report a new incident">
+            <div class="kpi-card-header">
+                <span class="kpi-label">Registry Engine</span>
+                <span class="kpi-icon"><?= \App\Support\Icon::svg('clipboard') ?></span>
+            </div>
+            <div class="kpi-value">Active</div>
+            <div class="kpi-subtext">
+                <span class="text-neutral-400"><?= $isStaff ? 'Independent staff log' : 'Resident reporting log' ?></span>
+            </div>
+        </a>
     </div>
 
     <!-- 2-Column Responsive Layout: Incidents Table (2/3) + Log Incident Form (1/3) -->
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-5 items-start">
         
         <!-- Left: Incident Records Table (2/3 on lg) -->
-        <div class="lg:col-span-2 space-y-2.5">
+        <div class="lg:col-span-2 space-y-2.5" id="incidents-table-card">
             <div class="section-header">
                 <div class="flex items-center gap-2">
                     <h2 class="text-heading-sm font-semibold text-neutral-900">Incident Records</h2>
@@ -189,7 +212,7 @@ $resolvedCount = count(array_filter($incidents ?? [], fn($i) => !empty($i['resol
 
         <!-- Right: Log Incident Form Card (1/3 on lg) -->
         <div>
-            <form method="post" action="/staff/incidents" class="form-card accent-neutral space-y-4">
+            <form method="post" action="/staff/incidents" id="log-incident-form" class="form-card accent-neutral space-y-4">
                 <div class="flex items-center gap-2 border-b border-neutral-100 pb-3">
                     <span class="text-lg"><?= \App\Support\Icon::svg('square-pen') ?></span>
                     <div>

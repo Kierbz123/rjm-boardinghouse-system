@@ -15,7 +15,28 @@ class RoomController
     public static function index(): void
     {
         \App\Services\HousekeepingService::applyDueMoveOuts(); // so Assign Boarder never offers someone already gone
-        $rooms = Room::all();
+        $sort = $_GET['sort'] ?? 'room_desc';
+        $groupBy = $_GET['group_by'] ?? 'none';
+
+        $rooms = Room::all('desc');
+
+        if ($sort !== 'room_desc') {
+            usort($rooms, function ($a, $b) use ($sort) {
+                return match ($sort) {
+                    'room_asc'      => strnatcasecmp((string) $a['room_number'], (string) $b['room_number']),
+                    'room_desc'     => strnatcasecmp((string) $b['room_number'], (string) $a['room_number']),
+                    'floor_asc'     => strnatcasecmp((string) ($a['floor'] ?? ''), (string) ($b['floor'] ?? '')) ?: strnatcasecmp((string) $a['room_number'], (string) $b['room_number']),
+                    'floor_desc'    => strnatcasecmp((string) ($b['floor'] ?? ''), (string) ($a['floor'] ?? '')) ?: strnatcasecmp((string) $b['room_number'], (string) $a['room_number']),
+                    'type_asc'      => strcasecmp((string) ($a['room_type_name'] ?? 'zzz'), (string) ($b['room_type_name'] ?? 'zzz')) ?: strnatcasecmp((string) $a['room_number'], (string) $b['room_number']),
+                    'capacity_desc' => ((int) $b['capacity'] <=> (int) $a['capacity']) ?: strnatcasecmp((string) $b['room_number'], (string) $a['room_number']),
+                    'capacity_asc'  => ((int) $a['capacity'] <=> (int) $b['capacity']) ?: strnatcasecmp((string) $a['room_number'], (string) $b['room_number']),
+                    'price_desc'    => ((float) $b['base_price'] <=> (float) $a['base_price']) ?: strnatcasecmp((string) $b['room_number'], (string) $a['room_number']),
+                    'price_asc'     => ((float) $a['base_price'] <=> (float) $b['base_price']) ?: strnatcasecmp((string) $a['room_number'], (string) $b['room_number']),
+                    default         => strnatcasecmp((string) $b['room_number'], (string) $a['room_number']),
+                };
+            });
+        }
+
         $beds = Bed::all();
         $roomTypes = \App\Models\RoomType::all();
         $boarders = \App\Models\BoarderProfile::all();
@@ -115,7 +136,15 @@ class RoomController
             exit;
         }
         if (Room::existsByNumber($roomNumber)) {
-            $_SESSION['flash_error'] = "Room {$roomNumber} already exists.";
+            $existing = Room::findByNumber($roomNumber);
+            $existingFloor = ($existing && !empty($existing['floor'])) ? (string) $existing['floor'] : '';
+            if ($floor !== '' && $existingFloor !== '' && $floor !== $existingFloor) {
+                $_SESSION['flash_error'] = "Room {$roomNumber} is already taken on Floor {$existingFloor}. Room numbers must be unique across all floors (e.g. use {$floor}01 for Floor {$floor}).";
+            } elseif ($existingFloor !== '') {
+                $_SESSION['flash_error'] = "Room {$roomNumber} on Floor {$existingFloor} already exists.";
+            } else {
+                $_SESSION['flash_error'] = "Room {$roomNumber} already exists.";
+            }
             header('Location: /admin/rooms');
             exit;
         }

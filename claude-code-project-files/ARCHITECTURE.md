@@ -153,9 +153,9 @@ sequenceDiagram
     participant D as MariaDB
     A->>P: GET /admin/ledger/export?from=YYYY-MM-DD&to=YYYY-MM-DD
     P->>D: payments, expenses, penalties in range (LedgerBuilder)
-    P-->>A: CSV download (formula-injection safe)
+    P-->>A: Excel workbook (LedgerWorkbook: Statement + General Ledger sheets), or CSV with format=csv (formula-injection safe)
 ```
-CSV only. Payments are selected by submission date while the dashboard counts by approval date (F-11, open).
+Default download is an .xlsx workbook (written by hand, no zip extension or library needed); `format=csv` gives the CSV. Payments are dated by approval, the same as the dashboard (F-11, fixed).
 
 ---
 

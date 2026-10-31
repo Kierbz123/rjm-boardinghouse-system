@@ -2,9 +2,17 @@
 $pageTitle = 'Maintenance History';
 ob_start();
 
-$totalHistory = $totalCount ?? count($history ?? []);
-$resolvedCount = count(array_filter($history ?? [], fn($h) => ($h['status'] ?? '') === 'resolved'));
-$openCount = count(array_filter($history ?? [], fn($h) => ($h['status'] ?? '') !== 'resolved'));
+// Counts come from the database over everything the filters match; counting $history would
+// only ever describe the 50 rows on this page (WP-21).
+$counts = $counts ?? ['total' => count($history ?? []), 'resolved' => 0, 'open' => 0];
+$totalHistory = $counts['total'];
+$resolvedCount = $counts['resolved'];
+$openCount = $counts['open'];
+
+$filters = $filters ?? ['q' => '', 'status' => '', 'tier' => ''];
+$isFiltered = implode('', $filters) !== '';
+/** This page's URL with one page number, so paging never loses the search. */
+$pageUrl = fn (int $n) => '/staff/maintenance/history?' . http_build_query(array_filter($filters) + ['page' => $n]);
 
 $tierBadges = [
     'critical' => 'badge-error',
@@ -18,47 +26,113 @@ $totalPages = $totalPages ?? 1;
 ?>
 <div class="max-w-5xl mx-auto px-5 py-5 space-y-5">
 
-    <!-- Page Banner -->
-    <div class="page-banner">
-        <div>
-            <h1 class="text-heading-lg font-bold">Maintenance History</h1>
-            <p class="text-body-sm">Complete record of all maintenance requests with full details and resolution tracking</p>
+    <!-- Executive Page Banner with Quick Launch Command Bar -->
+    <header class="dash-hero-banner">
+        <div class="dash-hero-top">
+            <div>
+                <h1 class="dash-hero-title">
+                    <span>Maintenance History</span>
+                </h1>
+                <p class="dash-hero-sub">Complete historical archive of all facility repairs, work tickets, and resolution records.</p>
+            </div>
+
+            <div class="flex items-center gap-2.5 flex-wrap">
+                <span class="badge" style="background:rgba(255,255,255,0.08); color:#8cc2a2; border:1px solid rgba(255,255,255,0.15); padding:0.35rem 0.85rem; font-size:0.75rem; font-weight:600; border-radius:9999px; display:inline-flex; align-items:center;">
+                    <span class="live-pulse-dot" style="margin-right:0.45rem;"></span>
+                    Full Archive Active
+                </span>
+                <span class="badge" style="background:rgba(255,255,255,0.05); color:#a3a19b; border:1px solid rgba(255,255,255,0.1); padding:0.35rem 0.75rem; font-size:0.75rem; border-radius:9999px; display:inline-flex; align-items:center; gap:0.35rem;">
+                    <?= \App\Support\Icon::svg('calendar', 13) ?>
+                    <span><?= date('l, M j, Y') ?></span>
+                </span>
+            </div>
         </div>
-        <span class="badge badge-info" style="background:rgba(255,255,255,0.12); color:#dea27c; border:1px solid rgba(255,255,255,0.15);">
-            <span style="width:0.4rem;height:0.4rem;border-radius:50%;background:#bd6b36;display:inline-block;margin-right:0.4rem;"></span>
-            Full Archive
-        </span>
-    </div>
+
+        <!-- Quick Launch Command Bar -->
+        <div class="dash-cmd-bar">
+            <span style="font-size:0.6875rem; font-weight:700; text-transform:uppercase; letter-spacing:0.06em; color:rgba(255,255,255,0.5); margin-right:0.35rem;">
+                Quick Launch:
+            </span>
+            <a href="/staff/maintenance" class="dash-cmd-btn highlight" title="Open active maintenance queue">
+                <?= \App\Support\Icon::svg('wrench', 14) ?>
+                <span>Active Queue (<?= $openCount ?> open)</span>
+            </a>
+            <a href="#maintenance-history-table" class="dash-cmd-btn" title="Jump to maintenance records table">
+                <?= \App\Support\Icon::svg('clipboard', 14) ?>
+                <span>Resolved Records (<?= $resolvedCount ?>)</span>
+            </a>
+            <a href="/staff/incidents/history" class="dash-cmd-btn" title="Open incident history records">
+                <?= \App\Support\Icon::svg('shield-check', 14) ?>
+                <span>Incident History</span>
+            </a>
+            <a href="/staff/dashboard" class="dash-cmd-btn" title="Back to staff dashboard">
+                <?= \App\Support\Icon::svg('dashboard', 14) ?>
+                <span>Staff Dashboard</span>
+            </a>
+        </div>
+    </header>
 
     <!-- KPI Metric Cards -->
-    <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
-        <div class="reveal-card card p-4 metric-accent-primary">
-            <p class="text-caption font-semibold text-neutral-500 uppercase tracking-wider">Total Records</p>
-            <p class="text-3xl font-bold text-neutral-900 mt-1.5"><?= $totalHistory ?></p>
-            <p class="text-caption text-neutral-400 mt-1">All-time requests</p>
-        </div>
-        <div class="reveal-card card p-4 metric-accent-success">
-            <p class="text-caption font-semibold text-neutral-500 uppercase tracking-wider">Resolved</p>
-            <p class="text-3xl font-bold text-neutral-900 mt-1.5"><?= $resolvedCount ?></p>
-            <p class="text-caption text-neutral-400 mt-1">Completed repairs</p>
-        </div>
-        <div class="reveal-card card p-4 metric-accent-warning">
-            <p class="text-caption font-semibold text-neutral-500 uppercase tracking-wider">Open/In Progress</p>
-            <p class="text-3xl font-bold <?= $openCount > 0 ? 'text-amber-600' : 'text-neutral-900' ?> mt-1.5"><?= $openCount ?></p>
-            <p class="text-caption text-neutral-400 mt-1">Active tickets</p>
-        </div>
-        <div class="reveal-card card p-4 metric-accent-info">
-            <p class="text-caption font-semibold text-neutral-500 uppercase tracking-wider">Page <?= $currentPage ?> / <?= $totalPages ?></p>
-            <p class="text-caption text-neutral-400 mt-1">Showing 50 per page</p>
-        </div>
+    <div class="kpi-grid">
+        <a href="#maintenance-history-table" class="reveal-card kpi-card metric-accent-primary" title="View all maintenance records">
+            <div class="kpi-card-header">
+                <span class="kpi-label">Total Records</span>
+                <span class="kpi-icon"><?= \App\Support\Icon::svg('file-text') ?></span>
+            </div>
+            <div class="kpi-value"><?= $totalHistory ?></div>
+            <div class="kpi-subtext">
+                <span class="text-neutral-400">All-time requests</span>
+            </div>
+        </a>
+
+        <a href="#maintenance-history-table" class="reveal-card kpi-card metric-accent-success" title="View resolved repairs">
+            <div class="kpi-card-header">
+                <span class="kpi-label">Resolved</span>
+                <span class="kpi-icon"><?= \App\Support\Icon::svg('check-circle') ?></span>
+            </div>
+            <div class="kpi-value"><?= $resolvedCount ?></div>
+            <div class="kpi-subtext">
+                <span class="text-neutral-400">Completed repairs</span>
+            </div>
+        </a>
+
+        <a href="/staff/maintenance" class="reveal-card kpi-card metric-accent-warning" title="Open active maintenance queue">
+            <div class="kpi-card-header">
+                <span class="kpi-label">Open / In Progress</span>
+                <span class="kpi-icon"><?= \App\Support\Icon::svg('wrench') ?></span>
+            </div>
+            <div class="kpi-value <?= $openCount > 0 ? 'text-amber-600' : 'text-neutral-900' ?>"><?= $openCount ?></div>
+            <div class="kpi-subtext">
+                <span class="text-neutral-400">Active tickets in queue</span>
+            </div>
+        </a>
+
+        <a href="#maintenance-history-table" class="reveal-card kpi-card metric-accent-info" title="Current pagination page">
+            <div class="kpi-card-header">
+                <span class="kpi-label">Page <?= $currentPage ?> / <?= $totalPages ?></span>
+                <span class="kpi-icon"><?= \App\Support\Icon::svg('calendar') ?></span>
+            </div>
+            <div class="kpi-value"><?= $currentPage ?></div>
+            <div class="kpi-subtext">
+                <span class="text-neutral-400">Showing 50 per page</span>
+            </div>
+        </a>
     </div>
 
     <!-- Main History Table Card -->
-    <div class="space-y-2.5">
+    <div class="space-y-2.5" id="maintenance-history-table">
+        <?php
+        $historyAction = '/staff/maintenance/history';
+        $historySearchHint = 'Description, category, resident or room';
+        $historyStatuses = ['' => 'Any status', 'open' => 'Open', 'in_progress' => 'In progress', 'resolved' => 'Resolved'];
+        $historyTiers = ['' => 'Any priority', 'critical' => 'Critical', 'high' => 'High', 'medium' => 'Medium', 'low' => 'Low'];
+        include __DIR__ . '/../shared/_history_filters.php';
+        ?>
+
         <div class="section-header">
             <div class="flex items-center gap-2">
                 <h2 class="text-heading-sm font-semibold text-neutral-900">Complete Maintenance Log</h2>
-                <span class="badge badge-neutral"><?= $totalHistory ?> records</span>
+                <span class="badge badge-neutral"><?= $totalHistory ?> <?= $isFiltered ? 'matching' : '' ?> records</span>
             </div>
             <span class="text-caption text-neutral-400">Order: Most recent first</span>
         </div>
@@ -148,8 +222,10 @@ $totalPages = $totalPages ?? 1;
                                 <td colspan="8">
                                     <div class="py-12 text-center text-neutral-400">
                                         <span class="empty-icon"><?= \App\Support\Icon::svg('clipboard') ?></span>
-                                        <p class="font-semibold text-neutral-700 text-body-sm">No maintenance history.</p>
-                                        <p class="text-caption text-neutral-400 mt-0.5">No maintenance requests have been recorded yet.</p>
+                                        <p class="font-semibold text-neutral-700 text-body-sm"><?= $isFiltered ? 'No records match your search.' : 'No maintenance history.' ?></p>
+                                        <p class="text-caption text-neutral-400 mt-0.5">
+                                            <?= $isFiltered ? 'Try a different term, or reset the filters above.' : 'No maintenance requests have been recorded yet.' ?>
+                                        </p>
                                     </div>
                                 </td>
                             </tr>
@@ -167,7 +243,7 @@ $totalPages = $totalPages ?? 1;
             </div>
             <div class="flex items-center gap-2">
                 <?php if ($currentPage > 1): ?>
-                    <a href="?page=<?= $currentPage - 1 ?>" class="px-3 py-1.5 text-sm font-medium text-neutral-700 bg-white border border-neutral-300 rounded hover:bg-neutral-50 transition-colors">
+                    <a href="<?= $pageUrl($currentPage - 1) ?>" class="px-3 py-1.5 text-sm font-medium text-neutral-700 bg-white border border-neutral-300 rounded hover:bg-neutral-50 transition-colors">
                         Previous
                     </a>
                 <?php endif; ?>
@@ -178,14 +254,14 @@ $totalPages = $totalPages ?? 1;
                             <?= $i ?>
                         </span>
                     <?php else: ?>
-                        <a href="?page=<?= $i ?>" class="px-3 py-1.5 text-sm font-medium text-neutral-700 bg-white border border-neutral-300 rounded hover:bg-neutral-50 transition-colors">
+                        <a href="<?= $pageUrl($i) ?>" class="px-3 py-1.5 text-sm font-medium text-neutral-700 bg-white border border-neutral-300 rounded hover:bg-neutral-50 transition-colors">
                             <?= $i ?>
                         </a>
                     <?php endif; ?>
                 <?php endfor; ?>
                 
                 <?php if ($currentPage < $totalPages): ?>
-                    <a href="?page=<?= $currentPage + 1 ?>" class="px-3 py-1.5 text-sm font-medium text-neutral-700 bg-white border border-neutral-300 rounded hover:bg-neutral-50 transition-colors">
+                    <a href="<?= $pageUrl($currentPage + 1) ?>" class="px-3 py-1.5 text-sm font-medium text-neutral-700 bg-white border border-neutral-300 rounded hover:bg-neutral-50 transition-colors">
                         Next
                     </a>
                 <?php endif; ?>

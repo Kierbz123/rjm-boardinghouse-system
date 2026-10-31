@@ -82,8 +82,8 @@ class AssistantService
         ['roles' => ['boarder', 'staff', 'admin'],
             'about' => 'changing a password or a forgotten password',
             'ask' => ['change password', 'change my password', 'forgot password', 'forgot my password', 'reset password', 'new password', 'palitan ang password', 'nakalimutan ang password'],
-            'en' => 'Open Profile, type your current password, then a new one of at least 15 characters (a short phrase of unrelated words works well), twice. Other devices signed in to your account are logged out. If you forgot your password, contact the house administrator.',
-            'tl' => 'Buksan ang Profile, i-type ang kasalukuyang password, saka ang bago na hindi bababa sa 15 karakter (puwede ang maikling parirala), nang dalawang beses. Mala-log out ang ibang device na naka-sign in sa account mo. Kung nakalimutan mo ang password, lumapit sa house administrator.',
+            'en' => 'Open Profile, type your current password, then a new one of at least 10 characters, twice. Other devices signed in to your account are logged out. If you forgot your password, contact the house administrator.',
+            'tl' => 'Buksan ang Profile, i-type ang kasalukuyang password, saka ang bago na hindi bababa sa 10 karakter, nang dalawang beses. Mala-log out ang ibang device na naka-sign in sa account mo. Kung nakalimutan mo ang password, lumapit sa house administrator.',
             'open' => ['boarder' => ['Profile', '/profile'], 'staff' => ['Profile', '/profile'], 'admin' => ['Profile', '/profile']]],
         ['roles' => ['boarder', 'staff', 'admin'],
             'about' => 'how to log out',
@@ -123,6 +123,13 @@ class AssistantService
             'en' => 'There is no curfew. Live CCTV covers the boardinghouse. Violations with a set penalty: {penalties}. Other house rules, such as visitors, are not written in the system, so please ask the house administrator.',
             'tl' => 'Walang curfew. May live CCTV sa buong boardinghouse. Mga paglabag na may nakatakdang multa: {penalties}. Ang ibang patakaran ng bahay, gaya ng bisita, ay hindi nakasulat sa system, kaya magtanong sa house administrator.',
             'open' => []],
+        ['roles' => ['boarder', 'staff', 'admin'],
+            'about' => 'what this assistant is and what it can do',
+            'ask' => ['who are you', 'what are you', 'are you ai', 'are you a bot', 'what can you do', 'what do you do', 'how do you work',
+                'activated', 'sino ka', 'ano ka', 'ano ang kaya mong gawin', 'anong kaya mo'],
+            'en' => "I am this system's built-in assistant. I run on this computer with no internet, and I answer only from what this system holds for your role: your own figures, how the rules here work, and the pages you may open. I can also fill in a repair or incident form from what you tell me. I keep no record of myself, so I cannot tell you when I was first switched on.",
+            'tl' => 'Ako ang katulong na nakapaloob sa system na ito. Tumatakbo ako sa computer na ito nang walang internet, at sumasagot lang ako mula sa hawak ng system para sa role mo: ang sarili mong mga numero, kung paano gumagana ang mga patakaran dito, at ang mga page na puwede mong buksan. Kaya ko ring punan ang repair o incident form mula sa sinabi mo. Wala akong tala tungkol sa sarili ko, kaya hindi ko masasabi kung kailan ako unang binuksan.',
+            'open' => []],
         // Last on purpose: on a tie the earlier topic wins, so "what day is rent due" stays a rent question.
         ['roles' => ['boarder', 'staff', 'admin'],
             'about' => 'what the date and time are right now',
@@ -141,7 +148,7 @@ class AssistantService
     {
         $lang = $lang === 'tl' ? 'tl' : 'en';
 
-        if ($card = self::greeting($message, $role, $lang, $userId) ?? self::timeUntil($message, $lang)) {
+        if ($card = self::greeting($message, $role, $lang, $userId) ?? self::smalltalk($message, $lang) ?? self::timeUntil($message, $lang)) {
             return $card + ['actions' => [], 'source' => 'data'];
         }
 
@@ -582,6 +589,34 @@ class AssistantService
             $name !== '' ? ", {$name}" : '',
             $roles[$role][$lang === 'tl' ? 1 : 0]
         )];
+    }
+
+    /**
+     * A message that is only "nope" or "thanks" carries no question. Left to the model, "nope" was
+     * answered with a maintenance-queue summary it had no data for, so a bare acknowledgement or
+     * correction is answered here instead: say nothing about any topic, ask what was meant.
+     * Only a message that is nothing but these words matches, so "no water in my room" is untouched.
+     */
+    private static function smalltalk(string $message, string $lang): ?array
+    {
+        $thanks = '(?:thanks?(?: you| po)?|thank u|ty|salamat(?: po)?|maraming salamat|appreciate it)';
+        $nope = '(?:no+(?:pe)?|nah|not (?:that|it|really|quite)|that.?s not (?:it|right)|wrong|incorrect|mali(?: po)?|hindi(?: po| yan)?|iba)';
+        $okay = '(?:ok(?:ay)?|k|got it|i see|alright|sige(?: po)?|oo(?: po)?|yes)';
+        $trim = '[\s!.?,]*';
+        foreach (['thanks' => $thanks, 'nope' => $nope, 'okay' => $okay] as $kind => $words) {
+            if (!preg_match("/^{$trim}{$words}{$trim}$/iu", $message)) {
+                continue;
+            }
+            return ['reply' => match ($kind) {
+                'thanks' => self::t($lang, "You're welcome. Ask me anything else about the house or type a page name.",
+                    'Walang anuman. Magtanong lang ulit tungkol sa bahay o i-type ang pangalan ng page.'),
+                'nope' => self::t($lang, 'Sorry about that. Tell me in a few words what you were after, or type a page name.',
+                    'Pasensya na. Sabihin mo sa ilang salita kung ano ang hinahanap mo, o i-type ang pangalan ng page.'),
+                'okay' => self::t($lang, 'Noted. Tell me what you were after next, or type a page name.',
+                    'Sige. Sabihin mo kung ano pa ang kailangan mo, o i-type ang pangalan ng page.'),
+            }];
+        }
+        return null;
     }
 
     /**

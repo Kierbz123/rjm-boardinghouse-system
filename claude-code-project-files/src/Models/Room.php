@@ -6,17 +6,37 @@ use App\Database;
 
 class Room
 {
-    public static function all(): array
+    public static function all(string $orderBy = 'desc'): array
     {
-        return Database::getConnection()->query(
-            'SELECT r.*, t.name AS room_type_name FROM rooms r LEFT JOIN room_types t ON t.id = r.room_type_id ORDER BY r.room_number'
+        $direction = strtolower($orderBy) === 'asc' ? 'ASC' : 'DESC';
+        $rows = Database::getConnection()->query(
+            "SELECT r.*, t.name AS room_type_name 
+             FROM rooms r 
+             LEFT JOIN room_types t ON t.id = r.room_type_id 
+             ORDER BY (r.room_number REGEXP '^[0-9]+$') DESC, 
+                      CAST(r.room_number AS UNSIGNED) {$direction}, 
+                      r.room_number {$direction}"
         )->fetchAll();
+
+        usort($rows, function ($a, $b) use ($direction) {
+            $cmp = strnatcasecmp((string) $a['room_number'], (string) $b['room_number']);
+            return $direction === 'ASC' ? $cmp : -$cmp;
+        });
+
+        return $rows;
     }
 
     public static function find(int $id): ?array
     {
         $stmt = Database::getConnection()->prepare('SELECT * FROM rooms WHERE id = ?');
         $stmt->execute([$id]);
+        return $stmt->fetch() ?: null;
+    }
+
+    public static function findByNumber(string $roomNumber): ?array
+    {
+        $stmt = Database::getConnection()->prepare('SELECT * FROM rooms WHERE room_number = ? LIMIT 1');
+        $stmt->execute([$roomNumber]);
         return $stmt->fetch() ?: null;
     }
 

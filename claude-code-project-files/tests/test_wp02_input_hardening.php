@@ -1,7 +1,7 @@
 <?php
 /**
  * WP-2 (F-07, F-09, F-10, F-27): malformed input is a clean 400/validation error, never a 500;
- * one shared password rule (15 characters to 72 BYTES) everywhere; room capacity is bounded; failures
+ * one shared password rule (10 characters to 72 BYTES) everywhere; room capacity is bounded; failures
  * never show database text to users.
  */
 require __DIR__ . '/lib.php';
@@ -80,7 +80,7 @@ check($r->code === 403 || $r->code === 400, 'a non-string csrf_token in JSON is 
 $r = $me->req('POST', '/api/assistant/ask', '{not json', ['Content-Type: application/json']);
 check($r->code === 400, 'broken JSON is a 400');
 
-section('One password rule: 15 characters to 72 bytes, everywhere');
+section('One password rule: 10 characters to 72 bytes, everywhere');
 $tooLong = str_repeat('p', 73);
 $emoji = str_repeat("\u{1F600}", 20);          // 20 characters but 80 bytes
 $exactly72 = substr(str_repeat("violet harbor lantern quartz ", 3), 0, 72);

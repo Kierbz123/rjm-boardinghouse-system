@@ -89,6 +89,22 @@ class Payment
 
             $pdo->prepare('UPDATE payments SET verification_status = ?, verified_by = ?, reviewed_at = NOW(), review_note = ?, approved_amount = ? WHERE id = ?')
                 ->execute([$status, $verifiedBy, $note, $status === 'admin-approved' ? $approvedAmount : null, $id]);
+
+            // Money decisions are the ones an owner is asked to account for, so every approval,
+            // rejection and reversal is recorded here: the one place they all pass through,
+            // inside the same transaction, so the trail can never disagree with the payment.
+            $action = match (true) {
+                $status === 'admin-approved' => 'payment_approved',
+                in_array($payment['verification_status'], \App\Services\BillingService::APPROVED, true) => 'payment_reversed',
+                default => 'payment_' . $status,
+            };
+            \App\Services\AuditLog::record($verifiedBy, $action, 'payment', $id, array_filter([
+                'boarder_id' => (int) $payment['boarder_id'],
+                'from' => $payment['verification_status'],
+                'approved_amount' => $status === 'admin-approved' ? $approvedAmount : null,
+                'reason' => $note,
+            ], fn ($v) => $v !== null));
+
             \App\Services\BillingService::calculateBalance((int) $payment['boarder_id'], $pdo);
 
             if ($ownTx) {

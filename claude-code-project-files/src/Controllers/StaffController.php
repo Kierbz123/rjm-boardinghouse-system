@@ -7,6 +7,7 @@ use App\Models\User;
 use App\Services\AuditLog;
 use App\Support\Csrf;
 use App\Support\PasswordPolicy;
+use App\Support\Phone;
 use App\Support\TrustedProxy;
 
 /**
@@ -55,12 +56,13 @@ class StaffController
         $name = trim((string) preg_replace('/\s+/u', ' ', (string) ($_POST['name'] ?? '')));
         $email = mb_strtolower(trim((string) ($_POST['email'] ?? '')));
         $password = (string) ($_POST['password'] ?? '');
-        $phone = self::cleanPhone($_POST['phone'] ?? '');
+        $phoneRaw = $_POST['phone'] ?? '';
+        $phone = Phone::digits($phoneRaw);
 
         $error = match (true) {
             $name === '' || mb_strlen($name) > 150 => 'Enter a name (150 characters max).',
             !filter_var($email, FILTER_VALIDATE_EMAIL) || mb_strlen($email) > 150 => 'Enter a valid email address.',
-            self::phoneProblem($phone) !== null => self::phoneProblem($phone),
+            Phone::problem($phoneRaw) !== null => Phone::problem($phoneRaw),
             // Admin-only page, so naming the clash leaks nothing; it also covers deactivated accounts.
             User::findByEmail($email) !== null => 'That email is already in use by another account (it may be deactivated).',
             default => PasswordPolicy::problem($password, [$name, $email]),
@@ -90,27 +92,14 @@ class StaffController
         if ($user === null || $user['role'] !== 'staff') {
             self::back('flash_error', 'Staff account not found.');
         }
-        $phone = self::cleanPhone($_POST['phone'] ?? '');
-        if (($error = self::phoneProblem($phone)) !== null) {
+        $phoneRaw = $_POST['phone'] ?? '';
+        if (($error = Phone::problem($phoneRaw)) !== null) {
             self::back('flash_error', $error);
         }
+        $phone = Phone::digits($phoneRaw);
         User::setPhone((int) $id, $phone);
         self::audit('staff_phone_changed', (int) $id); // the number itself stays out of the trail
         self::back('flash_success', $phone === '' ? "Phone number removed for {$user['name']}." : "Phone number saved for {$user['name']}.");
-    }
-
-    private static function cleanPhone(mixed $raw): string
-    {
-        return is_string($raw) ? trim((string) preg_replace('/\s+/', ' ', $raw)) : '';
-    }
-
-    /** Empty is allowed (clears it); otherwise 7 to 15 digits, with optional +, spaces, dashes, brackets. */
-    private static function phoneProblem(string $phone): ?string
-    {
-        $digits = strlen((string) preg_replace('/\D/', '', $phone));
-        return $phone === '' || (preg_match('/^\+?[0-9 ()-]+$/', $phone) && mb_strlen($phone) <= 30 && $digits >= 7 && $digits <= 15)
-            ? null
-            : 'Enter a phone number such as 0917 123 4567 or +63 917 123 4567 (digits, spaces, dashes, brackets and a leading + only).';
     }
 
     public static function setStatus(string $id): void

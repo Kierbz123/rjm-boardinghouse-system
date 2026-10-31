@@ -88,7 +88,10 @@ class User
                 WHEN 'pending'  THEN u.status <> 'archived' AND bp.status = 'pending'
                 ELSE u.status <> 'archived'
               END
-          AND (? = '' OR u.name LIKE ? OR u.email LIKE ? OR u.phone LIKE ? OR bp.contact_number LIKE ? OR r.room_number LIKE ? OR u.id = ?)";
+          AND (? = '' OR u.name LIKE ? OR u.email LIKE ?
+               OR REGEXP_REPLACE(u.phone, '[^0-9]', '') LIKE ?
+               OR REGEXP_REPLACE(bp.contact_number, '[^0-9]', '') LIKE ?
+               OR r.room_number LIKE ? OR u.id = ?)";
 
     private const MANAGEMENT_LIST_SQL = 'SELECT u.id, u.role, u.name, u.email, u.phone, u.status, u.created_at, u.last_login_at,
             u.must_change_password, u.temp_password_expires_at, bp.status AS residency_status, bp.contact_number,
@@ -109,7 +112,12 @@ class User
         $q = $f['q'];
         $like = '%' . addcslashes($q, '%_\\') . '%';
         $idNum = ctype_digit(ltrim($q, '#')) ? (int) ltrim($q, '#') : 0;
-        $where = [$f['type'], $f['type'], $f['status'], $q, $like, $like, $like, $like, $like, $idNum];
+        // Phones are matched on digits only, so "0917 123 4567" finds a number stored as +63 917-123-4567:
+        // the national 0 and the 63 country code are dropped from the term and the rest matched anywhere.
+        // No digits typed at all: NULL, which no LIKE matches, instead of '%%' matching every phone.
+        $digits = (string) preg_replace(['/\D/', '/^(?:0|63)/'], '', $q);
+        $phoneLike = $digits === '' ? null : '%' . $digits . '%';
+        $where = [$f['type'], $f['type'], $f['status'], $q, $like, $like, $phoneLike, $phoneLike, $like, $idNum];
         $db = Database::getConnection();
 
         $count = $db->prepare(self::MANAGEMENT_COUNT_SQL);

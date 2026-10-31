@@ -24,17 +24,51 @@ $totalPenaltyAmount = array_sum(array_map(fn($p) => (float) ($p['amount'] ?? 0),
 ?>
 <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
 
-    <!-- Page Banner -->
-    <div class="page-banner">
-        <div>
-            <h1>Penalty Rules &amp; Automation</h1>
-            <p>Late fee policies, flat fee enforcement &amp; manual notification triggers</p>
+    <!-- Executive Page Banner with Quick Launch Command Bar -->
+    <header class="dash-hero-banner">
+        <div class="dash-hero-top">
+            <div>
+                <h1 class="dash-hero-title">
+                    <span>Penalty Rules &amp; Automation</span>
+                </h1>
+                <p class="dash-hero-sub">Late fee policies, flat fee enforcement &amp; manual notification triggers.</p>
+            </div>
+
+            <div class="flex items-center gap-2.5 flex-wrap">
+                <span class="badge" style="background:rgba(255,255,255,0.08); color:#8cc2a2; border:1px solid rgba(255,255,255,0.15); padding:0.35rem 0.85rem; font-size:0.75rem; font-weight:600; border-radius:9999px; display:inline-flex; align-items:center;">
+                    <span class="live-pulse-dot" style="margin-right:0.45rem;"></span>
+                    Rules Engine Active
+                </span>
+                <span class="badge" style="background:rgba(255,255,255,0.05); color:#a3a19b; border:1px solid rgba(255,255,255,0.1); padding:0.35rem 0.75rem; font-size:0.75rem; border-radius:9999px; display:inline-flex; align-items:center; gap:0.35rem;">
+                    <?= \App\Support\Icon::svg('calendar', 13) ?>
+                    <span><?= date('l, M j, Y') ?></span>
+                </span>
+            </div>
         </div>
-        <span class="badge badge-success" style="background:rgba(255,255,255,0.12); color:#8cc2a2; border:1px solid rgba(255,255,255,0.18); padding:0.4rem 0.85rem; font-size:0.75rem;">
-            <span style="width:0.45rem;height:0.45rem;border-radius:50%;background:#5fae84;display:inline-block;margin-right:0.4rem;"></span>
-            Rules Engine Active
-        </span>
-    </div>
+
+        <!-- Quick Launch Command Bar -->
+        <div class="dash-cmd-bar">
+            <span style="font-size:0.6875rem; font-weight:700; text-transform:uppercase; letter-spacing:0.06em; color:rgba(255,255,255,0.5); margin-right:0.35rem;">
+                Quick Launch:
+            </span>
+            <button type="button" onclick="document.getElementById('penalty-check-btn')?.click();" class="dash-cmd-btn highlight" title="Run overdue late-fee check immediately">
+                <?= \App\Support\Icon::svg('zap', 14) ?>
+                <span>Run Late-Fee Check</span>
+            </button>
+            <a href="#penalty-rules-section" class="dash-cmd-btn" title="View active policy rules">
+                <?= \App\Support\Icon::svg('scale', 14) ?>
+                <span>Policy Rules (<?= $totalRules ?>)</span>
+            </a>
+            <a href="#penalty-history-section" class="dash-cmd-btn" title="View issued penalties history">
+                <?= \App\Support\Icon::svg('alert-triangle', 14) ?>
+                <span>Issued Penalties (<?= $totalPenalties ?>)</span>
+            </a>
+            <a href="/admin/payments" class="dash-cmd-btn" title="View payments and collections">
+                <?= \App\Support\Icon::svg('banknote', 14) ?>
+                <span>Payments</span>
+            </a>
+        </div>
+    </header>
 
     <?php if ($info): ?>
         <div class="bg-emerald-50 text-emerald-800 text-body-sm rounded-lg p-3.5 border border-emerald-300 flex items-center gap-2.5" role="status">
@@ -51,79 +85,95 @@ $totalPenaltyAmount = array_sum(array_map(fn($p) => (float) ($p['amount'] ?? 0),
     <?php endif; ?>
 
     <!-- KPI Cards: Rules Metrics -->
-    <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <div class="reveal-card card p-4 metric-accent-primary">
-            <div class="flex items-center justify-between mb-1">
-                <span class="text-caption font-semibold text-neutral-500 uppercase tracking-wider">Total Rules</span>
-                <?= \App\Support\Icon::svg('scale', 18) ?>
+    <div class="kpi-grid">
+        <a href="#penalty-rules-section" class="reveal-card kpi-card metric-accent-primary" title="View all configured rules">
+            <div class="kpi-card-header">
+                <span class="kpi-label">Total Rules</span>
+                <span class="kpi-icon"><?= \App\Support\Icon::svg('scale') ?></span>
             </div>
-            <p class="text-3xl font-bold text-neutral-900 mt-1" style="font-variant-numeric: tabular-nums;"><?= $totalRules ?></p>
-            <p class="text-caption text-neutral-400 mt-1">Configured policies</p>
-        </div>
-        <div class="reveal-card card p-4 metric-accent-success">
-            <div class="flex items-center justify-between mb-1">
-                <span class="text-caption font-semibold text-neutral-500 uppercase tracking-wider">Active Rules</span>
-                <?= \App\Support\Icon::svg('circle-dot', 18) ?>
+            <div class="kpi-value"><?= $totalRules ?></div>
+            <div class="kpi-subtext">
+                <span class="text-neutral-400">Configured policies</span>
             </div>
-            <p class="text-3xl font-bold text-neutral-900 mt-1" style="font-variant-numeric: tabular-nums;"><?= $activeRuleCount ?></p>
-            <p class="text-caption text-neutral-400 mt-1">Enforced currently</p>
-        </div>
-        <div class="reveal-card card p-4 metric-accent-warning">
-            <div class="flex items-center justify-between mb-1">
-                <span class="text-caption font-semibold text-neutral-500 uppercase tracking-wider">Inactive Rules</span>
-                <span style="font-size:1.1rem; line-height:1;">⏸️</span>
+        </a>
+        <a href="#penalty-rules-section" class="reveal-card kpi-card metric-accent-success" title="View active rules">
+            <div class="kpi-card-header">
+                <span class="kpi-label">Active Rules</span>
+                <span class="kpi-icon"><?= \App\Support\Icon::svg('circle-dot') ?></span>
             </div>
-            <p class="text-3xl font-bold text-neutral-900 mt-1" style="font-variant-numeric: tabular-nums;"><?= $inactiveRules ?></p>
-            <p class="text-caption text-neutral-400 mt-1">Disabled policies</p>
-        </div>
-        <div class="reveal-card card p-4 metric-accent-info">
-            <div class="flex items-center justify-between mb-1">
-                <span class="text-caption font-semibold text-neutral-500 uppercase tracking-wider">Late Rent Rate</span>
-                <span style="font-size:1.1rem; line-height:1;">⏱️</span>
+            <div class="kpi-value"><?= $activeRuleCount ?></div>
+            <div class="kpi-subtext">
+                <span class="text-neutral-400">Enforced currently</span>
             </div>
-            <p class="text-3xl font-bold text-neutral-900 mt-1" style="font-variant-numeric: tabular-nums;">
+        </a>
+        <a href="#penalty-rules-section" class="reveal-card kpi-card metric-accent-warning" title="View inactive rules">
+            <div class="kpi-card-header">
+                <span class="kpi-label">Inactive Rules</span>
+                <span class="kpi-icon"><?= \App\Support\Icon::svg('alert-circle') ?></span>
+            </div>
+            <div class="kpi-value"><?= $inactiveRules ?></div>
+            <div class="kpi-subtext">
+                <span class="text-neutral-400">Disabled policies</span>
+            </div>
+        </a>
+        <a href="#penalty-rules-section" class="reveal-card kpi-card metric-accent-info" title="View late rent rate">
+            <div class="kpi-card-header">
+                <span class="kpi-label">Late Rent Rate</span>
+                <span class="kpi-icon"><?= \App\Support\Icon::svg('calendar') ?></span>
+            </div>
+            <div class="kpi-value">
                 <?= $lateRule ? '₱' . number_format((float)$lateRule['amount'], 2) : 'None' ?>
-            </p>
-            <p class="text-caption text-neutral-400 mt-1">
-                <?= $lateRule ? 'Per day overdue' : 'No active late rate' ?>
-            </p>
-        </div>
+            </div>
+            <div class="kpi-subtext">
+                <span class="text-neutral-400">
+                    <?= $lateRule ? 'Per day overdue' : 'No active late rate' ?>
+                </span>
+            </div>
+        </a>
     </div>
 
     <!-- KPI Cards: Penalty Metrics -->
-    <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <div class="reveal-card card p-4 metric-accent-error">
-            <div class="flex items-center justify-between mb-1">
-                <span class="text-caption font-semibold text-neutral-500 uppercase tracking-wider">Total Penalties</span>
-                <?= \App\Support\Icon::svg('alert-triangle', 18) ?>
+    <div class="kpi-grid">
+        <a href="#penalty-history-section" class="reveal-card kpi-card metric-accent-error" title="View penalty history">
+            <div class="kpi-card-header">
+                <span class="kpi-label">Total Penalties</span>
+                <span class="kpi-icon"><?= \App\Support\Icon::svg('alert-triangle') ?></span>
             </div>
-            <p class="text-3xl font-bold text-neutral-900 mt-1" style="font-variant-numeric: tabular-nums;"><?= $totalPenalties ?></p>
-            <p class="text-caption text-neutral-400 mt-1">Penalties applied</p>
-        </div>
-        <div class="reveal-card card p-4 metric-accent-warning">
-            <div class="flex items-center justify-between mb-1">
-                <span class="text-caption font-semibold text-neutral-500 uppercase tracking-wider">Total Amount</span>
-                <span style="font-size:1.1rem; line-height:1;">₱</span>
+            <div class="kpi-value"><?= $totalPenalties ?></div>
+            <div class="kpi-subtext">
+                <span class="text-neutral-400">Penalties applied</span>
             </div>
-            <p class="text-3xl font-bold text-amber-600 mt-1" style="font-variant-numeric: tabular-nums;">₱<?= number_format($totalPenaltyAmount, 2) ?></p>
-            <p class="text-caption text-amber-600 mt-1 font-semibold">Penalty revenue</p>
-        </div>
-        <div class="reveal-card card p-4 metric-accent-success">
-            <div class="flex items-center justify-between mb-1">
-                <span class="text-caption font-semibold text-neutral-500 uppercase tracking-wider">Active Rules</span>
-                <?= \App\Support\Icon::svg('file-text', 18) ?>
+        </a>
+        <a href="#penalty-history-section" class="reveal-card kpi-card metric-accent-warning" title="View penalty amount breakdown">
+            <div class="kpi-card-header">
+                <span class="kpi-label">Total Amount</span>
+                <span class="kpi-icon"><?= \App\Support\Icon::svg('banknote') ?></span>
             </div>
-            <p class="text-3xl font-bold text-neutral-900 mt-1" style="font-variant-numeric: tabular-nums;"><?= $activeRuleCount ?></p>
-            <p class="text-caption text-neutral-400 mt-1">Late rent &amp; fee rules</p>
-        </div>
-        <div class="reveal-card card p-4 metric-accent-info">
-            <div class="flex items-center justify-between mb-1">
-                <span class="text-caption font-semibold text-neutral-500 uppercase tracking-wider">Avg per Penalty</span>
-                <?= \App\Support\Icon::svg('bar-chart', 18) ?>
+            <div class="kpi-value text-amber-600">₱<?= number_format($totalPenaltyAmount, 2) ?></div>
+            <div class="kpi-subtext">
+                <span class="text-amber-600 font-semibold">Penalty revenue</span>
             </div>
-            <p class="text-3xl font-bold text-neutral-900 mt-1" style="font-variant-numeric: tabular-nums;">₱<?= $totalPenalties > 0 ? number_format($totalPenaltyAmount / $totalPenalties, 2) : '0.00' ?></p>
-            <p class="text-caption text-neutral-400 mt-1">Average fee</p>
-        </div>
+        </a>
+        <a href="#penalty-rules-section" class="reveal-card kpi-card metric-accent-success" title="View enforced rules">
+            <div class="kpi-card-header">
+                <span class="kpi-label">Active Rules</span>
+                <span class="kpi-icon"><?= \App\Support\Icon::svg('file-text') ?></span>
+            </div>
+            <div class="kpi-value"><?= $activeRuleCount ?></div>
+            <div class="kpi-subtext">
+                <span class="text-neutral-400">Late rent &amp; fee rules</span>
+            </div>
+        </a>
+        <a href="#penalty-history-section" class="reveal-card kpi-card metric-accent-info" title="View average penalty fee">
+            <div class="kpi-card-header">
+                <span class="kpi-label">Avg per Penalty</span>
+                <span class="kpi-icon"><?= \App\Support\Icon::svg('bar-chart') ?></span>
+            </div>
+            <div class="kpi-value">₱<?= $totalPenalties > 0 ? number_format($totalPenaltyAmount / $totalPenalties, 2) : '0.00' ?></div>
+            <div class="kpi-subtext">
+                <span class="text-neutral-400">Average fee</span>
+            </div>
+        </a>
     </div>
 
     <!-- Management & Automation Actions Grid -->
@@ -300,7 +350,7 @@ $totalPenaltyAmount = array_sum(array_map(fn($p) => (float) ($p['amount'] ?? 0),
     </div>
 
     <!-- Configured Rules Section -->
-    <div>
+    <div id="penalty-rules-section">
         <div class="section-header">
             <div class="flex items-center gap-2">
                 <h2>Configured Penalty Rules</h2>
@@ -365,19 +415,21 @@ $totalPenaltyAmount = array_sum(array_map(fn($p) => (float) ($p['amount'] ?? 0),
                                 </td>
                                 <td class="p-3">
                                     <!-- Toggle Active/Inactive Form -->
-                                    <form method="post" action="/admin/penalty-rules/<?= (int) $r['id'] ?>/toggle" class="inline">
+                                    <form method="post" action="/admin/penalty-rules/<?= (int) $r['id'] ?>/toggle" class="inline"
+                                          data-confirm="<?= $isActive ? 'Rule will no longer be applied during automated checks.' : 'Rule will be applied during automated checks.' ?>"
+                                          data-confirm-title="<?= $isActive ? 'Deactivate rule &quot;' . htmlspecialchars(addslashes($r['name'])) . '&quot;?' : 'Reactivate rule &quot;' . htmlspecialchars(addslashes($r['name'])) . '&quot;?' ?>"
+                                          data-confirm-btn="<?= $isActive ? 'Deactivate' : 'Reactivate' ?>"
+                                          <?= $isActive ? 'data-confirm-danger' : 'data-confirm-type="info"' ?>>
                                         <?= \App\Support\Csrf::field() ?>
                                         <input type="hidden" name="active" value="<?= $isActive ? '0' : '1' ?>">
                                         <?php if ($isActive): ?>
                                             <button type="submit"
-                                                    class="btn-danger !py-1 !px-2.5 !text-xs cursor-pointer"
-                                                    onclick="return confirm('Deactivate rule &quot;<?= htmlspecialchars(addslashes($r['name'])) ?>&quot;?');">
+                                                    class="btn-danger !py-1 !px-2.5 !text-xs cursor-pointer">
                                                 Deactivate
                                             </button>
                                         <?php else: ?>
                                             <button type="submit"
-                                                    class="btn btn-secondary !py-1 !px-2.5 !text-xs cursor-pointer"
-                                                    onclick="return confirm('Reactivate rule &quot;<?= htmlspecialchars(addslashes($r['name'])) ?>&quot;?');">
+                                                    class="btn btn-secondary !py-1 !px-2.5 !text-xs cursor-pointer">
                                                 Reactivate
                                             </button>
                                         <?php endif; ?>
@@ -401,7 +453,7 @@ $totalPenaltyAmount = array_sum(array_map(fn($p) => (float) ($p['amount'] ?? 0),
     </div>
 
     <!-- Penalties History Section -->
-    <div>
+    <div id="penalty-history-section">
         <div class="section-header">
             <div class="flex items-center gap-2">
                 <h2 class="text-heading-sm font-semibold text-neutral-900">Penalty History</h2>
@@ -486,8 +538,14 @@ $totalPenaltyAmount = array_sum(array_map(fn($p) => (float) ($p['amount'] ?? 0),
                                 </td>
                                 <td class="p-3 text-right">
                                     <?php if (!$isPaid): ?>
-                                        <form method="post" action="/admin/penalties/<?= (int) $p['id'] ?>/mark-paid" class="inline" onsubmit="return confirm('Manually mark penalty #<?= (int)$p['id'] ?> (₱<?= number_format((float)$p['amount'], 2) ?>) as paid via administrative override?');">
+                                        <form method="post" action="/admin/penalties/<?= (int) $p['id'] ?>/mark-paid" class="inline-flex items-center justify-end gap-1.5"
+                                              data-confirm="Manually mark penalty #<?= (int)$p['id'] ?> (₱<?= number_format((float)$p['amount'], 2) ?>) as paid via administrative override?"
+                                              data-confirm-title="Mark Penalty Paid?"
+                                              data-confirm-btn="Mark Paid"
+                                              data-confirm-type="success">
                                             <?= \App\Support\Csrf::field() ?>
+                                            <input type="text" name="reason" required maxlength="160" placeholder="Reason (required)"
+                                                   aria-label="Reason for settling penalty #<?= (int) $p['id'] ?> without a payment" class="input input-sm !py-1 text-xs bg-white w-36">
                                             <button type="submit" class="btn btn-secondary !py-1 !px-2.5 !text-xs cursor-pointer text-emerald-700 hover:bg-emerald-50">
                                                 Mark Paid
                                             </button>
@@ -510,8 +568,6 @@ $totalPenaltyAmount = array_sum(array_map(fn($p) => (float) ($p['amount'] ?? 0),
                     </tbody>
                 </table>
             </div>
-                                            <input type="text" name="reason" required maxlength="160" placeholder="Reason (required)"
-                                                   aria-label="Reason for settling penalty #<?= (int) $p['id'] ?> without a payment" class="input input-sm !py-1 text-xs bg-white w-36">
         </div>
     </div>
 </div>

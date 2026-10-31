@@ -127,16 +127,20 @@ $tierBadges = [
     </div>
 
     <!-- KPI Metric Cards -->
-    <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <div class="reveal-card card metric-accent-primary" style="padding: 1.25rem 1.375rem; border-radius: 0.875rem;">
-            <p class="text-caption font-semibold text-neutral-500 uppercase tracking-wider">My Accommodation</p>
-            <p class="text-2xl font-bold text-neutral-900" style="margin-top: 0.5rem;">
+    <div class="kpi-grid">
+        <a href="#my-accommodation-card" class="reveal-card kpi-card metric-accent-primary" title="View my accommodation details">
+            <div class="kpi-card-header">
+                <span class="kpi-label">My Accommodation</span>
+                <span class="kpi-icon"><?= \App\Support\Icon::svg('home') ?></span>
+            </div>
+            <div class="kpi-value text-xl">
                 <?= !empty($boarder['room_number']) ? 'Room ' . htmlspecialchars($boarder['room_number']) : 'Unassigned' ?>
-            </p>
-            <p class="text-caption text-neutral-400" style="margin-top: 0.375rem;">
-                Bed: <?= htmlspecialchars($boarder['bed_label'] ?? 'Pending') ?>
-            </p>
-        </div>
+            </div>
+            <div class="kpi-subtext">
+                <span class="text-neutral-400">Bed: <?= htmlspecialchars($boarder['bed_label'] ?? 'Pending') ?></span>
+            </div>
+        </a>
+
         <?php
         $totalBal = (float) ($balanceDetails['total_outstanding'] ?? 0.00);
         $rentDue = (float) ($balanceDetails['rent_due'] ?? 0.00);
@@ -144,33 +148,48 @@ $tierBadges = [
         $balColor = $totalBal > 0 ? 'text-amber-600' : 'text-emerald-600';
         $accentClass = $totalBal > 0 ? 'metric-accent-warning' : 'metric-accent-success';
         ?>
-        <div class="reveal-card card <?= $accentClass ?>" style="padding: 1.25rem 1.375rem; border-radius: 0.875rem;">
-            <p class="text-caption font-semibold text-neutral-500 uppercase tracking-wider">Outstanding Balance</p>
-            <p class="text-2xl font-bold <?= $balColor ?>" style="margin-top: 0.5rem;">
+        <a href="/portal/payments/new" class="reveal-card kpi-card <?= $accentClass ?>" title="Pay rent and settlement">
+            <div class="kpi-card-header">
+                <span class="kpi-label">Outstanding Balance</span>
+                <span class="kpi-icon"><?= \App\Support\Icon::svg('credit-card') ?></span>
+            </div>
+            <div class="kpi-value <?= $balColor ?>">
                 ₱<?= number_format($totalBal, 2) ?>
-            </p>
-            <p class="text-caption text-neutral-500" style="margin-top: 0.375rem;">
-                Rent: ₱<?= number_format($rentDue, 2) ?> · Electricity: ₱<?= number_format((float) ($balanceDetails['electricity_due'] ?? 0), 2) ?> · Penalties: ₱<?= number_format($penDue, 2) ?>
-            </p>
-        </div>
-        <div class="reveal-card card metric-accent-info" style="padding: 1.25rem 1.375rem; border-radius: 0.875rem;">
-            <p class="text-caption font-semibold text-neutral-500 uppercase tracking-wider">Rent Payments</p>
-            <p class="text-2xl font-bold text-neutral-900" style="margin-top: 0.5rem;">
+            </div>
+            <div class="kpi-subtext">
+                <span class="text-neutral-500 truncate" title="Rent: ₱<?= number_format($rentDue, 2) ?> · Electricity: ₱<?= number_format((float) ($balanceDetails['electricity_due'] ?? 0), 2) ?> · Penalties: ₱<?= number_format($penDue, 2) ?>">
+                    Rent: ₱<?= number_format($rentDue, 2) ?> · Elec: ₱<?= number_format((float) ($balanceDetails['electricity_due'] ?? 0), 2) ?>
+                </span>
+            </div>
+        </a>
+
+        <a href="#my-payment-ledger" class="reveal-card kpi-card metric-accent-info" title="View my rent payment records">
+            <div class="kpi-card-header">
+                <span class="kpi-label">Rent Payments</span>
+                <span class="kpi-icon"><?= \App\Support\Icon::svg('receipt') ?></span>
+            </div>
+            <div class="kpi-value">
                 <?= count($payments ?? []) ?>
-            </p>
-            <p class="text-caption text-neutral-400" style="margin-top: 0.375rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
-                <?= !empty($payments[0]) ? 'Latest: ' . htmlspecialchars(\App\Services\BillingService::periodLabel($payments[0]['billing_period'])) : 'No records yet' ?>
-            </p>
-        </div>
-        <div class="reveal-card card metric-accent-warning" style="padding: 1.25rem 1.375rem; border-radius: 0.875rem;">
-            <p class="text-caption font-semibold text-neutral-500 uppercase tracking-wider">Repair Requests</p>
-            <p class="text-2xl font-bold <?= $openRequestsCount > 0 ? 'text-amber-600' : 'text-neutral-900' ?>" style="margin-top: 0.5rem;">
+            </div>
+            <div class="kpi-subtext">
+                <span class="text-neutral-400 truncate">
+                    <?= !empty($payments[0]) ? 'Latest: ' . htmlspecialchars(\App\Services\BillingService::periodLabel($payments[0]['billing_period'])) : 'No records yet' ?>
+                </span>
+            </div>
+        </a>
+
+        <a href="#my-repair-requests" class="reveal-card kpi-card metric-accent-warning" title="View my repair tickets">
+            <div class="kpi-card-header">
+                <span class="kpi-label">Repair Requests</span>
+                <span class="kpi-icon"><?= \App\Support\Icon::svg('wrench') ?></span>
+            </div>
+            <div class="kpi-value <?= $openRequestsCount > 0 ? 'text-amber-600' : 'text-neutral-900' ?>">
                 <?= $openRequestsCount ?> Open
-            </p>
-            <p class="text-caption text-neutral-400" style="margin-top: 0.375rem;">
-                <?= count($maintenanceRequests ?? []) ?> total tickets
-            </p>
-        </div>
+            </div>
+            <div class="kpi-subtext">
+                <span class="text-neutral-400"><?= count($maintenanceRequests ?? []) ?> total tickets</span>
+            </div>
+        </a>
     </div>
 
     <!-- Active Penalties Alert Card (if any unpaid penalties exist) -->

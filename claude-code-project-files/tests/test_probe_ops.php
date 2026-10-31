@@ -138,11 +138,14 @@ q('UPDATE rooms SET base_price = 3000 WHERE id = ?', [$room['id']]);
 check($anon->get('/landing')->code === 200, '/landing alias works');
 
 section('Profile');
-check(flashHas($me, $me->post('/profile/update', ['name' => 'Demo Boarder', 'email' => $res['email'], 'contact_number' => '0917 123', 'emergency_contact_number' => '0918']), 'updated'), 'a resident updates contact numbers');
+check(flashHas($me, $me->post('/profile/update', ['name' => 'Demo Boarder', 'email' => $res['email'], 'contact_number' => '0917 123 4567', 'emergency_contact_number' => '09181234567']), 'updated'), 'a resident updates contact numbers');
+check(q1('SELECT contact_number FROM boarder_profiles WHERE user_id = ?', [$res['id']]) === '09171234567', 'the spaces are dropped: only digits are stored');
+check(flashHas($me, $me->post('/profile/update', ['name' => 'Demo Boarder', 'email' => $res['email'], 'contact_number' => '0918']), 'digits only'), 'a number too short to dial is refused');
 check(flashHas($me, $me->post('/profile/update', ['name' => 'Demo', 'email' => 'admin@rjm.test']), 'already registered'), "another account's e-mail cannot be taken");
-check(flashHas($me, $me->post('/profile/update', ['name' => 'Demo', 'email' => $res['email'], 'contact_number' => str_repeat('1', 51)]), '50 characters'), 'a contact number over 50 characters is refused');
+check(flashHas($me, $me->post('/profile/update', ['name' => 'Demo', 'email' => $res['email'], 'contact_number' => str_repeat('1', 51)]), 'digits only'), 'a contact number longer than any real number is refused');
+check(flashHas($me, $me->post('/profile/update', ['name' => 'Demo', 'email' => $res['email'], 'contact_number' => 'call me maybe']), 'digits only'), 'letters are refused rather than stored as an empty number');
 check(flashHas($me, $me->post('/profile/password', ['current_password' => 'wrong', 'new_password' => 'New-harbor-pencil9', 'confirm_password' => 'New-harbor-pencil9']), 'incorrect'), 'a wrong current password is refused');
-check(flashHas($me, $me->post('/profile/password', ['current_password' => $res['password'], 'new_password' => 'short', 'confirm_password' => 'short']), '15 characters'), 'a weak new password is refused');
+check(flashHas($me, $me->post('/profile/password', ['current_password' => $res['password'], 'new_password' => 'short', 'confirm_password' => 'short']), '10 characters'), 'a weak new password is refused');
 check(flashHas($me, $me->post('/profile/password', ['current_password' => $res['password'], 'new_password' => 'New-harbor-pencil9', 'confirm_password' => 'Different1!']), 'do not match'), 'a confirmation mismatch is refused');
 $second = new Client('second');
 $second->login($res['email'], $res['password']);

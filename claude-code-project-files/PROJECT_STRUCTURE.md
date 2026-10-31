@@ -100,6 +100,7 @@ One authoritative document per topic. Everything else is either a plan or a date
 | `PHASES.md` | history | Original phases 0–8 and the progress log of every later change |
 | `FINAL-REPORT.md` | history | Audit-fix batches B0–B7 (3 Oct 2026) |
 | `FEATURE_IMPLEMENTATION_AUDIT.md` | history | Screen → route → table trace of all features (10 Oct 2026) |
+| `PAGE-IPO-AUDIT-2026-10-29.md` | history | Page-by-page input/process/output, sorts, role authorization, and the paper's IPO figure and 11 features checked against the code (29 Oct 2026) |
 | `../AUDIT-REPORT.md` | history | Independent audit of the original `main` branch (4 Oct 2026) |
 | `QA-VALIDATION-REPORT.md`, `DEBUGGING-REPORT.md` | history | Early QA and debugging passes on the original stack (with the Python service) |
 | `DEMO-ACCOUNTS.md` | current | Demo accounts, what each role can do, resetting passwords |

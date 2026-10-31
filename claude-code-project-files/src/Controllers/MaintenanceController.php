@@ -166,13 +166,20 @@ class MaintenanceController
 
     public static function history(): void
     {
-        $page = max(1, (int) ($_GET['page'] ?? 1));
         $limit = 50; // Show 50 records per page
-        $offset = ($page - 1) * $limit;
+        $filters = [
+            'q' => mb_substr(trim((string) ($_GET['q'] ?? '')), 0, 100),
+            'status' => in_array($_GET['status'] ?? '', MaintenanceRequest::STATUSES, true) ? (string) $_GET['status'] : '',
+            'tier' => in_array($_GET['tier'] ?? '', ['critical', 'high', 'medium', 'low'], true) ? (string) $_GET['tier'] : '',
+        ];
 
-        $history = MaintenanceRequest::allWithDetails($limit, $offset);
-        $totalCount = MaintenanceRequest::countAll();
-        $totalPages = ceil($totalCount / $limit);
+        $counts = MaintenanceRequest::historyCounts($filters);
+        $totalCount = $counts['total'];
+        $totalPages = max(1, (int) ceil($totalCount / $limit));
+        // A page number beyond the end lands on the last page instead of an empty table.
+        $page = min(max(1, (int) ($_GET['page'] ?? 1)), $totalPages);
+
+        $history = MaintenanceRequest::allWithDetails($limit, ($page - 1) * $limit, $filters);
 
         require __DIR__ . '/../Views/staff/maintenance_history.php';
     }

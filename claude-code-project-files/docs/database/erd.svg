@@ -1,0 +1,918 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="2830" height="1540" viewBox="0 0 2830 1540">
+<rect width="2830" height="1540" fill="#ffffff"/>
+<g class="rel" data-child="audit_log.actor_id" data-parent="users.id"><polyline points="1400,330 1420,330 1420,500 1090,500 1090,610 1120,610" fill="none" stroke="#34495e" stroke-width="1.5" stroke-linejoin="round"/><path d="M1400,324 L1411,330" stroke="#34495e" stroke-width="1.6" fill="none"/><path d="M1400,336 L1411,330" stroke="#34495e" stroke-width="1.6" fill="none"/><path d="M1400,330 L1411,330" stroke="#34495e" stroke-width="1.6" fill="none"/><circle cx="1416" cy="330" r="3.6" fill="#fff" stroke="#34495e" stroke-width="1.6"/><path d="M1113,604 L1113,616" stroke="#34495e" stroke-width="1.6" fill="none"/><circle cx="1106" cy="610" r="3.6" fill="#fff" stroke="#34495e" stroke-width="1.6"/></g>
+<g class="rel" data-child="beds.current_boarder_id" data-parent="users.id"><polyline points="950,190 1060,190 1060,590 1120,590" fill="none" stroke="#34495e" stroke-width="1.5" stroke-linejoin="round"/><path d="M957,184 L957,196" stroke="#34495e" stroke-width="1.6" fill="none"/><circle cx="964" cy="190" r="3.6" fill="#fff" stroke="#34495e" stroke-width="1.6"/><path d="M1113,584 L1113,596" stroke="#34495e" stroke-width="1.6" fill="none"/><circle cx="1106" cy="590" r="3.6" fill="#fff" stroke="#34495e" stroke-width="1.6"/></g>
+<g class="rel" data-child="beds.room_id" data-parent="rooms.id"><polyline points="550,130 400,130 400,470 330,470" fill="none" stroke="#2e8b57" stroke-width="1.5" stroke-linejoin="round"/><path d="M550,124 L539,130" stroke="#2e8b57" stroke-width="1.6" fill="none"/><path d="M550,136 L539,130" stroke="#2e8b57" stroke-width="1.6" fill="none"/><path d="M550,130 L539,130" stroke="#2e8b57" stroke-width="1.6" fill="none"/><circle cx="534" cy="130" r="3.6" fill="#fff" stroke="#2e8b57" stroke-width="1.6"/><path d="M337,464 L337,476" stroke="#2e8b57" stroke-width="1.6" fill="none"/><path d="M342,464 L342,476" stroke="#2e8b57" stroke-width="1.6" fill="none"/></g>
+<g class="rel" data-child="boarder_profiles.bed_id" data-parent="beds.id"><polyline points="910,390 930,390 930,250 520,250 520,110 550,110" fill="none" stroke="#1b9aaa" stroke-width="1.5" stroke-linejoin="round"/><path d="M917,384 L917,396" stroke="#1b9aaa" stroke-width="1.6" fill="none"/><circle cx="924" cy="390" r="3.6" fill="#fff" stroke="#1b9aaa" stroke-width="1.6"/><path d="M543,104 L543,116" stroke="#1b9aaa" stroke-width="1.6" fill="none"/><circle cx="536" cy="110" r="3.6" fill="#fff" stroke="#1b9aaa" stroke-width="1.6"/></g>
+<g class="rel" data-child="boarder_profiles.room_id" data-parent="rooms.id"><polyline points="550,370 360,370 360,490 330,490" fill="none" stroke="#2e8b57" stroke-width="1.5" stroke-linejoin="round"/><path d="M550,364 L539,370" stroke="#2e8b57" stroke-width="1.6" fill="none"/><path d="M550,376 L539,370" stroke="#2e8b57" stroke-width="1.6" fill="none"/><path d="M550,370 L539,370" stroke="#2e8b57" stroke-width="1.6" fill="none"/><circle cx="534" cy="370" r="3.6" fill="#fff" stroke="#2e8b57" stroke-width="1.6"/><path d="M337,484 L337,496" stroke="#2e8b57" stroke-width="1.6" fill="none"/><circle cx="344" cy="490" r="3.6" fill="#fff" stroke="#2e8b57" stroke-width="1.6"/></g>
+<g class="rel" data-child="boarder_profiles.user_id" data-parent="users.id"><polyline points="910,350 1070,350 1070,630 1120,630" fill="none" stroke="#34495e" stroke-width="1.5" stroke-linejoin="round"/><path d="M917,344 L917,356" stroke="#34495e" stroke-width="1.6" fill="none"/><circle cx="924" cy="350" r="3.6" fill="#fff" stroke="#34495e" stroke-width="1.6"/><path d="M1113,624 L1113,636" stroke="#34495e" stroke-width="1.6" fill="none"/><path d="M1108,624 L1108,636" stroke="#34495e" stroke-width="1.6" fill="none"/></g>
+<g class="rel" data-child="boarder_status_log.changed_by" data-parent="users.id"><polyline points="1370,1070 1400,1070 1400,900 1080,900 1080,730 1120,730" fill="none" stroke="#34495e" stroke-width="1.5" stroke-linejoin="round"/><path d="M1370,1064 L1381,1070" stroke="#34495e" stroke-width="1.6" fill="none"/><path d="M1370,1076 L1381,1070" stroke="#34495e" stroke-width="1.6" fill="none"/><path d="M1370,1070 L1381,1070" stroke="#34495e" stroke-width="1.6" fill="none"/><circle cx="1386" cy="1070" r="3.6" fill="#fff" stroke="#34495e" stroke-width="1.6"/><path d="M1113,724 L1113,736" stroke="#34495e" stroke-width="1.6" fill="none"/><circle cx="1106" cy="730" r="3.6" fill="#fff" stroke="#34495e" stroke-width="1.6"/></g>
+<g class="rel" data-child="boarder_status_log.boarder_id" data-parent="users.id"><polyline points="1370,1010 1390,1010 1390,890 1090,890 1090,710 1120,710" fill="none" stroke="#34495e" stroke-width="1.5" stroke-linejoin="round"/><path d="M1370,1004 L1381,1010" stroke="#34495e" stroke-width="1.6" fill="none"/><path d="M1370,1016 L1381,1010" stroke="#34495e" stroke-width="1.6" fill="none"/><path d="M1370,1010 L1381,1010" stroke="#34495e" stroke-width="1.6" fill="none"/><circle cx="1386" cy="1010" r="3.6" fill="#fff" stroke="#34495e" stroke-width="1.6"/><path d="M1113,704 L1113,716" stroke="#34495e" stroke-width="1.6" fill="none"/><path d="M1108,704 L1108,716" stroke="#34495e" stroke-width="1.6" fill="none"/></g>
+<g class="rel" data-child="electricity_bills.created_by" data-parent="users.id"><polyline points="810,770 1070,770 1070,670 1120,670" fill="none" stroke="#34495e" stroke-width="1.5" stroke-linejoin="round"/><path d="M810,764 L821,770" stroke="#34495e" stroke-width="1.6" fill="none"/><path d="M810,776 L821,770" stroke="#34495e" stroke-width="1.6" fill="none"/><path d="M810,770 L821,770" stroke="#34495e" stroke-width="1.6" fill="none"/><circle cx="826" cy="770" r="3.6" fill="#fff" stroke="#34495e" stroke-width="1.6"/><path d="M1113,664 L1113,676" stroke="#34495e" stroke-width="1.6" fill="none"/><circle cx="1106" cy="670" r="3.6" fill="#fff" stroke="#34495e" stroke-width="1.6"/></g>
+<g class="rel" data-child="electricity_bills.room_id" data-parent="rooms.id"><polyline points="550,710 360,710 360,510 330,510" fill="none" stroke="#2e8b57" stroke-width="1.5" stroke-linejoin="round"/><path d="M550,704 L539,710" stroke="#2e8b57" stroke-width="1.6" fill="none"/><path d="M550,716 L539,710" stroke="#2e8b57" stroke-width="1.6" fill="none"/><path d="M550,710 L539,710" stroke="#2e8b57" stroke-width="1.6" fill="none"/><circle cx="534" cy="710" r="3.6" fill="#fff" stroke="#2e8b57" stroke-width="1.6"/><path d="M337,504 L337,516" stroke="#2e8b57" stroke-width="1.6" fill="none"/><path d="M342,504 L342,516" stroke="#2e8b57" stroke-width="1.6" fill="none"/></g>
+<g class="rel" data-child="electricity_charges.bill_id" data-parent="electricity_bills.id"><polyline points="320,750 520,750 520,690 550,690" fill="none" stroke="#8e44ad" stroke-width="1.5" stroke-linejoin="round"/><path d="M320,744 L331,750" stroke="#8e44ad" stroke-width="1.6" fill="none"/><path d="M320,756 L331,750" stroke="#8e44ad" stroke-width="1.6" fill="none"/><path d="M320,750 L331,750" stroke="#8e44ad" stroke-width="1.6" fill="none"/><circle cx="336" cy="750" r="3.6" fill="#fff" stroke="#8e44ad" stroke-width="1.6"/><path d="M543,684 L543,696" stroke="#8e44ad" stroke-width="1.6" fill="none"/><path d="M538,684 L538,696" stroke="#8e44ad" stroke-width="1.6" fill="none"/></g>
+<g class="rel" data-child="electricity_charges.boarder_id" data-parent="users.id"><polyline points="320,770 510,770 510,620 1060,620 1060,650 1120,650" fill="none" stroke="#34495e" stroke-width="1.5" stroke-linejoin="round"/><path d="M320,764 L331,770" stroke="#34495e" stroke-width="1.6" fill="none"/><path d="M320,776 L331,770" stroke="#34495e" stroke-width="1.6" fill="none"/><path d="M320,770 L331,770" stroke="#34495e" stroke-width="1.6" fill="none"/><circle cx="336" cy="770" r="3.6" fill="#fff" stroke="#34495e" stroke-width="1.6"/><path d="M1113,644 L1113,656" stroke="#34495e" stroke-width="1.6" fill="none"/><path d="M1108,644 L1108,656" stroke="#34495e" stroke-width="1.6" fill="none"/></g>
+<g class="rel" data-child="expenses.staff_id" data-parent="users.id"><polyline points="2330,390 2180,390 2180,540 1670,540 1670,630 1610,630" fill="none" stroke="#34495e" stroke-width="1.5" stroke-linejoin="round"/><path d="M2330,384 L2319,390" stroke="#34495e" stroke-width="1.6" fill="none"/><path d="M2330,396 L2319,390" stroke="#34495e" stroke-width="1.6" fill="none"/><path d="M2330,390 L2319,390" stroke="#34495e" stroke-width="1.6" fill="none"/><circle cx="2314" cy="390" r="3.6" fill="#fff" stroke="#34495e" stroke-width="1.6"/><path d="M1617,624 L1617,636" stroke="#34495e" stroke-width="1.6" fill="none"/><path d="M1622,624 L1622,636" stroke="#34495e" stroke-width="1.6" fill="none"/></g>
+<g class="rel" data-child="incidents.reported_by" data-parent="users.id"><polyline points="2330,1050 2180,1050 2180,1170 1670,1170 1670,790 1610,790" fill="none" stroke="#34495e" stroke-width="1.5" stroke-linejoin="round"/><path d="M2330,1044 L2319,1050" stroke="#34495e" stroke-width="1.6" fill="none"/><path d="M2330,1056 L2319,1050" stroke="#34495e" stroke-width="1.6" fill="none"/><path d="M2330,1050 L2319,1050" stroke="#34495e" stroke-width="1.6" fill="none"/><circle cx="2314" cy="1050" r="3.6" fill="#fff" stroke="#34495e" stroke-width="1.6"/><path d="M1617,784 L1617,796" stroke="#34495e" stroke-width="1.6" fill="none"/><path d="M1622,784 L1622,796" stroke="#34495e" stroke-width="1.6" fill="none"/></g>
+<g class="rel" data-child="incidents.resolved_by" data-parent="users.id"><polyline points="2330,1150 2190,1150 2190,1180 1680,1180 1680,830 1610,830" fill="none" stroke="#34495e" stroke-width="1.5" stroke-linejoin="round"/><path d="M2330,1144 L2319,1150" stroke="#34495e" stroke-width="1.6" fill="none"/><path d="M2330,1156 L2319,1150" stroke="#34495e" stroke-width="1.6" fill="none"/><path d="M2330,1150 L2319,1150" stroke="#34495e" stroke-width="1.6" fill="none"/><circle cx="2314" cy="1150" r="3.6" fill="#fff" stroke="#34495e" stroke-width="1.6"/><path d="M1617,824 L1617,836" stroke="#34495e" stroke-width="1.6" fill="none"/><circle cx="1624" cy="830" r="3.6" fill="#fff" stroke="#34495e" stroke-width="1.6"/></g>
+<g class="rel" data-child="inquiries.converted_user_id" data-parent="users.id"><polyline points="2330,850 2150,850 2150,780 1680,780 1680,730 1610,730" fill="none" stroke="#34495e" stroke-width="1.5" stroke-linejoin="round"/><path d="M2323,844 L2323,856" stroke="#34495e" stroke-width="1.6" fill="none"/><circle cx="2316" cy="850" r="3.6" fill="#fff" stroke="#34495e" stroke-width="1.6"/><path d="M1617,724 L1617,736" stroke="#34495e" stroke-width="1.6" fill="none"/><circle cx="1624" cy="730" r="3.6" fill="#fff" stroke="#34495e" stroke-width="1.6"/></g>
+<g class="rel" data-child="inquiries.submitted_by" data-parent="users.id"><polyline points="2330,790 2180,790 2180,770 1670,770 1670,690 1610,690" fill="none" stroke="#34495e" stroke-width="1.5" stroke-linejoin="round"/><path d="M2330,784 L2319,790" stroke="#34495e" stroke-width="1.6" fill="none"/><path d="M2330,796 L2319,790" stroke="#34495e" stroke-width="1.6" fill="none"/><path d="M2330,790 L2319,790" stroke="#34495e" stroke-width="1.6" fill="none"/><circle cx="2314" cy="790" r="3.6" fill="#fff" stroke="#34495e" stroke-width="1.6"/><path d="M1617,684 L1617,696" stroke="#34495e" stroke-width="1.6" fill="none"/><circle cx="1624" cy="690" r="3.6" fill="#fff" stroke="#34495e" stroke-width="1.6"/></g>
+<g class="rel" data-child="maintenance_requests.boarder_id" data-parent="users.id"><polyline points="850,950 1060,950 1060,690 1120,690" fill="none" stroke="#34495e" stroke-width="1.5" stroke-linejoin="round"/><path d="M850,944 L861,950" stroke="#34495e" stroke-width="1.6" fill="none"/><path d="M850,956 L861,950" stroke="#34495e" stroke-width="1.6" fill="none"/><path d="M850,950 L861,950" stroke="#34495e" stroke-width="1.6" fill="none"/><circle cx="866" cy="950" r="3.6" fill="#fff" stroke="#34495e" stroke-width="1.6"/><path d="M1113,684 L1113,696" stroke="#34495e" stroke-width="1.6" fill="none"/><path d="M1108,684 L1108,696" stroke="#34495e" stroke-width="1.6" fill="none"/></g>
+<g class="rel" data-child="maintenance_requests.resolved_by" data-parent="users.id"><polyline points="850,1190 1040,1190 1040,780 1090,780 1090,770 1120,770" fill="none" stroke="#34495e" stroke-width="1.5" stroke-linejoin="round"/><path d="M850,1184 L861,1190" stroke="#34495e" stroke-width="1.6" fill="none"/><path d="M850,1196 L861,1190" stroke="#34495e" stroke-width="1.6" fill="none"/><path d="M850,1190 L861,1190" stroke="#34495e" stroke-width="1.6" fill="none"/><circle cx="866" cy="1190" r="3.6" fill="#fff" stroke="#34495e" stroke-width="1.6"/><path d="M1113,764 L1113,776" stroke="#34495e" stroke-width="1.6" fill="none"/><circle cx="1106" cy="770" r="3.6" fill="#fff" stroke="#34495e" stroke-width="1.6"/></g>
+<g class="rel" data-child="maintenance_requests.room_id" data-parent="rooms.id"><polyline points="550,970 370,970 370,530 330,530" fill="none" stroke="#2e8b57" stroke-width="1.5" stroke-linejoin="round"/><path d="M550,964 L539,970" stroke="#2e8b57" stroke-width="1.6" fill="none"/><path d="M550,976 L539,970" stroke="#2e8b57" stroke-width="1.6" fill="none"/><path d="M550,970 L539,970" stroke="#2e8b57" stroke-width="1.6" fill="none"/><circle cx="534" cy="970" r="3.6" fill="#fff" stroke="#2e8b57" stroke-width="1.6"/><path d="M337,524 L337,536" stroke="#2e8b57" stroke-width="1.6" fill="none"/><circle cx="344" cy="530" r="3.6" fill="#fff" stroke="#2e8b57" stroke-width="1.6"/></g>
+<g class="rel" data-child="maintenance_requests.assigned_staff_id" data-parent="users.id"><polyline points="850,1130 1050,1130 1050,750 1120,750" fill="none" stroke="#34495e" stroke-width="1.5" stroke-linejoin="round"/><path d="M850,1124 L861,1130" stroke="#34495e" stroke-width="1.6" fill="none"/><path d="M850,1136 L861,1130" stroke="#34495e" stroke-width="1.6" fill="none"/><path d="M850,1130 L861,1130" stroke="#34495e" stroke-width="1.6" fill="none"/><circle cx="866" cy="1130" r="3.6" fill="#fff" stroke="#34495e" stroke-width="1.6"/><path d="M1113,744 L1113,756" stroke="#34495e" stroke-width="1.6" fill="none"/><circle cx="1106" cy="750" r="3.6" fill="#fff" stroke="#34495e" stroke-width="1.6"/></g>
+<g class="rel" data-child="notifications.user_id" data-parent="users.id"><polyline points="1380,1270 1400,1270 1400,1150 1070,1150 1070,790 1120,790" fill="none" stroke="#34495e" stroke-width="1.5" stroke-linejoin="round"/><path d="M1380,1264 L1391,1270" stroke="#34495e" stroke-width="1.6" fill="none"/><path d="M1380,1276 L1391,1270" stroke="#34495e" stroke-width="1.6" fill="none"/><path d="M1380,1270 L1391,1270" stroke="#34495e" stroke-width="1.6" fill="none"/><circle cx="1396" cy="1270" r="3.6" fill="#fff" stroke="#34495e" stroke-width="1.6"/><path d="M1113,784 L1113,796" stroke="#34495e" stroke-width="1.6" fill="none"/><path d="M1108,784 L1108,796" stroke="#34495e" stroke-width="1.6" fill="none"/></g>
+<g class="rel" data-child="payment_allocations.boarder_id" data-parent="users.id"><polyline points="1780,650 1640,650 1640,670 1610,670" fill="none" stroke="#34495e" stroke-width="1.5" stroke-linejoin="round"/><path d="M1780,644 L1769,650" stroke="#34495e" stroke-width="1.6" fill="none"/><path d="M1780,656 L1769,650" stroke="#34495e" stroke-width="1.6" fill="none"/><path d="M1780,650 L1769,650" stroke="#34495e" stroke-width="1.6" fill="none"/><circle cx="1764" cy="650" r="3.6" fill="#fff" stroke="#34495e" stroke-width="1.6"/><path d="M1617,664 L1617,676" stroke="#34495e" stroke-width="1.6" fill="none"/><path d="M1622,664 L1622,676" stroke="#34495e" stroke-width="1.6" fill="none"/></g>
+<g class="rel" data-child="payment_allocations.payment_id" data-parent="payments.id"><polyline points="2070,630 2090,630 2090,510 1750,510 1750,110 1780,110" fill="none" stroke="#e67e22" stroke-width="1.5" stroke-linejoin="round"/><path d="M2070,624 L2081,630" stroke="#e67e22" stroke-width="1.6" fill="none"/><path d="M2070,636 L2081,630" stroke="#e67e22" stroke-width="1.6" fill="none"/><path d="M2070,630 L2081,630" stroke="#e67e22" stroke-width="1.6" fill="none"/><circle cx="2086" cy="630" r="3.6" fill="#fff" stroke="#e67e22" stroke-width="1.6"/><path d="M1773,104 L1773,116" stroke="#e67e22" stroke-width="1.6" fill="none"/><path d="M1768,104 L1768,116" stroke="#e67e22" stroke-width="1.6" fill="none"/></g>
+<g class="rel" data-child="payments.boarder_id" data-parent="users.id"><polyline points="1780,130 1740,130 1740,120 1660,120 1660,570 1610,570" fill="none" stroke="#34495e" stroke-width="1.5" stroke-linejoin="round"/><path d="M1780,124 L1769,130" stroke="#34495e" stroke-width="1.6" fill="none"/><path d="M1780,136 L1769,130" stroke="#34495e" stroke-width="1.6" fill="none"/><path d="M1780,130 L1769,130" stroke="#34495e" stroke-width="1.6" fill="none"/><circle cx="1764" cy="130" r="3.6" fill="#fff" stroke="#34495e" stroke-width="1.6"/><path d="M1617,564 L1617,576" stroke="#34495e" stroke-width="1.6" fill="none"/><path d="M1622,564 L1622,576" stroke="#34495e" stroke-width="1.6" fill="none"/></g>
+<g class="rel" data-child="payments.received_by" data-parent="users.id"><polyline points="1780,310 1650,310 1650,610 1610,610" fill="none" stroke="#34495e" stroke-width="1.5" stroke-linejoin="round"/><path d="M1780,304 L1769,310" stroke="#34495e" stroke-width="1.6" fill="none"/><path d="M1780,316 L1769,310" stroke="#34495e" stroke-width="1.6" fill="none"/><path d="M1780,310 L1769,310" stroke="#34495e" stroke-width="1.6" fill="none"/><circle cx="1764" cy="310" r="3.6" fill="#fff" stroke="#34495e" stroke-width="1.6"/><path d="M1617,604 L1617,616" stroke="#34495e" stroke-width="1.6" fill="none"/><circle cx="1624" cy="610" r="3.6" fill="#fff" stroke="#34495e" stroke-width="1.6"/></g>
+<g class="rel" data-child="payments.target_penalty_id" data-parent="penalties.id"><polyline points="1780,350 1740,350 1740,790 2160,790 2160,870 2130,870" fill="none" stroke="#c0392b" stroke-width="1.5" stroke-linejoin="round"/><path d="M1780,344 L1769,350" stroke="#c0392b" stroke-width="1.6" fill="none"/><path d="M1780,356 L1769,350" stroke="#c0392b" stroke-width="1.6" fill="none"/><path d="M1780,350 L1769,350" stroke="#c0392b" stroke-width="1.6" fill="none"/><circle cx="1764" cy="350" r="3.6" fill="#fff" stroke="#c0392b" stroke-width="1.6"/><path d="M2137,864 L2137,876" stroke="#c0392b" stroke-width="1.6" fill="none"/><circle cx="2144" cy="870" r="3.6" fill="#fff" stroke="#c0392b" stroke-width="1.6"/></g>
+<g class="rel" data-child="payments.verified_by" data-parent="users.id"><polyline points="1780,410 1640,410 1640,650 1610,650" fill="none" stroke="#34495e" stroke-width="1.5" stroke-linejoin="round"/><path d="M1780,404 L1769,410" stroke="#34495e" stroke-width="1.6" fill="none"/><path d="M1780,416 L1769,410" stroke="#34495e" stroke-width="1.6" fill="none"/><path d="M1780,410 L1769,410" stroke="#34495e" stroke-width="1.6" fill="none"/><circle cx="1764" cy="410" r="3.6" fill="#fff" stroke="#34495e" stroke-width="1.6"/><path d="M1617,644 L1617,656" stroke="#34495e" stroke-width="1.6" fill="none"/><circle cx="1624" cy="650" r="3.6" fill="#fff" stroke="#34495e" stroke-width="1.6"/></g>
+<g class="rel" data-child="penalties.boarder_id" data-parent="users.id"><polyline points="1780,890 1650,890 1650,750 1610,750" fill="none" stroke="#34495e" stroke-width="1.5" stroke-linejoin="round"/><path d="M1780,884 L1769,890" stroke="#34495e" stroke-width="1.6" fill="none"/><path d="M1780,896 L1769,890" stroke="#34495e" stroke-width="1.6" fill="none"/><path d="M1780,890 L1769,890" stroke="#34495e" stroke-width="1.6" fill="none"/><circle cx="1764" cy="890" r="3.6" fill="#fff" stroke="#34495e" stroke-width="1.6"/><path d="M1617,744 L1617,756" stroke="#34495e" stroke-width="1.6" fill="none"/><path d="M1622,744 L1622,756" stroke="#34495e" stroke-width="1.6" fill="none"/></g>
+<g class="rel" data-child="penalties.issued_by" data-parent="users.id"><polyline points="1780,1030 1660,1030 1660,770 1610,770" fill="none" stroke="#34495e" stroke-width="1.5" stroke-linejoin="round"/><path d="M1780,1024 L1769,1030" stroke="#34495e" stroke-width="1.6" fill="none"/><path d="M1780,1036 L1769,1030" stroke="#34495e" stroke-width="1.6" fill="none"/><path d="M1780,1030 L1769,1030" stroke="#34495e" stroke-width="1.6" fill="none"/><circle cx="1764" cy="1030" r="3.6" fill="#fff" stroke="#34495e" stroke-width="1.6"/><path d="M1617,764 L1617,776" stroke="#34495e" stroke-width="1.6" fill="none"/><circle cx="1624" cy="770" r="3.6" fill="#fff" stroke="#34495e" stroke-width="1.6"/></g>
+<g class="rel" data-child="penalties.paid_payment_id" data-parent="payments.id"><polyline points="2130,1070 2170,1070 2170,520 1730,520 1730,130 1780,130" fill="none" stroke="#e67e22" stroke-width="1.5" stroke-linejoin="round"/><path d="M2130,1064 L2141,1070" stroke="#e67e22" stroke-width="1.6" fill="none"/><path d="M2130,1076 L2141,1070" stroke="#e67e22" stroke-width="1.6" fill="none"/><path d="M2130,1070 L2141,1070" stroke="#e67e22" stroke-width="1.6" fill="none"/><circle cx="2146" cy="1070" r="3.6" fill="#fff" stroke="#e67e22" stroke-width="1.6"/><path d="M1773,124 L1773,136" stroke="#e67e22" stroke-width="1.6" fill="none"/><circle cx="1766" cy="130" r="3.6" fill="#fff" stroke="#e67e22" stroke-width="1.6"/></g>
+<g class="rel" data-child="penalties.rule_id" data-parent="penalty_rules.id"><polyline points="1780,910 1750,910 1750,1200 2100,1200 2100,1270 2070,1270" fill="none" stroke="#a93226" stroke-width="1.5" stroke-linejoin="round"/><path d="M1780,904 L1769,910" stroke="#a93226" stroke-width="1.6" fill="none"/><path d="M1780,916 L1769,910" stroke="#a93226" stroke-width="1.6" fill="none"/><path d="M1780,910 L1769,910" stroke="#a93226" stroke-width="1.6" fill="none"/><circle cx="1764" cy="910" r="3.6" fill="#fff" stroke="#a93226" stroke-width="1.6"/><path d="M2077,1264 L2077,1276" stroke="#a93226" stroke-width="1.6" fill="none"/><path d="M2082,1264 L2082,1276" stroke="#a93226" stroke-width="1.6" fill="none"/></g>
+<g class="rel" data-child="penalties.waived_by" data-parent="users.id"><polyline points="1780,1090 1640,1090 1640,810 1610,810" fill="none" stroke="#34495e" stroke-width="1.5" stroke-linejoin="round"/><path d="M1780,1084 L1769,1090" stroke="#34495e" stroke-width="1.6" fill="none"/><path d="M1780,1096 L1769,1090" stroke="#34495e" stroke-width="1.6" fill="none"/><path d="M1780,1090 L1769,1090" stroke="#34495e" stroke-width="1.6" fill="none"/><circle cx="1764" cy="1090" r="3.6" fill="#fff" stroke="#34495e" stroke-width="1.6"/><path d="M1617,804 L1617,816" stroke="#34495e" stroke-width="1.6" fill="none"/><circle cx="1624" cy="810" r="3.6" fill="#fff" stroke="#34495e" stroke-width="1.6"/></g>
+<g class="rel" data-child="rent_charges.boarder_id" data-parent="users.id"><polyline points="2330,130 2190,130 2190,530 1680,530 1680,590 1610,590" fill="none" stroke="#34495e" stroke-width="1.5" stroke-linejoin="round"/><path d="M2330,124 L2319,130" stroke="#34495e" stroke-width="1.6" fill="none"/><path d="M2330,136 L2319,130" stroke="#34495e" stroke-width="1.6" fill="none"/><path d="M2330,130 L2319,130" stroke="#34495e" stroke-width="1.6" fill="none"/><circle cx="2314" cy="130" r="3.6" fill="#fff" stroke="#34495e" stroke-width="1.6"/><path d="M1617,584 L1617,596" stroke="#34495e" stroke-width="1.6" fill="none"/><path d="M1622,584 L1622,596" stroke="#34495e" stroke-width="1.6" fill="none"/></g>
+<g class="rel" data-child="rooms.room_type_id" data-parent="room_types.id"><polyline points="330,530 350,530 350,370 30,370 30,110 60,110" fill="none" stroke="#6aa84f" stroke-width="1.5" stroke-linejoin="round"/><path d="M330,524 L341,530" stroke="#6aa84f" stroke-width="1.6" fill="none"/><path d="M330,536 L341,530" stroke="#6aa84f" stroke-width="1.6" fill="none"/><path d="M330,530 L341,530" stroke="#6aa84f" stroke-width="1.6" fill="none"/><circle cx="346" cy="530" r="3.6" fill="#fff" stroke="#6aa84f" stroke-width="1.6"/><path d="M53,104 L53,116" stroke="#6aa84f" stroke-width="1.6" fill="none"/><circle cx="46" cy="110" r="3.6" fill="#fff" stroke="#6aa84f" stroke-width="1.6"/></g>
+<g class="rel" data-child="settings.updated_by" data-parent="users.id"><polyline points="1390,150 1410,150 1410,240 1080,240 1080,570 1120,570" fill="none" stroke="#34495e" stroke-width="1.5" stroke-linejoin="round"/><path d="M1390,144 L1401,150" stroke="#34495e" stroke-width="1.6" fill="none"/><path d="M1390,156 L1401,150" stroke="#34495e" stroke-width="1.6" fill="none"/><path d="M1390,150 L1401,150" stroke="#34495e" stroke-width="1.6" fill="none"/><circle cx="1406" cy="150" r="3.6" fill="#fff" stroke="#34495e" stroke-width="1.6"/><path d="M1113,564 L1113,576" stroke="#34495e" stroke-width="1.6" fill="none"/><circle cx="1106" cy="570" r="3.6" fill="#fff" stroke="#34495e" stroke-width="1.6"/></g>
+<g class="rel" data-child="sos_alerts.acknowledged_by" data-parent="users.id"><polyline points="840,1410 1020,1410 1020,830 1120,830" fill="none" stroke="#34495e" stroke-width="1.5" stroke-linejoin="round"/><path d="M840,1404 L851,1410" stroke="#34495e" stroke-width="1.6" fill="none"/><path d="M840,1416 L851,1410" stroke="#34495e" stroke-width="1.6" fill="none"/><path d="M840,1410 L851,1410" stroke="#34495e" stroke-width="1.6" fill="none"/><circle cx="856" cy="1410" r="3.6" fill="#fff" stroke="#34495e" stroke-width="1.6"/><path d="M1113,824 L1113,836" stroke="#34495e" stroke-width="1.6" fill="none"/><circle cx="1106" cy="830" r="3.6" fill="#fff" stroke="#34495e" stroke-width="1.6"/></g>
+<g class="rel" data-child="sos_alerts.boarder_id" data-parent="users.id"><polyline points="840,1350 1030,1350 1030,810 1120,810" fill="none" stroke="#34495e" stroke-width="1.5" stroke-linejoin="round"/><path d="M840,1344 L851,1350" stroke="#34495e" stroke-width="1.6" fill="none"/><path d="M840,1356 L851,1350" stroke="#34495e" stroke-width="1.6" fill="none"/><path d="M840,1350 L851,1350" stroke="#34495e" stroke-width="1.6" fill="none"/><circle cx="856" cy="1350" r="3.6" fill="#fff" stroke="#34495e" stroke-width="1.6"/><path d="M1113,804 L1113,816" stroke="#34495e" stroke-width="1.6" fill="none"/><path d="M1108,804 L1108,816" stroke="#34495e" stroke-width="1.6" fill="none"/></g>
+<g class="rel" data-child="sos_alerts.room_id" data-parent="rooms.id"><polyline points="550,1370 380,1370 380,550 330,550" fill="none" stroke="#2e8b57" stroke-width="1.5" stroke-linejoin="round"/><path d="M550,1364 L539,1370" stroke="#2e8b57" stroke-width="1.6" fill="none"/><path d="M550,1376 L539,1370" stroke="#2e8b57" stroke-width="1.6" fill="none"/><path d="M550,1370 L539,1370" stroke="#2e8b57" stroke-width="1.6" fill="none"/><circle cx="534" cy="1370" r="3.6" fill="#fff" stroke="#2e8b57" stroke-width="1.6"/><path d="M337,544 L337,556" stroke="#2e8b57" stroke-width="1.6" fill="none"/><circle cx="344" cy="550" r="3.6" fill="#fff" stroke="#2e8b57" stroke-width="1.6"/></g>
+<g class="rel" data-child="users.archived_by" data-parent="users.id"><polyline points="1610,810 1640,810 1640,710 1610,710" fill="none" stroke="#34495e" stroke-width="1.5" stroke-linejoin="round"/><path d="M1610,804 L1621,810" stroke="#34495e" stroke-width="1.6" fill="none"/><path d="M1610,816 L1621,810" stroke="#34495e" stroke-width="1.6" fill="none"/><path d="M1610,810 L1621,810" stroke="#34495e" stroke-width="1.6" fill="none"/><circle cx="1626" cy="810" r="3.6" fill="#fff" stroke="#34495e" stroke-width="1.6"/><path d="M1617,704 L1617,716" stroke="#34495e" stroke-width="1.6" fill="none"/><circle cx="1624" cy="710" r="3.6" fill="#fff" stroke="#34495e" stroke-width="1.6"/></g>
+<g class="rel" data-child="payment_allocations.reference_id" data-parent="penalties.id"><polyline points="2070,690 2090,690 2090,800 1750,800 1750,870 1780,870" fill="none" stroke="#8a8f98" stroke-width="1.5" stroke-dasharray="7 5" stroke-linejoin="round"/><path d="M2070,684 L2081,690" stroke="#8a8f98" stroke-width="1.6" fill="none"/><path d="M2070,696 L2081,690" stroke="#8a8f98" stroke-width="1.6" fill="none"/><path d="M2070,690 L2081,690" stroke="#8a8f98" stroke-width="1.6" fill="none"/><circle cx="2086" cy="690" r="3.6" fill="#fff" stroke="#8a8f98" stroke-width="1.6"/><path d="M1773,864 L1773,876" stroke="#8a8f98" stroke-width="1.6" fill="none"/><circle cx="1766" cy="870" r="3.6" fill="#fff" stroke="#8a8f98" stroke-width="1.6"/></g>
+<g class="rel" data-child="payment_allocations.reference_id" data-parent="electricity_charges.id"><polyline points="1780,690 1690,690 1690,490 930,490 930,610 350,610 350,730 320,730" fill="none" stroke="#8a8f98" stroke-width="1.5" stroke-dasharray="7 5" stroke-linejoin="round"/><path d="M1780,684 L1769,690" stroke="#8a8f98" stroke-width="1.6" fill="none"/><path d="M1780,696 L1769,690" stroke="#8a8f98" stroke-width="1.6" fill="none"/><path d="M1780,690 L1769,690" stroke="#8a8f98" stroke-width="1.6" fill="none"/><circle cx="1764" cy="690" r="3.6" fill="#fff" stroke="#8a8f98" stroke-width="1.6"/><path d="M327,724 L327,736" stroke="#8a8f98" stroke-width="1.6" fill="none"/><circle cx="334" cy="730" r="3.6" fill="#fff" stroke="#8a8f98" stroke-width="1.6"/></g>
+<g class="rel" data-child="payment_allocations.reference_id" data-parent="rent_charges.period"><polyline points="2070,690 2300,690 2300,110 2330,110" fill="none" stroke="#8a8f98" stroke-width="1.5" stroke-dasharray="7 5" stroke-linejoin="round"/><path d="M2070,684 L2081,690" stroke="#8a8f98" stroke-width="1.6" fill="none"/><path d="M2070,696 L2081,690" stroke="#8a8f98" stroke-width="1.6" fill="none"/><path d="M2070,690 L2081,690" stroke="#8a8f98" stroke-width="1.6" fill="none"/><circle cx="2086" cy="690" r="3.6" fill="#fff" stroke="#8a8f98" stroke-width="1.6"/><path d="M2323,104 L2323,116" stroke="#8a8f98" stroke-width="1.6" fill="none"/><circle cx="2316" cy="110" r="3.6" fill="#fff" stroke="#8a8f98" stroke-width="1.6"/></g>
+<g id="tbl_audit_log">
+<rect x="1120" y="270" width="280" height="180" rx="3" fill="#fff" stroke="#7d7d7d" stroke-width="1.2"/>
+<path d="M1120,300 V273 Q1120,270 1123,270 H1397 Q1400,270 1400,273 V300 Z" fill="#f5e08a" stroke="#7d7d7d" stroke-width="1.2"/>
+<rect x="1129" y="279" width="12" height="12" fill="#fff" stroke="#5b6b7a"/><path d="M1129,284 H1141 M1134,279 V291" stroke="#5b6b7a"/>
+<text x="1150" y="290" font-family="Segoe UI, Arial, sans-serif" font-size="14" font-weight="700" fill="#222">audit_log</text>
+<circle cx="1133.5" cy="307.5" r="3.4" fill="#f2c200" stroke="#9a7b00"/><path d="M1135.5,309.5 L1141,315 M1138.5,312.5 L1140.5,310.5 M1140,314 L1142,312" stroke="#9a7b00" stroke-width="1.6" fill="none"/>
+<text x="1154" y="314" font-family="Consolas, monospace" font-size="12" font-weight="700" fill="#222">id</text>
+<text x="1390" y="314" text-anchor="end" font-family="Consolas, monospace" font-size="11" fill="#5f6b76">BIGINT UNSIGNED</text>
+<rect x="1121" y="320" width="278" height="20" fill="#f7f9fb"/>
+<path d="M1136,325.4 L1140.6,330 L1136,334.6 L1131.4,330 Z" fill="#fff" stroke="#c0392b" stroke-width="1"/>
+<text x="1154" y="334" font-family="Consolas, monospace" font-size="12" font-weight="400" fill="#222">actor_id</text>
+<text x="1390" y="334" text-anchor="end" font-family="Consolas, monospace" font-size="11" fill="#5f6b76">INT UNSIGNED</text>
+<path d="M1136,345.4 L1140.6,350 L1136,354.6 L1131.4,350 Z" fill="#2a9d8f" stroke="#2a9d8f" stroke-width="1"/>
+<text x="1154" y="354" font-family="Consolas, monospace" font-size="12" font-weight="400" fill="#222">action</text>
+<text x="1390" y="354" text-anchor="end" font-family="Consolas, monospace" font-size="11" fill="#5f6b76">VARCHAR(60)</text>
+<rect x="1121" y="360" width="278" height="20" fill="#f7f9fb"/>
+<path d="M1136,365.4 L1140.6,370 L1136,374.6 L1131.4,370 Z" fill="#2a9d8f" stroke="#2a9d8f" stroke-width="1"/>
+<text x="1154" y="374" font-family="Consolas, monospace" font-size="12" font-weight="400" fill="#222">entity_type</text>
+<text x="1390" y="374" text-anchor="end" font-family="Consolas, monospace" font-size="11" fill="#5f6b76">VARCHAR(40)</text>
+<path d="M1136,385.4 L1140.6,390 L1136,394.6 L1131.4,390 Z" fill="#fff" stroke="#2a9d8f" stroke-width="1"/>
+<text x="1154" y="394" font-family="Consolas, monospace" font-size="12" font-weight="400" fill="#222">entity_id</text>
+<text x="1390" y="394" text-anchor="end" font-family="Consolas, monospace" font-size="11" fill="#5f6b76">BIGINT UNSIGNED</text>
+<rect x="1121" y="400" width="278" height="20" fill="#f7f9fb"/>
+<path d="M1136,405.4 L1140.6,410 L1136,414.6 L1131.4,410 Z" fill="#fff" stroke="#2a9d8f" stroke-width="1"/>
+<text x="1154" y="414" font-family="Consolas, monospace" font-size="12" font-weight="400" fill="#222">details</text>
+<text x="1390" y="414" text-anchor="end" font-family="Consolas, monospace" font-size="11" fill="#5f6b76">TEXT</text>
+<path d="M1136,425.4 L1140.6,430 L1136,434.6 L1131.4,430 Z" fill="#2a9d8f" stroke="#2a9d8f" stroke-width="1"/>
+<text x="1154" y="434" font-family="Consolas, monospace" font-size="12" font-weight="400" fill="#222">created_at</text>
+<text x="1390" y="434" text-anchor="end" font-family="Consolas, monospace" font-size="11" fill="#5f6b76">TIMESTAMP</text>
+</g>
+<g id="tbl_beds">
+<rect x="550" y="70" width="400" height="160" rx="3" fill="#fff" stroke="#7d7d7d" stroke-width="1.2"/>
+<path d="M550,100 V73 Q550,70 553,70 H947 Q950,70 950,73 V100 Z" fill="#f5e08a" stroke="#7d7d7d" stroke-width="1.2"/>
+<rect x="559" y="79" width="12" height="12" fill="#fff" stroke="#5b6b7a"/><path d="M559,84 H571 M564,79 V91" stroke="#5b6b7a"/>
+<text x="580" y="90" font-family="Segoe UI, Arial, sans-serif" font-size="14" font-weight="700" fill="#222">beds</text>
+<circle cx="563.5" cy="107.5" r="3.4" fill="#f2c200" stroke="#9a7b00"/><path d="M565.5,109.5 L571,115 M568.5,112.5 L570.5,110.5 M570,114 L572,112" stroke="#9a7b00" stroke-width="1.6" fill="none"/>
+<text x="584" y="114" font-family="Consolas, monospace" font-size="12" font-weight="700" fill="#222">id</text>
+<text x="940" y="114" text-anchor="end" font-family="Consolas, monospace" font-size="11" fill="#5f6b76">INT UNSIGNED</text>
+<rect x="551" y="120" width="398" height="20" fill="#f7f9fb"/>
+<path d="M566,125.4 L570.6,130 L566,134.6 L561.4,130 Z" fill="#c0392b" stroke="#c0392b" stroke-width="1"/>
+<text x="584" y="134" font-family="Consolas, monospace" font-size="12" font-weight="400" fill="#222">room_id</text>
+<text x="940" y="134" text-anchor="end" font-family="Consolas, monospace" font-size="11" fill="#5f6b76">INT UNSIGNED</text>
+<path d="M566,145.4 L570.6,150 L566,154.6 L561.4,150 Z" fill="#2a9d8f" stroke="#2a9d8f" stroke-width="1"/>
+<text x="584" y="154" font-family="Consolas, monospace" font-size="12" font-weight="400" fill="#222">label</text>
+<text x="940" y="154" text-anchor="end" font-family="Consolas, monospace" font-size="11" fill="#5f6b76">VARCHAR(20)</text>
+<rect x="551" y="160" width="398" height="20" fill="#f7f9fb"/>
+<path d="M566,165.4 L570.6,170 L566,174.6 L561.4,170 Z" fill="#2a9d8f" stroke="#2a9d8f" stroke-width="1"/>
+<text x="584" y="174" font-family="Consolas, monospace" font-size="12" font-weight="400" fill="#222">status</text>
+<text x="940" y="174" text-anchor="end" font-family="Consolas, monospace" font-size="11" fill="#5f6b76">ENUM(&#x27;vacant&#x27;,&#x27;occupied&#x27;)</text>
+<path d="M566,185.4 L570.6,190 L566,194.6 L561.4,190 Z" fill="#fff" stroke="#c0392b" stroke-width="1"/>
+<text x="584" y="194" font-family="Consolas, monospace" font-size="12" font-weight="400" fill="#222">current_boarder_id</text>
+<text x="852.8" y="194" text-anchor="end" font-family="Consolas, monospace" font-size="10" font-weight="700" fill="#2a9d8f">UQ</text>
+<text x="940" y="194" text-anchor="end" font-family="Consolas, monospace" font-size="11" fill="#5f6b76">INT UNSIGNED</text>
+<rect x="551" y="200" width="398" height="20" fill="#f7f9fb"/>
+<path d="M566,205.4 L570.6,210 L566,214.6 L561.4,210 Z" fill="#2a9d8f" stroke="#2a9d8f" stroke-width="1"/>
+<text x="584" y="214" font-family="Consolas, monospace" font-size="12" font-weight="400" fill="#222">created_at</text>
+<text x="940" y="214" text-anchor="end" font-family="Consolas, monospace" font-size="11" fill="#5f6b76">TIMESTAMP</text>
+</g>
+<g id="tbl_boarder_profiles">
+<rect x="550" y="310" width="360" height="260" rx="3" fill="#fff" stroke="#7d7d7d" stroke-width="1.2"/>
+<path d="M550,340 V313 Q550,310 553,310 H907 Q910,310 910,313 V340 Z" fill="#f5e08a" stroke="#7d7d7d" stroke-width="1.2"/>
+<rect x="559" y="319" width="12" height="12" fill="#fff" stroke="#5b6b7a"/><path d="M559,324 H571 M564,319 V331" stroke="#5b6b7a"/>
+<text x="580" y="330" font-family="Segoe UI, Arial, sans-serif" font-size="14" font-weight="700" fill="#222">boarder_profiles</text>
+<circle cx="563.5" cy="347.5" r="3.4" fill="#f2c200" stroke="#9a7b00"/><path d="M565.5,349.5 L571,355 M568.5,352.5 L570.5,350.5 M570,354 L572,352" stroke="#9a7b00" stroke-width="1.6" fill="none"/>
+<path d="M578,346 L582,350 L578,354 L574,350 Z" fill="#c0392b" stroke="#7b241c" stroke-width="1"/>
+<text x="592" y="354" font-family="Consolas, monospace" font-size="12" font-weight="700" fill="#222">user_id</text>
+<text x="900" y="354" text-anchor="end" font-family="Consolas, monospace" font-size="11" fill="#5f6b76">INT UNSIGNED</text>
+<rect x="551" y="360" width="358" height="20" fill="#f7f9fb"/>
+<path d="M566,365.4 L570.6,370 L566,374.6 L561.4,370 Z" fill="#fff" stroke="#c0392b" stroke-width="1"/>
+<text x="584" y="374" font-family="Consolas, monospace" font-size="12" font-weight="400" fill="#222">room_id</text>
+<text x="900" y="374" text-anchor="end" font-family="Consolas, monospace" font-size="11" fill="#5f6b76">INT UNSIGNED</text>
+<path d="M566,385.4 L570.6,390 L566,394.6 L561.4,390 Z" fill="#fff" stroke="#c0392b" stroke-width="1"/>
+<text x="584" y="394" font-family="Consolas, monospace" font-size="12" font-weight="400" fill="#222">bed_id</text>
+<text x="812.8" y="394" text-anchor="end" font-family="Consolas, monospace" font-size="10" font-weight="700" fill="#2a9d8f">UQ</text>
+<text x="900" y="394" text-anchor="end" font-family="Consolas, monospace" font-size="11" fill="#5f6b76">INT UNSIGNED</text>
+<rect x="551" y="400" width="358" height="20" fill="#f7f9fb"/>
+<path d="M566,405.4 L570.6,410 L566,414.6 L561.4,410 Z" fill="#fff" stroke="#2a9d8f" stroke-width="1"/>
+<text x="584" y="414" font-family="Consolas, monospace" font-size="12" font-weight="400" fill="#222">contact_number</text>
+<text x="900" y="414" text-anchor="end" font-family="Consolas, monospace" font-size="11" fill="#5f6b76">VARCHAR(50)</text>
+<path d="M566,425.4 L570.6,430 L566,434.6 L561.4,430 Z" fill="#fff" stroke="#2a9d8f" stroke-width="1"/>
+<text x="584" y="434" font-family="Consolas, monospace" font-size="12" font-weight="400" fill="#222">emergency_contact_number</text>
+<text x="900" y="434" text-anchor="end" font-family="Consolas, monospace" font-size="11" fill="#5f6b76">VARCHAR(50)</text>
+<rect x="551" y="440" width="358" height="20" fill="#f7f9fb"/>
+<path d="M566,445.4 L570.6,450 L566,454.6 L561.4,450 Z" fill="#fff" stroke="#2a9d8f" stroke-width="1"/>
+<text x="584" y="454" font-family="Consolas, monospace" font-size="12" font-weight="400" fill="#222">notes</text>
+<text x="900" y="454" text-anchor="end" font-family="Consolas, monospace" font-size="11" fill="#5f6b76">TEXT</text>
+<path d="M566,465.4 L570.6,470 L566,474.6 L561.4,470 Z" fill="#fff" stroke="#2a9d8f" stroke-width="1"/>
+<text x="584" y="474" font-family="Consolas, monospace" font-size="12" font-weight="400" fill="#222">move_in_date</text>
+<text x="900" y="474" text-anchor="end" font-family="Consolas, monospace" font-size="11" fill="#5f6b76">DATE</text>
+<rect x="551" y="480" width="358" height="20" fill="#f7f9fb"/>
+<path d="M566,485.4 L570.6,490 L566,494.6 L561.4,490 Z" fill="#fff" stroke="#2a9d8f" stroke-width="1"/>
+<text x="584" y="494" font-family="Consolas, monospace" font-size="12" font-weight="400" fill="#222">move_out_date</text>
+<text x="900" y="494" text-anchor="end" font-family="Consolas, monospace" font-size="11" fill="#5f6b76">DATE</text>
+<path d="M566,505.4 L570.6,510 L566,514.6 L561.4,510 Z" fill="#2a9d8f" stroke="#2a9d8f" stroke-width="1"/>
+<text x="584" y="514" font-family="Consolas, monospace" font-size="12" font-weight="400" fill="#222">status</text>
+<text x="900" y="514" text-anchor="end" font-family="Consolas, monospace" font-size="11" fill="#5f6b76">ENUM(...)</text>
+<rect x="551" y="520" width="358" height="20" fill="#f7f9fb"/>
+<path d="M566,525.4 L570.6,530 L566,534.6 L561.4,530 Z" fill="#2a9d8f" stroke="#2a9d8f" stroke-width="1"/>
+<text x="584" y="534" font-family="Consolas, monospace" font-size="12" font-weight="400" fill="#222">status_updated_at</text>
+<text x="900" y="534" text-anchor="end" font-family="Consolas, monospace" font-size="11" fill="#5f6b76">TIMESTAMP</text>
+<path d="M566,545.4 L570.6,550 L566,554.6 L561.4,550 Z" fill="#2a9d8f" stroke="#2a9d8f" stroke-width="1"/>
+<text x="584" y="554" font-family="Consolas, monospace" font-size="12" font-weight="400" fill="#222">outstanding_balance</text>
+<text x="900" y="554" text-anchor="end" font-family="Consolas, monospace" font-size="11" fill="#5f6b76">DECIMAL(10,2)</text>
+</g>
+<g id="tbl_boarder_status_log">
+<rect x="1120" y="950" width="250" height="180" rx="3" fill="#fff" stroke="#7d7d7d" stroke-width="1.2"/>
+<path d="M1120,980 V953 Q1120,950 1123,950 H1367 Q1370,950 1370,953 V980 Z" fill="#f5e08a" stroke="#7d7d7d" stroke-width="1.2"/>
+<rect x="1129" y="959" width="12" height="12" fill="#fff" stroke="#5b6b7a"/><path d="M1129,964 H1141 M1134,959 V971" stroke="#5b6b7a"/>
+<text x="1150" y="970" font-family="Segoe UI, Arial, sans-serif" font-size="14" font-weight="700" fill="#222">boarder_status_log</text>
+<circle cx="1133.5" cy="987.5" r="3.4" fill="#f2c200" stroke="#9a7b00"/><path d="M1135.5,989.5 L1141,995 M1138.5,992.5 L1140.5,990.5 M1140,994 L1142,992" stroke="#9a7b00" stroke-width="1.6" fill="none"/>
+<text x="1154" y="994" font-family="Consolas, monospace" font-size="12" font-weight="700" fill="#222">id</text>
+<text x="1360" y="994" text-anchor="end" font-family="Consolas, monospace" font-size="11" fill="#5f6b76">INT UNSIGNED</text>
+<rect x="1121" y="1000" width="248" height="20" fill="#f7f9fb"/>
+<path d="M1136,1005.4 L1140.6,1010 L1136,1014.6 L1131.4,1010 Z" fill="#c0392b" stroke="#c0392b" stroke-width="1"/>
+<text x="1154" y="1014" font-family="Consolas, monospace" font-size="12" font-weight="400" fill="#222">boarder_id</text>
+<text x="1360" y="1014" text-anchor="end" font-family="Consolas, monospace" font-size="11" fill="#5f6b76">INT UNSIGNED</text>
+<path d="M1136,1025.4 L1140.6,1030 L1136,1034.6 L1131.4,1030 Z" fill="#fff" stroke="#2a9d8f" stroke-width="1"/>
+<text x="1154" y="1034" font-family="Consolas, monospace" font-size="12" font-weight="400" fill="#222">old_status</text>
+<text x="1360" y="1034" text-anchor="end" font-family="Consolas, monospace" font-size="11" fill="#5f6b76">VARCHAR(50)</text>
+<rect x="1121" y="1040" width="248" height="20" fill="#f7f9fb"/>
+<path d="M1136,1045.4 L1140.6,1050 L1136,1054.6 L1131.4,1050 Z" fill="#2a9d8f" stroke="#2a9d8f" stroke-width="1"/>
+<text x="1154" y="1054" font-family="Consolas, monospace" font-size="12" font-weight="400" fill="#222">new_status</text>
+<text x="1360" y="1054" text-anchor="end" font-family="Consolas, monospace" font-size="11" fill="#5f6b76">VARCHAR(50)</text>
+<path d="M1136,1065.4 L1140.6,1070 L1136,1074.6 L1131.4,1070 Z" fill="#fff" stroke="#c0392b" stroke-width="1"/>
+<text x="1154" y="1074" font-family="Consolas, monospace" font-size="12" font-weight="400" fill="#222">changed_by</text>
+<text x="1360" y="1074" text-anchor="end" font-family="Consolas, monospace" font-size="11" fill="#5f6b76">INT UNSIGNED</text>
+<rect x="1121" y="1080" width="248" height="20" fill="#f7f9fb"/>
+<path d="M1136,1085.4 L1140.6,1090 L1136,1094.6 L1131.4,1090 Z" fill="#fff" stroke="#2a9d8f" stroke-width="1"/>
+<text x="1154" y="1094" font-family="Consolas, monospace" font-size="12" font-weight="400" fill="#222">reason</text>
+<text x="1360" y="1094" text-anchor="end" font-family="Consolas, monospace" font-size="11" fill="#5f6b76">VARCHAR(255)</text>
+<path d="M1136,1105.4 L1140.6,1110 L1136,1114.6 L1131.4,1110 Z" fill="#2a9d8f" stroke="#2a9d8f" stroke-width="1"/>
+<text x="1154" y="1114" font-family="Consolas, monospace" font-size="12" font-weight="400" fill="#222">created_at</text>
+<text x="1360" y="1114" text-anchor="end" font-family="Consolas, monospace" font-size="11" fill="#5f6b76">TIMESTAMP</text>
+</g>
+<g id="tbl_electricity_bills">
+<rect x="550" y="650" width="260" height="160" rx="3" fill="#fff" stroke="#7d7d7d" stroke-width="1.2"/>
+<path d="M550,680 V653 Q550,650 553,650 H807 Q810,650 810,653 V680 Z" fill="#f5e08a" stroke="#7d7d7d" stroke-width="1.2"/>
+<rect x="559" y="659" width="12" height="12" fill="#fff" stroke="#5b6b7a"/><path d="M559,664 H571 M564,659 V671" stroke="#5b6b7a"/>
+<text x="580" y="670" font-family="Segoe UI, Arial, sans-serif" font-size="14" font-weight="700" fill="#222">electricity_bills</text>
+<circle cx="563.5" cy="687.5" r="3.4" fill="#f2c200" stroke="#9a7b00"/><path d="M565.5,689.5 L571,695 M568.5,692.5 L570.5,690.5 M570,694 L572,692" stroke="#9a7b00" stroke-width="1.6" fill="none"/>
+<text x="584" y="694" font-family="Consolas, monospace" font-size="12" font-weight="700" fill="#222">id</text>
+<text x="800" y="694" text-anchor="end" font-family="Consolas, monospace" font-size="11" fill="#5f6b76">INT UNSIGNED</text>
+<rect x="551" y="700" width="258" height="20" fill="#f7f9fb"/>
+<path d="M566,705.4 L570.6,710 L566,714.6 L561.4,710 Z" fill="#c0392b" stroke="#c0392b" stroke-width="1"/>
+<text x="584" y="714" font-family="Consolas, monospace" font-size="12" font-weight="400" fill="#222">room_id</text>
+<text x="800" y="714" text-anchor="end" font-family="Consolas, monospace" font-size="11" fill="#5f6b76">INT UNSIGNED</text>
+<path d="M566,725.4 L570.6,730 L566,734.6 L561.4,730 Z" fill="#2a9d8f" stroke="#2a9d8f" stroke-width="1"/>
+<text x="584" y="734" font-family="Consolas, monospace" font-size="12" font-weight="400" fill="#222">label</text>
+<text x="800" y="734" text-anchor="end" font-family="Consolas, monospace" font-size="11" fill="#5f6b76">VARCHAR(60)</text>
+<rect x="551" y="740" width="258" height="20" fill="#f7f9fb"/>
+<path d="M566,745.4 L570.6,750 L566,754.6 L561.4,750 Z" fill="#2a9d8f" stroke="#2a9d8f" stroke-width="1"/>
+<text x="584" y="754" font-family="Consolas, monospace" font-size="12" font-weight="400" fill="#222">amount</text>
+<text x="800" y="754" text-anchor="end" font-family="Consolas, monospace" font-size="11" fill="#5f6b76">DECIMAL(10,2)</text>
+<path d="M566,765.4 L570.6,770 L566,774.6 L561.4,770 Z" fill="#fff" stroke="#c0392b" stroke-width="1"/>
+<text x="584" y="774" font-family="Consolas, monospace" font-size="12" font-weight="400" fill="#222">created_by</text>
+<text x="800" y="774" text-anchor="end" font-family="Consolas, monospace" font-size="11" fill="#5f6b76">INT UNSIGNED</text>
+<rect x="551" y="780" width="258" height="20" fill="#f7f9fb"/>
+<path d="M566,785.4 L570.6,790 L566,794.6 L561.4,790 Z" fill="#2a9d8f" stroke="#2a9d8f" stroke-width="1"/>
+<text x="584" y="794" font-family="Consolas, monospace" font-size="12" font-weight="400" fill="#222">created_at</text>
+<text x="800" y="794" text-anchor="end" font-family="Consolas, monospace" font-size="11" fill="#5f6b76">TIMESTAMP</text>
+</g>
+<g id="tbl_electricity_charges">
+<rect x="60" y="690" width="260" height="160" rx="3" fill="#fff" stroke="#7d7d7d" stroke-width="1.2"/>
+<path d="M60,720 V693 Q60,690 63,690 H317 Q320,690 320,693 V720 Z" fill="#f5e08a" stroke="#7d7d7d" stroke-width="1.2"/>
+<rect x="69" y="699" width="12" height="12" fill="#fff" stroke="#5b6b7a"/><path d="M69,704 H81 M74,699 V711" stroke="#5b6b7a"/>
+<text x="90" y="710" font-family="Segoe UI, Arial, sans-serif" font-size="14" font-weight="700" fill="#222">electricity_charges</text>
+<circle cx="73.5" cy="727.5" r="3.4" fill="#f2c200" stroke="#9a7b00"/><path d="M75.5,729.5 L81,735 M78.5,732.5 L80.5,730.5 M80,734 L82,732" stroke="#9a7b00" stroke-width="1.6" fill="none"/>
+<text x="94" y="734" font-family="Consolas, monospace" font-size="12" font-weight="700" fill="#222">id</text>
+<text x="310" y="734" text-anchor="end" font-family="Consolas, monospace" font-size="11" fill="#5f6b76">INT UNSIGNED</text>
+<rect x="61" y="740" width="258" height="20" fill="#f7f9fb"/>
+<path d="M76,745.4 L80.6,750 L76,754.6 L71.4,750 Z" fill="#c0392b" stroke="#c0392b" stroke-width="1"/>
+<text x="94" y="754" font-family="Consolas, monospace" font-size="12" font-weight="400" fill="#222">bill_id</text>
+<text x="310" y="754" text-anchor="end" font-family="Consolas, monospace" font-size="11" fill="#5f6b76">INT UNSIGNED</text>
+<path d="M76,765.4 L80.6,770 L76,774.6 L71.4,770 Z" fill="#c0392b" stroke="#c0392b" stroke-width="1"/>
+<text x="94" y="774" font-family="Consolas, monospace" font-size="12" font-weight="400" fill="#222">boarder_id</text>
+<text x="310" y="774" text-anchor="end" font-family="Consolas, monospace" font-size="11" fill="#5f6b76">INT UNSIGNED</text>
+<rect x="61" y="780" width="258" height="20" fill="#f7f9fb"/>
+<path d="M76,785.4 L80.6,790 L76,794.6 L71.4,790 Z" fill="#2a9d8f" stroke="#2a9d8f" stroke-width="1"/>
+<text x="94" y="794" font-family="Consolas, monospace" font-size="12" font-weight="400" fill="#222">amount</text>
+<text x="310" y="794" text-anchor="end" font-family="Consolas, monospace" font-size="11" fill="#5f6b76">DECIMAL(10,2)</text>
+<path d="M76,805.4 L80.6,810 L76,814.6 L71.4,810 Z" fill="#2a9d8f" stroke="#2a9d8f" stroke-width="1"/>
+<text x="94" y="814" font-family="Consolas, monospace" font-size="12" font-weight="400" fill="#222">due_date</text>
+<text x="310" y="814" text-anchor="end" font-family="Consolas, monospace" font-size="11" fill="#5f6b76">DATE</text>
+<rect x="61" y="820" width="258" height="20" fill="#f7f9fb"/>
+<path d="M76,825.4 L80.6,830 L76,834.6 L71.4,830 Z" fill="#2a9d8f" stroke="#2a9d8f" stroke-width="1"/>
+<text x="94" y="834" font-family="Consolas, monospace" font-size="12" font-weight="400" fill="#222">created_at</text>
+<text x="310" y="834" text-anchor="end" font-family="Consolas, monospace" font-size="11" fill="#5f6b76">TIMESTAMP</text>
+</g>
+<g id="tbl_expenses">
+<rect x="2330" y="330" width="270" height="180" rx="3" fill="#fff" stroke="#7d7d7d" stroke-width="1.2"/>
+<path d="M2330,360 V333 Q2330,330 2333,330 H2597 Q2600,330 2600,333 V360 Z" fill="#f5e08a" stroke="#7d7d7d" stroke-width="1.2"/>
+<rect x="2339" y="339" width="12" height="12" fill="#fff" stroke="#5b6b7a"/><path d="M2339,344 H2351 M2344,339 V351" stroke="#5b6b7a"/>
+<text x="2360" y="350" font-family="Segoe UI, Arial, sans-serif" font-size="14" font-weight="700" fill="#222">expenses</text>
+<circle cx="2343.5" cy="367.5" r="3.4" fill="#f2c200" stroke="#9a7b00"/><path d="M2345.5,369.5 L2351,375 M2348.5,372.5 L2350.5,370.5 M2350,374 L2352,372" stroke="#9a7b00" stroke-width="1.6" fill="none"/>
+<text x="2364" y="374" font-family="Consolas, monospace" font-size="12" font-weight="700" fill="#222">id</text>
+<text x="2590" y="374" text-anchor="end" font-family="Consolas, monospace" font-size="11" fill="#5f6b76">INT UNSIGNED</text>
+<rect x="2331" y="380" width="268" height="20" fill="#f7f9fb"/>
+<path d="M2346,385.4 L2350.6,390 L2346,394.6 L2341.4,390 Z" fill="#c0392b" stroke="#c0392b" stroke-width="1"/>
+<text x="2364" y="394" font-family="Consolas, monospace" font-size="12" font-weight="400" fill="#222">staff_id</text>
+<text x="2590" y="394" text-anchor="end" font-family="Consolas, monospace" font-size="11" fill="#5f6b76">INT UNSIGNED</text>
+<path d="M2346,405.4 L2350.6,410 L2346,414.6 L2341.4,410 Z" fill="#2a9d8f" stroke="#2a9d8f" stroke-width="1"/>
+<text x="2364" y="414" font-family="Consolas, monospace" font-size="12" font-weight="400" fill="#222">category</text>
+<text x="2590" y="414" text-anchor="end" font-family="Consolas, monospace" font-size="11" fill="#5f6b76">VARCHAR(100)</text>
+<rect x="2331" y="420" width="268" height="20" fill="#f7f9fb"/>
+<path d="M2346,425.4 L2350.6,430 L2346,434.6 L2341.4,430 Z" fill="#2a9d8f" stroke="#2a9d8f" stroke-width="1"/>
+<text x="2364" y="434" font-family="Consolas, monospace" font-size="12" font-weight="400" fill="#222">amount</text>
+<text x="2590" y="434" text-anchor="end" font-family="Consolas, monospace" font-size="11" fill="#5f6b76">DECIMAL(10,2)</text>
+<path d="M2346,445.4 L2350.6,450 L2346,454.6 L2341.4,450 Z" fill="#fff" stroke="#2a9d8f" stroke-width="1"/>
+<text x="2364" y="454" font-family="Consolas, monospace" font-size="12" font-weight="400" fill="#222">description</text>
+<text x="2590" y="454" text-anchor="end" font-family="Consolas, monospace" font-size="11" fill="#5f6b76">VARCHAR(255)</text>
+<rect x="2331" y="460" width="268" height="20" fill="#f7f9fb"/>
+<path d="M2346,465.4 L2350.6,470 L2346,474.6 L2341.4,470 Z" fill="#fff" stroke="#2a9d8f" stroke-width="1"/>
+<text x="2364" y="474" font-family="Consolas, monospace" font-size="12" font-weight="400" fill="#222">receipt_path</text>
+<text x="2590" y="474" text-anchor="end" font-family="Consolas, monospace" font-size="11" fill="#5f6b76">VARCHAR(255)</text>
+<path d="M2346,485.4 L2350.6,490 L2346,494.6 L2341.4,490 Z" fill="#2a9d8f" stroke="#2a9d8f" stroke-width="1"/>
+<text x="2364" y="494" font-family="Consolas, monospace" font-size="12" font-weight="400" fill="#222">created_at</text>
+<text x="2590" y="494" text-anchor="end" font-family="Consolas, monospace" font-size="11" fill="#5f6b76">TIMESTAMP</text>
+</g>
+<g id="tbl_incidents">
+<rect x="2330" y="990" width="290" height="220" rx="3" fill="#fff" stroke="#7d7d7d" stroke-width="1.2"/>
+<path d="M2330,1020 V993 Q2330,990 2333,990 H2617 Q2620,990 2620,993 V1020 Z" fill="#f5e08a" stroke="#7d7d7d" stroke-width="1.2"/>
+<rect x="2339" y="999" width="12" height="12" fill="#fff" stroke="#5b6b7a"/><path d="M2339,1004 H2351 M2344,999 V1011" stroke="#5b6b7a"/>
+<text x="2360" y="1010" font-family="Segoe UI, Arial, sans-serif" font-size="14" font-weight="700" fill="#222">incidents</text>
+<circle cx="2343.5" cy="1027.5" r="3.4" fill="#f2c200" stroke="#9a7b00"/><path d="M2345.5,1029.5 L2351,1035 M2348.5,1032.5 L2350.5,1030.5 M2350,1034 L2352,1032" stroke="#9a7b00" stroke-width="1.6" fill="none"/>
+<text x="2364" y="1034" font-family="Consolas, monospace" font-size="12" font-weight="700" fill="#222">id</text>
+<text x="2610" y="1034" text-anchor="end" font-family="Consolas, monospace" font-size="11" fill="#5f6b76">INT UNSIGNED</text>
+<rect x="2331" y="1040" width="288" height="20" fill="#f7f9fb"/>
+<path d="M2346,1045.4 L2350.6,1050 L2346,1054.6 L2341.4,1050 Z" fill="#c0392b" stroke="#c0392b" stroke-width="1"/>
+<text x="2364" y="1054" font-family="Consolas, monospace" font-size="12" font-weight="400" fill="#222">reported_by</text>
+<text x="2610" y="1054" text-anchor="end" font-family="Consolas, monospace" font-size="11" fill="#5f6b76">INT UNSIGNED</text>
+<path d="M2346,1065.4 L2350.6,1070 L2346,1074.6 L2341.4,1070 Z" fill="#2a9d8f" stroke="#2a9d8f" stroke-width="1"/>
+<text x="2364" y="1074" font-family="Consolas, monospace" font-size="12" font-weight="400" fill="#222">type</text>
+<text x="2610" y="1074" text-anchor="end" font-family="Consolas, monospace" font-size="11" fill="#5f6b76">VARCHAR(100)</text>
+<rect x="2331" y="1080" width="288" height="20" fill="#f7f9fb"/>
+<path d="M2346,1085.4 L2350.6,1090 L2346,1094.6 L2341.4,1090 Z" fill="#2a9d8f" stroke="#2a9d8f" stroke-width="1"/>
+<text x="2364" y="1094" font-family="Consolas, monospace" font-size="12" font-weight="400" fill="#222">description</text>
+<text x="2610" y="1094" text-anchor="end" font-family="Consolas, monospace" font-size="11" fill="#5f6b76">TEXT</text>
+<path d="M2346,1105.4 L2350.6,1110 L2346,1114.6 L2341.4,1110 Z" fill="#2a9d8f" stroke="#2a9d8f" stroke-width="1"/>
+<text x="2364" y="1114" font-family="Consolas, monospace" font-size="12" font-weight="400" fill="#222">resolved</text>
+<text x="2610" y="1114" text-anchor="end" font-family="Consolas, monospace" font-size="11" fill="#5f6b76">TINYINT(1)</text>
+<rect x="2331" y="1120" width="288" height="20" fill="#f7f9fb"/>
+<path d="M2346,1125.4 L2350.6,1130 L2346,1134.6 L2341.4,1130 Z" fill="#fff" stroke="#2a9d8f" stroke-width="1"/>
+<text x="2364" y="1134" font-family="Consolas, monospace" font-size="12" font-weight="400" fill="#222">resolution_notes</text>
+<text x="2610" y="1134" text-anchor="end" font-family="Consolas, monospace" font-size="11" fill="#5f6b76">TEXT</text>
+<path d="M2346,1145.4 L2350.6,1150 L2346,1154.6 L2341.4,1150 Z" fill="#fff" stroke="#c0392b" stroke-width="1"/>
+<text x="2364" y="1154" font-family="Consolas, monospace" font-size="12" font-weight="400" fill="#222">resolved_by</text>
+<text x="2610" y="1154" text-anchor="end" font-family="Consolas, monospace" font-size="11" fill="#5f6b76">INT UNSIGNED</text>
+<rect x="2331" y="1160" width="288" height="20" fill="#f7f9fb"/>
+<path d="M2346,1165.4 L2350.6,1170 L2346,1174.6 L2341.4,1170 Z" fill="#fff" stroke="#2a9d8f" stroke-width="1"/>
+<text x="2364" y="1174" font-family="Consolas, monospace" font-size="12" font-weight="400" fill="#222">resolved_at</text>
+<text x="2610" y="1174" text-anchor="end" font-family="Consolas, monospace" font-size="11" fill="#5f6b76">TIMESTAMP</text>
+<path d="M2346,1185.4 L2350.6,1190 L2346,1194.6 L2341.4,1190 Z" fill="#2a9d8f" stroke="#2a9d8f" stroke-width="1"/>
+<text x="2364" y="1194" font-family="Consolas, monospace" font-size="12" font-weight="400" fill="#222">created_at</text>
+<text x="2610" y="1194" text-anchor="end" font-family="Consolas, monospace" font-size="11" fill="#5f6b76">TIMESTAMP</text>
+</g>
+<g id="tbl_inquiries">
+<rect x="2330" y="590" width="440" height="320" rx="3" fill="#fff" stroke="#7d7d7d" stroke-width="1.2"/>
+<path d="M2330,620 V593 Q2330,590 2333,590 H2767 Q2770,590 2770,593 V620 Z" fill="#f5e08a" stroke="#7d7d7d" stroke-width="1.2"/>
+<rect x="2339" y="599" width="12" height="12" fill="#fff" stroke="#5b6b7a"/><path d="M2339,604 H2351 M2344,599 V611" stroke="#5b6b7a"/>
+<text x="2360" y="610" font-family="Segoe UI, Arial, sans-serif" font-size="14" font-weight="700" fill="#222">inquiries</text>
+<circle cx="2343.5" cy="627.5" r="3.4" fill="#f2c200" stroke="#9a7b00"/><path d="M2345.5,629.5 L2351,635 M2348.5,632.5 L2350.5,630.5 M2350,634 L2352,632" stroke="#9a7b00" stroke-width="1.6" fill="none"/>
+<text x="2364" y="634" font-family="Consolas, monospace" font-size="12" font-weight="700" fill="#222">id</text>
+<text x="2760" y="634" text-anchor="end" font-family="Consolas, monospace" font-size="11" fill="#5f6b76">INT UNSIGNED</text>
+<rect x="2331" y="640" width="438" height="20" fill="#f7f9fb"/>
+<path d="M2346,645.4 L2350.6,650 L2346,654.6 L2341.4,650 Z" fill="#2a9d8f" stroke="#2a9d8f" stroke-width="1"/>
+<text x="2364" y="654" font-family="Consolas, monospace" font-size="12" font-weight="400" fill="#222">name</text>
+<text x="2760" y="654" text-anchor="end" font-family="Consolas, monospace" font-size="11" fill="#5f6b76">VARCHAR(150)</text>
+<path d="M2346,665.4 L2350.6,670 L2346,674.6 L2341.4,670 Z" fill="#2a9d8f" stroke="#2a9d8f" stroke-width="1"/>
+<text x="2364" y="674" font-family="Consolas, monospace" font-size="12" font-weight="400" fill="#222">phone</text>
+<text x="2760" y="674" text-anchor="end" font-family="Consolas, monospace" font-size="11" fill="#5f6b76">VARCHAR(50)</text>
+<rect x="2331" y="680" width="438" height="20" fill="#f7f9fb"/>
+<path d="M2346,685.4 L2350.6,690 L2346,694.6 L2341.4,690 Z" fill="#fff" stroke="#2a9d8f" stroke-width="1"/>
+<text x="2364" y="694" font-family="Consolas, monospace" font-size="12" font-weight="400" fill="#222">email</text>
+<text x="2760" y="694" text-anchor="end" font-family="Consolas, monospace" font-size="11" fill="#5f6b76">VARCHAR(150)</text>
+<path d="M2346,705.4 L2350.6,710 L2346,714.6 L2341.4,710 Z" fill="#fff" stroke="#2a9d8f" stroke-width="1"/>
+<text x="2364" y="714" font-family="Consolas, monospace" font-size="12" font-weight="400" fill="#222">room_type</text>
+<text x="2760" y="714" text-anchor="end" font-family="Consolas, monospace" font-size="11" fill="#5f6b76">VARCHAR(100)</text>
+<rect x="2331" y="720" width="438" height="20" fill="#f7f9fb"/>
+<path d="M2346,725.4 L2350.6,730 L2346,734.6 L2341.4,730 Z" fill="#fff" stroke="#2a9d8f" stroke-width="1"/>
+<text x="2364" y="734" font-family="Consolas, monospace" font-size="12" font-weight="400" fill="#222">move_in_date</text>
+<text x="2760" y="734" text-anchor="end" font-family="Consolas, monospace" font-size="11" fill="#5f6b76">DATE</text>
+<path d="M2346,745.4 L2350.6,750 L2346,754.6 L2341.4,750 Z" fill="#fff" stroke="#2a9d8f" stroke-width="1"/>
+<text x="2364" y="754" font-family="Consolas, monospace" font-size="12" font-weight="400" fill="#222">message</text>
+<text x="2760" y="754" text-anchor="end" font-family="Consolas, monospace" font-size="11" fill="#5f6b76">TEXT</text>
+<rect x="2331" y="760" width="438" height="20" fill="#f7f9fb"/>
+<path d="M2346,765.4 L2350.6,770 L2346,774.6 L2341.4,770 Z" fill="#2a9d8f" stroke="#2a9d8f" stroke-width="1"/>
+<text x="2364" y="774" font-family="Consolas, monospace" font-size="12" font-weight="400" fill="#222">source</text>
+<text x="2760" y="774" text-anchor="end" font-family="Consolas, monospace" font-size="11" fill="#5f6b76">ENUM(&#x27;website&#x27;,&#x27;staff&#x27;)</text>
+<path d="M2346,785.4 L2350.6,790 L2346,794.6 L2341.4,790 Z" fill="#fff" stroke="#c0392b" stroke-width="1"/>
+<text x="2364" y="794" font-family="Consolas, monospace" font-size="12" font-weight="400" fill="#222">submitted_by</text>
+<text x="2760" y="794" text-anchor="end" font-family="Consolas, monospace" font-size="11" fill="#5f6b76">INT UNSIGNED</text>
+<rect x="2331" y="800" width="438" height="20" fill="#f7f9fb"/>
+<path d="M2346,805.4 L2350.6,810 L2346,814.6 L2341.4,810 Z" fill="#fff" stroke="#2a9d8f" stroke-width="1"/>
+<text x="2364" y="814" font-family="Consolas, monospace" font-size="12" font-weight="400" fill="#222">ip_address</text>
+<text x="2760" y="814" text-anchor="end" font-family="Consolas, monospace" font-size="11" fill="#5f6b76">VARCHAR(45)</text>
+<path d="M2346,825.4 L2350.6,830 L2346,834.6 L2341.4,830 Z" fill="#2a9d8f" stroke="#2a9d8f" stroke-width="1"/>
+<text x="2364" y="834" font-family="Consolas, monospace" font-size="12" font-weight="400" fill="#222">status</text>
+<text x="2760" y="834" text-anchor="end" font-family="Consolas, monospace" font-size="11" fill="#5f6b76">ENUM(&#x27;new&#x27;,&#x27;contacted&#x27;,&#x27;closed&#x27;)</text>
+<rect x="2331" y="840" width="438" height="20" fill="#f7f9fb"/>
+<path d="M2346,845.4 L2350.6,850 L2346,854.6 L2341.4,850 Z" fill="#fff" stroke="#c0392b" stroke-width="1"/>
+<text x="2364" y="854" font-family="Consolas, monospace" font-size="12" font-weight="400" fill="#222">converted_user_id</text>
+<text x="2672.8" y="854" text-anchor="end" font-family="Consolas, monospace" font-size="10" font-weight="700" fill="#2a9d8f">UQ</text>
+<text x="2760" y="854" text-anchor="end" font-family="Consolas, monospace" font-size="11" fill="#5f6b76">INT UNSIGNED</text>
+<path d="M2346,865.4 L2350.6,870 L2346,874.6 L2341.4,870 Z" fill="#fff" stroke="#2a9d8f" stroke-width="1"/>
+<text x="2364" y="874" font-family="Consolas, monospace" font-size="12" font-weight="400" fill="#222">converted_at</text>
+<text x="2760" y="874" text-anchor="end" font-family="Consolas, monospace" font-size="11" fill="#5f6b76">TIMESTAMP</text>
+<rect x="2331" y="880" width="438" height="20" fill="#f7f9fb"/>
+<path d="M2346,885.4 L2350.6,890 L2346,894.6 L2341.4,890 Z" fill="#2a9d8f" stroke="#2a9d8f" stroke-width="1"/>
+<text x="2364" y="894" font-family="Consolas, monospace" font-size="12" font-weight="400" fill="#222">created_at</text>
+<text x="2760" y="894" text-anchor="end" font-family="Consolas, monospace" font-size="11" fill="#5f6b76">TIMESTAMP</text>
+</g>
+<g id="tbl_login_attempts">
+<rect x="60" y="930" width="250" height="140" rx="3" fill="#fff" stroke="#7d7d7d" stroke-width="1.2"/>
+<path d="M60,960 V933 Q60,930 63,930 H307 Q310,930 310,933 V960 Z" fill="#f5e08a" stroke="#7d7d7d" stroke-width="1.2"/>
+<rect x="69" y="939" width="12" height="12" fill="#fff" stroke="#5b6b7a"/><path d="M69,944 H81 M74,939 V951" stroke="#5b6b7a"/>
+<text x="90" y="950" font-family="Segoe UI, Arial, sans-serif" font-size="14" font-weight="700" fill="#222">login_attempts</text>
+<circle cx="73.5" cy="967.5" r="3.4" fill="#f2c200" stroke="#9a7b00"/><path d="M75.5,969.5 L81,975 M78.5,972.5 L80.5,970.5 M80,974 L82,972" stroke="#9a7b00" stroke-width="1.6" fill="none"/>
+<text x="94" y="974" font-family="Consolas, monospace" font-size="12" font-weight="700" fill="#222">id</text>
+<text x="300" y="974" text-anchor="end" font-family="Consolas, monospace" font-size="11" fill="#5f6b76">INT UNSIGNED</text>
+<rect x="61" y="980" width="248" height="20" fill="#f7f9fb"/>
+<path d="M76,985.4 L80.6,990 L76,994.6 L71.4,990 Z" fill="#2a9d8f" stroke="#2a9d8f" stroke-width="1"/>
+<text x="94" y="994" font-family="Consolas, monospace" font-size="12" font-weight="400" fill="#222">email</text>
+<text x="300" y="994" text-anchor="end" font-family="Consolas, monospace" font-size="11" fill="#5f6b76">VARCHAR(150)</text>
+<path d="M76,1005.4 L80.6,1010 L76,1014.6 L71.4,1010 Z" fill="#fff" stroke="#2a9d8f" stroke-width="1"/>
+<text x="94" y="1014" font-family="Consolas, monospace" font-size="12" font-weight="400" fill="#222">ip_address</text>
+<text x="300" y="1014" text-anchor="end" font-family="Consolas, monospace" font-size="11" fill="#5f6b76">VARCHAR(45)</text>
+<rect x="61" y="1020" width="248" height="20" fill="#f7f9fb"/>
+<path d="M76,1025.4 L80.6,1030 L76,1034.6 L71.4,1030 Z" fill="#2a9d8f" stroke="#2a9d8f" stroke-width="1"/>
+<text x="94" y="1034" font-family="Consolas, monospace" font-size="12" font-weight="400" fill="#222">successful</text>
+<text x="300" y="1034" text-anchor="end" font-family="Consolas, monospace" font-size="11" fill="#5f6b76">TINYINT(1)</text>
+<path d="M76,1045.4 L80.6,1050 L76,1054.6 L71.4,1050 Z" fill="#2a9d8f" stroke="#2a9d8f" stroke-width="1"/>
+<text x="94" y="1054" font-family="Consolas, monospace" font-size="12" font-weight="400" fill="#222">created_at</text>
+<text x="300" y="1054" text-anchor="end" font-family="Consolas, monospace" font-size="11" fill="#5f6b76">TIMESTAMP</text>
+</g>
+<g id="tbl_maintenance_requests">
+<rect x="550" y="890" width="300" height="320" rx="3" fill="#fff" stroke="#7d7d7d" stroke-width="1.2"/>
+<path d="M550,920 V893 Q550,890 553,890 H847 Q850,890 850,893 V920 Z" fill="#f5e08a" stroke="#7d7d7d" stroke-width="1.2"/>
+<rect x="559" y="899" width="12" height="12" fill="#fff" stroke="#5b6b7a"/><path d="M559,904 H571 M564,899 V911" stroke="#5b6b7a"/>
+<text x="580" y="910" font-family="Segoe UI, Arial, sans-serif" font-size="14" font-weight="700" fill="#222">maintenance_requests</text>
+<circle cx="563.5" cy="927.5" r="3.4" fill="#f2c200" stroke="#9a7b00"/><path d="M565.5,929.5 L571,935 M568.5,932.5 L570.5,930.5 M570,934 L572,932" stroke="#9a7b00" stroke-width="1.6" fill="none"/>
+<text x="584" y="934" font-family="Consolas, monospace" font-size="12" font-weight="700" fill="#222">id</text>
+<text x="840" y="934" text-anchor="end" font-family="Consolas, monospace" font-size="11" fill="#5f6b76">INT UNSIGNED</text>
+<rect x="551" y="940" width="298" height="20" fill="#f7f9fb"/>
+<path d="M566,945.4 L570.6,950 L566,954.6 L561.4,950 Z" fill="#c0392b" stroke="#c0392b" stroke-width="1"/>
+<text x="584" y="954" font-family="Consolas, monospace" font-size="12" font-weight="400" fill="#222">boarder_id</text>
+<text x="840" y="954" text-anchor="end" font-family="Consolas, monospace" font-size="11" fill="#5f6b76">INT UNSIGNED</text>
+<path d="M566,965.4 L570.6,970 L566,974.6 L561.4,970 Z" fill="#fff" stroke="#c0392b" stroke-width="1"/>
+<text x="584" y="974" font-family="Consolas, monospace" font-size="12" font-weight="400" fill="#222">room_id</text>
+<text x="840" y="974" text-anchor="end" font-family="Consolas, monospace" font-size="11" fill="#5f6b76">INT UNSIGNED</text>
+<rect x="551" y="980" width="298" height="20" fill="#f7f9fb"/>
+<path d="M566,985.4 L570.6,990 L566,994.6 L561.4,990 Z" fill="#2a9d8f" stroke="#2a9d8f" stroke-width="1"/>
+<text x="584" y="994" font-family="Consolas, monospace" font-size="12" font-weight="400" fill="#222">category</text>
+<text x="840" y="994" text-anchor="end" font-family="Consolas, monospace" font-size="11" fill="#5f6b76">ENUM(...)</text>
+<path d="M566,1005.4 L570.6,1010 L566,1014.6 L561.4,1010 Z" fill="#2a9d8f" stroke="#2a9d8f" stroke-width="1"/>
+<text x="584" y="1014" font-family="Consolas, monospace" font-size="12" font-weight="400" fill="#222">description</text>
+<text x="840" y="1014" text-anchor="end" font-family="Consolas, monospace" font-size="11" fill="#5f6b76">TEXT</text>
+<rect x="551" y="1020" width="298" height="20" fill="#f7f9fb"/>
+<path d="M566,1025.4 L570.6,1030 L566,1034.6 L561.4,1030 Z" fill="#fff" stroke="#2a9d8f" stroke-width="1"/>
+<text x="584" y="1034" font-family="Consolas, monospace" font-size="12" font-weight="400" fill="#222">media_path</text>
+<text x="840" y="1034" text-anchor="end" font-family="Consolas, monospace" font-size="11" fill="#5f6b76">VARCHAR(255)</text>
+<path d="M566,1045.4 L570.6,1050 L566,1054.6 L561.4,1050 Z" fill="#fff" stroke="#2a9d8f" stroke-width="1"/>
+<text x="584" y="1054" font-family="Consolas, monospace" font-size="12" font-weight="400" fill="#222">severity_score</text>
+<text x="840" y="1054" text-anchor="end" font-family="Consolas, monospace" font-size="11" fill="#5f6b76">DECIMAL(5,2)</text>
+<rect x="551" y="1060" width="298" height="20" fill="#f7f9fb"/>
+<path d="M566,1065.4 L570.6,1070 L566,1074.6 L561.4,1070 Z" fill="#fff" stroke="#2a9d8f" stroke-width="1"/>
+<text x="584" y="1074" font-family="Consolas, monospace" font-size="12" font-weight="400" fill="#222">priority_tier</text>
+<text x="840" y="1074" text-anchor="end" font-family="Consolas, monospace" font-size="11" fill="#5f6b76">ENUM(...)</text>
+<path d="M566,1085.4 L570.6,1090 L566,1094.6 L561.4,1090 Z" fill="#2a9d8f" stroke="#2a9d8f" stroke-width="1"/>
+<text x="584" y="1094" font-family="Consolas, monospace" font-size="12" font-weight="400" fill="#222">scoring_pending</text>
+<text x="840" y="1094" text-anchor="end" font-family="Consolas, monospace" font-size="11" fill="#5f6b76">TINYINT(1)</text>
+<rect x="551" y="1100" width="298" height="20" fill="#f7f9fb"/>
+<path d="M566,1105.4 L570.6,1110 L566,1114.6 L561.4,1110 Z" fill="#2a9d8f" stroke="#2a9d8f" stroke-width="1"/>
+<text x="584" y="1114" font-family="Consolas, monospace" font-size="12" font-weight="400" fill="#222">status</text>
+<text x="840" y="1114" text-anchor="end" font-family="Consolas, monospace" font-size="11" fill="#5f6b76">ENUM(...)</text>
+<path d="M566,1125.4 L570.6,1130 L566,1134.6 L561.4,1130 Z" fill="#fff" stroke="#c0392b" stroke-width="1"/>
+<text x="584" y="1134" font-family="Consolas, monospace" font-size="12" font-weight="400" fill="#222">assigned_staff_id</text>
+<text x="840" y="1134" text-anchor="end" font-family="Consolas, monospace" font-size="11" fill="#5f6b76">INT UNSIGNED</text>
+<rect x="551" y="1140" width="298" height="20" fill="#f7f9fb"/>
+<path d="M566,1145.4 L570.6,1150 L566,1154.6 L561.4,1150 Z" fill="#2a9d8f" stroke="#2a9d8f" stroke-width="1"/>
+<text x="584" y="1154" font-family="Consolas, monospace" font-size="12" font-weight="400" fill="#222">created_at</text>
+<text x="840" y="1154" text-anchor="end" font-family="Consolas, monospace" font-size="11" fill="#5f6b76">TIMESTAMP</text>
+<path d="M566,1165.4 L570.6,1170 L566,1174.6 L561.4,1170 Z" fill="#fff" stroke="#2a9d8f" stroke-width="1"/>
+<text x="584" y="1174" font-family="Consolas, monospace" font-size="12" font-weight="400" fill="#222">resolved_at</text>
+<text x="840" y="1174" text-anchor="end" font-family="Consolas, monospace" font-size="11" fill="#5f6b76">TIMESTAMP</text>
+<rect x="551" y="1180" width="298" height="20" fill="#f7f9fb"/>
+<path d="M566,1185.4 L570.6,1190 L566,1194.6 L561.4,1190 Z" fill="#fff" stroke="#c0392b" stroke-width="1"/>
+<text x="584" y="1194" font-family="Consolas, monospace" font-size="12" font-weight="400" fill="#222">resolved_by</text>
+<text x="840" y="1194" text-anchor="end" font-family="Consolas, monospace" font-size="11" fill="#5f6b76">INT UNSIGNED</text>
+</g>
+<g id="tbl_notifications">
+<rect x="1120" y="1210" width="260" height="240" rx="3" fill="#fff" stroke="#7d7d7d" stroke-width="1.2"/>
+<path d="M1120,1240 V1213 Q1120,1210 1123,1210 H1377 Q1380,1210 1380,1213 V1240 Z" fill="#f5e08a" stroke="#7d7d7d" stroke-width="1.2"/>
+<rect x="1129" y="1219" width="12" height="12" fill="#fff" stroke="#5b6b7a"/><path d="M1129,1224 H1141 M1134,1219 V1231" stroke="#5b6b7a"/>
+<text x="1150" y="1230" font-family="Segoe UI, Arial, sans-serif" font-size="14" font-weight="700" fill="#222">notifications</text>
+<circle cx="1133.5" cy="1247.5" r="3.4" fill="#f2c200" stroke="#9a7b00"/><path d="M1135.5,1249.5 L1141,1255 M1138.5,1252.5 L1140.5,1250.5 M1140,1254 L1142,1252" stroke="#9a7b00" stroke-width="1.6" fill="none"/>
+<text x="1154" y="1254" font-family="Consolas, monospace" font-size="12" font-weight="700" fill="#222">id</text>
+<text x="1370" y="1254" text-anchor="end" font-family="Consolas, monospace" font-size="11" fill="#5f6b76">INT UNSIGNED</text>
+<rect x="1121" y="1260" width="258" height="20" fill="#f7f9fb"/>
+<path d="M1136,1265.4 L1140.6,1270 L1136,1274.6 L1131.4,1270 Z" fill="#c0392b" stroke="#c0392b" stroke-width="1"/>
+<text x="1154" y="1274" font-family="Consolas, monospace" font-size="12" font-weight="400" fill="#222">user_id</text>
+<text x="1370" y="1274" text-anchor="end" font-family="Consolas, monospace" font-size="11" fill="#5f6b76">INT UNSIGNED</text>
+<path d="M1136,1285.4 L1140.6,1290 L1136,1294.6 L1131.4,1290 Z" fill="#2a9d8f" stroke="#2a9d8f" stroke-width="1"/>
+<text x="1154" y="1294" font-family="Consolas, monospace" font-size="12" font-weight="400" fill="#222">type</text>
+<text x="1370" y="1294" text-anchor="end" font-family="Consolas, monospace" font-size="11" fill="#5f6b76">VARCHAR(50)</text>
+<rect x="1121" y="1300" width="258" height="20" fill="#f7f9fb"/>
+<path d="M1136,1305.4 L1140.6,1310 L1136,1314.6 L1131.4,1310 Z" fill="#2a9d8f" stroke="#2a9d8f" stroke-width="1"/>
+<text x="1154" y="1314" font-family="Consolas, monospace" font-size="12" font-weight="400" fill="#222">message</text>
+<text x="1370" y="1314" text-anchor="end" font-family="Consolas, monospace" font-size="11" fill="#5f6b76">VARCHAR(255)</text>
+<path d="M1136,1325.4 L1140.6,1330 L1136,1334.6 L1131.4,1330 Z" fill="#fff" stroke="#2a9d8f" stroke-width="1"/>
+<text x="1154" y="1334" font-family="Consolas, monospace" font-size="12" font-weight="400" fill="#222">action_url</text>
+<text x="1370" y="1334" text-anchor="end" font-family="Consolas, monospace" font-size="11" fill="#5f6b76">VARCHAR(255)</text>
+<rect x="1121" y="1340" width="258" height="20" fill="#f7f9fb"/>
+<path d="M1136,1345.4 L1140.6,1350 L1136,1354.6 L1131.4,1350 Z" fill="#fff" stroke="#2a9d8f" stroke-width="1"/>
+<text x="1154" y="1354" font-family="Consolas, monospace" font-size="12" font-weight="400" fill="#222">entity_type</text>
+<text x="1370" y="1354" text-anchor="end" font-family="Consolas, monospace" font-size="11" fill="#5f6b76">VARCHAR(50)</text>
+<path d="M1136,1365.4 L1140.6,1370 L1136,1374.6 L1131.4,1370 Z" fill="#fff" stroke="#2a9d8f" stroke-width="1"/>
+<text x="1154" y="1374" font-family="Consolas, monospace" font-size="12" font-weight="400" fill="#222">entity_id</text>
+<text x="1370" y="1374" text-anchor="end" font-family="Consolas, monospace" font-size="11" fill="#5f6b76">INT UNSIGNED</text>
+<rect x="1121" y="1380" width="258" height="20" fill="#f7f9fb"/>
+<path d="M1136,1385.4 L1140.6,1390 L1136,1394.6 L1131.4,1390 Z" fill="#2a9d8f" stroke="#2a9d8f" stroke-width="1"/>
+<text x="1154" y="1394" font-family="Consolas, monospace" font-size="12" font-weight="400" fill="#222">is_read</text>
+<text x="1370" y="1394" text-anchor="end" font-family="Consolas, monospace" font-size="11" fill="#5f6b76">TINYINT(1)</text>
+<path d="M1136,1405.4 L1140.6,1410 L1136,1414.6 L1131.4,1410 Z" fill="#2a9d8f" stroke="#2a9d8f" stroke-width="1"/>
+<text x="1154" y="1414" font-family="Consolas, monospace" font-size="12" font-weight="400" fill="#222">is_pinned</text>
+<text x="1370" y="1414" text-anchor="end" font-family="Consolas, monospace" font-size="11" fill="#5f6b76">TINYINT(1)</text>
+<rect x="1121" y="1420" width="258" height="20" fill="#f7f9fb"/>
+<path d="M1136,1425.4 L1140.6,1430 L1136,1434.6 L1131.4,1430 Z" fill="#2a9d8f" stroke="#2a9d8f" stroke-width="1"/>
+<text x="1154" y="1434" font-family="Consolas, monospace" font-size="12" font-weight="400" fill="#222">created_at</text>
+<text x="1370" y="1434" text-anchor="end" font-family="Consolas, monospace" font-size="11" fill="#5f6b76">TIMESTAMP</text>
+</g>
+<g id="tbl_occupancy_snapshots">
+<rect x="60" y="1150" width="270" height="140" rx="3" fill="#fff" stroke="#7d7d7d" stroke-width="1.2"/>
+<path d="M60,1180 V1153 Q60,1150 63,1150 H327 Q330,1150 330,1153 V1180 Z" fill="#f5e08a" stroke="#7d7d7d" stroke-width="1.2"/>
+<rect x="69" y="1159" width="12" height="12" fill="#fff" stroke="#5b6b7a"/><path d="M69,1164 H81 M74,1159 V1171" stroke="#5b6b7a"/>
+<text x="90" y="1170" font-family="Segoe UI, Arial, sans-serif" font-size="14" font-weight="700" fill="#222">occupancy_snapshots</text>
+<circle cx="73.5" cy="1187.5" r="3.4" fill="#f2c200" stroke="#9a7b00"/><path d="M75.5,1189.5 L81,1195 M78.5,1192.5 L80.5,1190.5 M80,1194 L82,1192" stroke="#9a7b00" stroke-width="1.6" fill="none"/>
+<text x="94" y="1194" font-family="Consolas, monospace" font-size="12" font-weight="700" fill="#222">id</text>
+<text x="320" y="1194" text-anchor="end" font-family="Consolas, monospace" font-size="11" fill="#5f6b76">INT UNSIGNED</text>
+<rect x="61" y="1200" width="268" height="20" fill="#f7f9fb"/>
+<path d="M76,1205.4 L80.6,1210 L76,1214.6 L71.4,1210 Z" fill="#2a9d8f" stroke="#2a9d8f" stroke-width="1"/>
+<text x="94" y="1214" font-family="Consolas, monospace" font-size="12" font-weight="400" fill="#222">snapshot_date</text>
+<text x="285.6" y="1214" text-anchor="end" font-family="Consolas, monospace" font-size="10" font-weight="700" fill="#2a9d8f">UQ</text>
+<text x="320" y="1214" text-anchor="end" font-family="Consolas, monospace" font-size="11" fill="#5f6b76">DATE</text>
+<path d="M76,1225.4 L80.6,1230 L76,1234.6 L71.4,1230 Z" fill="#2a9d8f" stroke="#2a9d8f" stroke-width="1"/>
+<text x="94" y="1234" font-family="Consolas, monospace" font-size="12" font-weight="400" fill="#222">total_beds</text>
+<text x="320" y="1234" text-anchor="end" font-family="Consolas, monospace" font-size="11" fill="#5f6b76">INT UNSIGNED</text>
+<rect x="61" y="1240" width="268" height="20" fill="#f7f9fb"/>
+<path d="M76,1245.4 L80.6,1250 L76,1254.6 L71.4,1250 Z" fill="#2a9d8f" stroke="#2a9d8f" stroke-width="1"/>
+<text x="94" y="1254" font-family="Consolas, monospace" font-size="12" font-weight="400" fill="#222">occupied_beds</text>
+<text x="320" y="1254" text-anchor="end" font-family="Consolas, monospace" font-size="11" fill="#5f6b76">INT UNSIGNED</text>
+<path d="M76,1265.4 L80.6,1270 L76,1274.6 L71.4,1270 Z" fill="#2a9d8f" stroke="#2a9d8f" stroke-width="1"/>
+<text x="94" y="1274" font-family="Consolas, monospace" font-size="12" font-weight="400" fill="#222">created_at</text>
+<text x="320" y="1274" text-anchor="end" font-family="Consolas, monospace" font-size="11" fill="#5f6b76">TIMESTAMP</text>
+</g>
+<g id="tbl_payment_allocations">
+<rect x="1780" y="570" width="290" height="180" rx="3" fill="#fff" stroke="#7d7d7d" stroke-width="1.2"/>
+<path d="M1780,600 V573 Q1780,570 1783,570 H2067 Q2070,570 2070,573 V600 Z" fill="#f5e08a" stroke="#7d7d7d" stroke-width="1.2"/>
+<rect x="1789" y="579" width="12" height="12" fill="#fff" stroke="#5b6b7a"/><path d="M1789,584 H1801 M1794,579 V591" stroke="#5b6b7a"/>
+<text x="1810" y="590" font-family="Segoe UI, Arial, sans-serif" font-size="14" font-weight="700" fill="#222">payment_allocations</text>
+<circle cx="1793.5" cy="607.5" r="3.4" fill="#f2c200" stroke="#9a7b00"/><path d="M1795.5,609.5 L1801,615 M1798.5,612.5 L1800.5,610.5 M1800,614 L1802,612" stroke="#9a7b00" stroke-width="1.6" fill="none"/>
+<text x="1814" y="614" font-family="Consolas, monospace" font-size="12" font-weight="700" fill="#222">id</text>
+<text x="2060" y="614" text-anchor="end" font-family="Consolas, monospace" font-size="11" fill="#5f6b76">INT UNSIGNED</text>
+<rect x="1781" y="620" width="288" height="20" fill="#f7f9fb"/>
+<path d="M1796,625.4 L1800.6,630 L1796,634.6 L1791.4,630 Z" fill="#c0392b" stroke="#c0392b" stroke-width="1"/>
+<text x="1814" y="634" font-family="Consolas, monospace" font-size="12" font-weight="400" fill="#222">payment_id</text>
+<text x="2060" y="634" text-anchor="end" font-family="Consolas, monospace" font-size="11" fill="#5f6b76">INT UNSIGNED</text>
+<path d="M1796,645.4 L1800.6,650 L1796,654.6 L1791.4,650 Z" fill="#c0392b" stroke="#c0392b" stroke-width="1"/>
+<text x="1814" y="654" font-family="Consolas, monospace" font-size="12" font-weight="400" fill="#222">boarder_id</text>
+<text x="2060" y="654" text-anchor="end" font-family="Consolas, monospace" font-size="11" fill="#5f6b76">INT UNSIGNED</text>
+<rect x="1781" y="660" width="288" height="20" fill="#f7f9fb"/>
+<path d="M1796,665.4 L1800.6,670 L1796,674.6 L1791.4,670 Z" fill="#2a9d8f" stroke="#2a9d8f" stroke-width="1"/>
+<text x="1814" y="674" font-family="Consolas, monospace" font-size="12" font-weight="400" fill="#222">allocation_type</text>
+<text x="2060" y="674" text-anchor="end" font-family="Consolas, monospace" font-size="11" fill="#5f6b76">ENUM(...)</text>
+<path d="M1796,685.4 L1800.6,690 L1796,694.6 L1791.4,690 Z" fill="#2a9d8f" stroke="#2a9d8f" stroke-width="1"/>
+<text x="1814" y="694" font-family="Consolas, monospace" font-size="12" font-weight="400" fill="#222">reference_id</text>
+<text x="2060" y="694" text-anchor="end" font-family="Consolas, monospace" font-size="11" fill="#5f6b76">VARCHAR(50)</text>
+<rect x="1781" y="700" width="288" height="20" fill="#f7f9fb"/>
+<path d="M1796,705.4 L1800.6,710 L1796,714.6 L1791.4,710 Z" fill="#2a9d8f" stroke="#2a9d8f" stroke-width="1"/>
+<text x="1814" y="714" font-family="Consolas, monospace" font-size="12" font-weight="400" fill="#222">amount</text>
+<text x="2060" y="714" text-anchor="end" font-family="Consolas, monospace" font-size="11" fill="#5f6b76">DECIMAL(10,2)</text>
+<path d="M1796,725.4 L1800.6,730 L1796,734.6 L1791.4,730 Z" fill="#2a9d8f" stroke="#2a9d8f" stroke-width="1"/>
+<text x="1814" y="734" font-family="Consolas, monospace" font-size="12" font-weight="400" fill="#222">created_at</text>
+<text x="2060" y="734" text-anchor="end" font-family="Consolas, monospace" font-size="11" fill="#5f6b76">TIMESTAMP</text>
+</g>
+<g id="tbl_payments">
+<rect x="1780" y="70" width="380" height="420" rx="3" fill="#fff" stroke="#7d7d7d" stroke-width="1.2"/>
+<path d="M1780,100 V73 Q1780,70 1783,70 H2157 Q2160,70 2160,73 V100 Z" fill="#f5e08a" stroke="#7d7d7d" stroke-width="1.2"/>
+<rect x="1789" y="79" width="12" height="12" fill="#fff" stroke="#5b6b7a"/><path d="M1789,84 H1801 M1794,79 V91" stroke="#5b6b7a"/>
+<text x="1810" y="90" font-family="Segoe UI, Arial, sans-serif" font-size="14" font-weight="700" fill="#222">payments</text>
+<circle cx="1793.5" cy="107.5" r="3.4" fill="#f2c200" stroke="#9a7b00"/><path d="M1795.5,109.5 L1801,115 M1798.5,112.5 L1800.5,110.5 M1800,114 L1802,112" stroke="#9a7b00" stroke-width="1.6" fill="none"/>
+<text x="1814" y="114" font-family="Consolas, monospace" font-size="12" font-weight="700" fill="#222">id</text>
+<text x="2150" y="114" text-anchor="end" font-family="Consolas, monospace" font-size="11" fill="#5f6b76">INT UNSIGNED</text>
+<rect x="1781" y="120" width="378" height="20" fill="#f7f9fb"/>
+<path d="M1796,125.4 L1800.6,130 L1796,134.6 L1791.4,130 Z" fill="#c0392b" stroke="#c0392b" stroke-width="1"/>
+<text x="1814" y="134" font-family="Consolas, monospace" font-size="12" font-weight="400" fill="#222">boarder_id</text>
+<text x="2150" y="134" text-anchor="end" font-family="Consolas, monospace" font-size="11" fill="#5f6b76">INT UNSIGNED</text>
+<path d="M1796,145.4 L1800.6,150 L1796,154.6 L1791.4,150 Z" fill="#2a9d8f" stroke="#2a9d8f" stroke-width="1"/>
+<text x="1814" y="154" font-family="Consolas, monospace" font-size="12" font-weight="400" fill="#222">billing_period</text>
+<text x="2150" y="154" text-anchor="end" font-family="Consolas, monospace" font-size="11" fill="#5f6b76">VARCHAR(20)</text>
+<rect x="1781" y="160" width="378" height="20" fill="#f7f9fb"/>
+<path d="M1796,165.4 L1800.6,170 L1796,174.6 L1791.4,170 Z" fill="#2a9d8f" stroke="#2a9d8f" stroke-width="1"/>
+<text x="1814" y="174" font-family="Consolas, monospace" font-size="12" font-weight="400" fill="#222">expected_amount</text>
+<text x="2150" y="174" text-anchor="end" font-family="Consolas, monospace" font-size="11" fill="#5f6b76">DECIMAL(10,2)</text>
+<path d="M1796,185.4 L1800.6,190 L1796,194.6 L1791.4,190 Z" fill="#2a9d8f" stroke="#2a9d8f" stroke-width="1"/>
+<text x="1814" y="194" font-family="Consolas, monospace" font-size="12" font-weight="400" fill="#222">claimed_amount</text>
+<text x="2150" y="194" text-anchor="end" font-family="Consolas, monospace" font-size="11" fill="#5f6b76">DECIMAL(10,2)</text>
+<rect x="1781" y="200" width="378" height="20" fill="#f7f9fb"/>
+<path d="M1796,205.4 L1800.6,210 L1796,214.6 L1791.4,210 Z" fill="#fff" stroke="#2a9d8f" stroke-width="1"/>
+<text x="1814" y="214" font-family="Consolas, monospace" font-size="12" font-weight="400" fill="#222">approved_amount</text>
+<text x="2150" y="214" text-anchor="end" font-family="Consolas, monospace" font-size="11" fill="#5f6b76">DECIMAL(10,2)</text>
+<path d="M1796,225.4 L1800.6,230 L1796,234.6 L1791.4,230 Z" fill="#fff" stroke="#2a9d8f" stroke-width="1"/>
+<text x="1814" y="234" font-family="Consolas, monospace" font-size="12" font-weight="400" fill="#222">payment_method</text>
+<text x="2150" y="234" text-anchor="end" font-family="Consolas, monospace" font-size="11" fill="#5f6b76">ENUM(...)</text>
+<rect x="1781" y="240" width="378" height="20" fill="#f7f9fb"/>
+<path d="M1796,245.4 L1800.6,250 L1796,254.6 L1791.4,250 Z" fill="#fff" stroke="#2a9d8f" stroke-width="1"/>
+<text x="1814" y="254" font-family="Consolas, monospace" font-size="12" font-weight="400" fill="#222">reference_number</text>
+<text x="2150" y="254" text-anchor="end" font-family="Consolas, monospace" font-size="11" fill="#5f6b76">VARCHAR(50)</text>
+<path d="M1796,265.4 L1800.6,270 L1796,274.6 L1791.4,270 Z" fill="#fff" stroke="#2a9d8f" stroke-width="1"/>
+<text x="1814" y="274" font-family="Consolas, monospace" font-size="12" font-weight="400" fill="#222">receipt_number</text>
+<text x="2069.4" y="274" text-anchor="end" font-family="Consolas, monospace" font-size="10" font-weight="700" fill="#2a9d8f">UQ</text>
+<text x="2150" y="274" text-anchor="end" font-family="Consolas, monospace" font-size="11" fill="#5f6b76">VARCHAR(20)</text>
+<rect x="1781" y="280" width="378" height="20" fill="#f7f9fb"/>
+<path d="M1796,285.4 L1800.6,290 L1796,294.6 L1791.4,290 Z" fill="#fff" stroke="#2a9d8f" stroke-width="1"/>
+<text x="1814" y="294" font-family="Consolas, monospace" font-size="12" font-weight="400" fill="#222">received_on</text>
+<text x="2150" y="294" text-anchor="end" font-family="Consolas, monospace" font-size="11" fill="#5f6b76">DATE</text>
+<path d="M1796,305.4 L1800.6,310 L1796,314.6 L1791.4,310 Z" fill="#fff" stroke="#c0392b" stroke-width="1"/>
+<text x="1814" y="314" font-family="Consolas, monospace" font-size="12" font-weight="400" fill="#222">received_by</text>
+<text x="2150" y="314" text-anchor="end" font-family="Consolas, monospace" font-size="11" fill="#5f6b76">INT UNSIGNED</text>
+<rect x="1781" y="320" width="378" height="20" fill="#f7f9fb"/>
+<path d="M1796,325.4 L1800.6,330 L1796,334.6 L1791.4,330 Z" fill="#fff" stroke="#2a9d8f" stroke-width="1"/>
+<text x="1814" y="334" font-family="Consolas, monospace" font-size="12" font-weight="400" fill="#222">recorded_by_role</text>
+<text x="2150" y="334" text-anchor="end" font-family="Consolas, monospace" font-size="11" fill="#5f6b76">ENUM(&#x27;admin&#x27;,&#x27;staff&#x27;)</text>
+<path d="M1796,345.4 L1800.6,350 L1796,354.6 L1791.4,350 Z" fill="#fff" stroke="#c0392b" stroke-width="1"/>
+<text x="1814" y="354" font-family="Consolas, monospace" font-size="12" font-weight="400" fill="#222">target_penalty_id</text>
+<text x="2150" y="354" text-anchor="end" font-family="Consolas, monospace" font-size="11" fill="#5f6b76">INT UNSIGNED</text>
+<rect x="1781" y="360" width="378" height="20" fill="#f7f9fb"/>
+<path d="M1796,365.4 L1800.6,370 L1796,374.6 L1791.4,370 Z" fill="#fff" stroke="#2a9d8f" stroke-width="1"/>
+<text x="1814" y="374" font-family="Consolas, monospace" font-size="12" font-weight="400" fill="#222">proof_path</text>
+<text x="2150" y="374" text-anchor="end" font-family="Consolas, monospace" font-size="11" fill="#5f6b76">VARCHAR(255)</text>
+<path d="M1796,385.4 L1800.6,390 L1796,394.6 L1791.4,390 Z" fill="#2a9d8f" stroke="#2a9d8f" stroke-width="1"/>
+<text x="1814" y="394" font-family="Consolas, monospace" font-size="12" font-weight="400" fill="#222">verification_status</text>
+<text x="2150" y="394" text-anchor="end" font-family="Consolas, monospace" font-size="11" fill="#5f6b76">ENUM(...)</text>
+<rect x="1781" y="400" width="378" height="20" fill="#f7f9fb"/>
+<path d="M1796,405.4 L1800.6,410 L1796,414.6 L1791.4,410 Z" fill="#fff" stroke="#c0392b" stroke-width="1"/>
+<text x="1814" y="414" font-family="Consolas, monospace" font-size="12" font-weight="400" fill="#222">verified_by</text>
+<text x="2150" y="414" text-anchor="end" font-family="Consolas, monospace" font-size="11" fill="#5f6b76">INT UNSIGNED</text>
+<path d="M1796,425.4 L1800.6,430 L1796,434.6 L1791.4,430 Z" fill="#fff" stroke="#2a9d8f" stroke-width="1"/>
+<text x="1814" y="434" font-family="Consolas, monospace" font-size="12" font-weight="400" fill="#222">reviewed_at</text>
+<text x="2150" y="434" text-anchor="end" font-family="Consolas, monospace" font-size="11" fill="#5f6b76">TIMESTAMP</text>
+<rect x="1781" y="440" width="378" height="20" fill="#f7f9fb"/>
+<path d="M1796,445.4 L1800.6,450 L1796,454.6 L1791.4,450 Z" fill="#fff" stroke="#2a9d8f" stroke-width="1"/>
+<text x="1814" y="454" font-family="Consolas, monospace" font-size="12" font-weight="400" fill="#222">review_note</text>
+<text x="2150" y="454" text-anchor="end" font-family="Consolas, monospace" font-size="11" fill="#5f6b76">VARCHAR(255)</text>
+<path d="M1796,465.4 L1800.6,470 L1796,474.6 L1791.4,470 Z" fill="#2a9d8f" stroke="#2a9d8f" stroke-width="1"/>
+<text x="1814" y="474" font-family="Consolas, monospace" font-size="12" font-weight="400" fill="#222">created_at</text>
+<text x="2150" y="474" text-anchor="end" font-family="Consolas, monospace" font-size="11" fill="#5f6b76">TIMESTAMP</text>
+</g>
+<g id="tbl_penalties">
+<rect x="1780" y="830" width="350" height="320" rx="3" fill="#fff" stroke="#7d7d7d" stroke-width="1.2"/>
+<path d="M1780,860 V833 Q1780,830 1783,830 H2127 Q2130,830 2130,833 V860 Z" fill="#f5e08a" stroke="#7d7d7d" stroke-width="1.2"/>
+<rect x="1789" y="839" width="12" height="12" fill="#fff" stroke="#5b6b7a"/><path d="M1789,844 H1801 M1794,839 V851" stroke="#5b6b7a"/>
+<text x="1810" y="850" font-family="Segoe UI, Arial, sans-serif" font-size="14" font-weight="700" fill="#222">penalties</text>
+<circle cx="1793.5" cy="867.5" r="3.4" fill="#f2c200" stroke="#9a7b00"/><path d="M1795.5,869.5 L1801,875 M1798.5,872.5 L1800.5,870.5 M1800,874 L1802,872" stroke="#9a7b00" stroke-width="1.6" fill="none"/>
+<text x="1814" y="874" font-family="Consolas, monospace" font-size="12" font-weight="700" fill="#222">id</text>
+<text x="2120" y="874" text-anchor="end" font-family="Consolas, monospace" font-size="11" fill="#5f6b76">INT UNSIGNED</text>
+<rect x="1781" y="880" width="348" height="20" fill="#f7f9fb"/>
+<path d="M1796,885.4 L1800.6,890 L1796,894.6 L1791.4,890 Z" fill="#c0392b" stroke="#c0392b" stroke-width="1"/>
+<text x="1814" y="894" font-family="Consolas, monospace" font-size="12" font-weight="400" fill="#222">boarder_id</text>
+<text x="2120" y="894" text-anchor="end" font-family="Consolas, monospace" font-size="11" fill="#5f6b76">INT UNSIGNED</text>
+<path d="M1796,905.4 L1800.6,910 L1796,914.6 L1791.4,910 Z" fill="#c0392b" stroke="#c0392b" stroke-width="1"/>
+<text x="1814" y="914" font-family="Consolas, monospace" font-size="12" font-weight="400" fill="#222">rule_id</text>
+<text x="2120" y="914" text-anchor="end" font-family="Consolas, monospace" font-size="11" fill="#5f6b76">INT UNSIGNED</text>
+<rect x="1781" y="920" width="348" height="20" fill="#f7f9fb"/>
+<path d="M1796,925.4 L1800.6,930 L1796,934.6 L1791.4,930 Z" fill="#2a9d8f" stroke="#2a9d8f" stroke-width="1"/>
+<text x="1814" y="934" font-family="Consolas, monospace" font-size="12" font-weight="400" fill="#222">amount</text>
+<text x="2120" y="934" text-anchor="end" font-family="Consolas, monospace" font-size="11" fill="#5f6b76">DECIMAL(10,2)</text>
+<path d="M1796,945.4 L1800.6,950 L1796,954.6 L1791.4,950 Z" fill="#fff" stroke="#2a9d8f" stroke-width="1"/>
+<text x="1814" y="954" font-family="Consolas, monospace" font-size="12" font-weight="400" fill="#222">reason</text>
+<text x="2120" y="954" text-anchor="end" font-family="Consolas, monospace" font-size="11" fill="#5f6b76">VARCHAR(255)</text>
+<rect x="1781" y="960" width="348" height="20" fill="#f7f9fb"/>
+<path d="M1796,965.4 L1800.6,970 L1796,974.6 L1791.4,970 Z" fill="#fff" stroke="#2a9d8f" stroke-width="1"/>
+<text x="1814" y="974" font-family="Consolas, monospace" font-size="12" font-weight="400" fill="#222">billing_period</text>
+<text x="2120" y="974" text-anchor="end" font-family="Consolas, monospace" font-size="11" fill="#5f6b76">CHAR(10)</text>
+<path d="M1796,985.4 L1800.6,990 L1796,994.6 L1791.4,990 Z" fill="#fff" stroke="#2a9d8f" stroke-width="1"/>
+<text x="1814" y="994" font-family="Consolas, monospace" font-size="12" font-weight="400" fill="#222">due_date</text>
+<text x="2120" y="994" text-anchor="end" font-family="Consolas, monospace" font-size="11" fill="#5f6b76">DATE</text>
+<rect x="1781" y="1000" width="348" height="20" fill="#f7f9fb"/>
+<path d="M1796,1005.4 L1800.6,1010 L1796,1014.6 L1791.4,1010 Z" fill="#2a9d8f" stroke="#2a9d8f" stroke-width="1"/>
+<text x="1814" y="1014" font-family="Consolas, monospace" font-size="12" font-weight="400" fill="#222">status</text>
+<text x="2120" y="1014" text-anchor="end" font-family="Consolas, monospace" font-size="11" fill="#5f6b76">ENUM(&#x27;unpaid&#x27;,&#x27;paid&#x27;)</text>
+<path d="M1796,1025.4 L1800.6,1030 L1796,1034.6 L1791.4,1030 Z" fill="#fff" stroke="#c0392b" stroke-width="1"/>
+<text x="1814" y="1034" font-family="Consolas, monospace" font-size="12" font-weight="400" fill="#222">issued_by</text>
+<text x="2120" y="1034" text-anchor="end" font-family="Consolas, monospace" font-size="11" fill="#5f6b76">INT UNSIGNED</text>
+<rect x="1781" y="1040" width="348" height="20" fill="#f7f9fb"/>
+<path d="M1796,1045.4 L1800.6,1050 L1796,1054.6 L1791.4,1050 Z" fill="#fff" stroke="#2a9d8f" stroke-width="1"/>
+<text x="1814" y="1054" font-family="Consolas, monospace" font-size="12" font-weight="400" fill="#222">paid_at</text>
+<text x="2120" y="1054" text-anchor="end" font-family="Consolas, monospace" font-size="11" fill="#5f6b76">TIMESTAMP</text>
+<path d="M1796,1065.4 L1800.6,1070 L1796,1074.6 L1791.4,1070 Z" fill="#fff" stroke="#c0392b" stroke-width="1"/>
+<text x="1814" y="1074" font-family="Consolas, monospace" font-size="12" font-weight="400" fill="#222">paid_payment_id</text>
+<text x="2120" y="1074" text-anchor="end" font-family="Consolas, monospace" font-size="11" fill="#5f6b76">INT UNSIGNED</text>
+<rect x="1781" y="1080" width="348" height="20" fill="#f7f9fb"/>
+<path d="M1796,1085.4 L1800.6,1090 L1796,1094.6 L1791.4,1090 Z" fill="#fff" stroke="#c0392b" stroke-width="1"/>
+<text x="1814" y="1094" font-family="Consolas, monospace" font-size="12" font-weight="400" fill="#222">waived_by</text>
+<text x="2120" y="1094" text-anchor="end" font-family="Consolas, monospace" font-size="11" fill="#5f6b76">INT UNSIGNED</text>
+<path d="M1796,1105.4 L1800.6,1110 L1796,1114.6 L1791.4,1110 Z" fill="#fff" stroke="#2a9d8f" stroke-width="1"/>
+<text x="1814" y="1114" font-family="Consolas, monospace" font-size="12" font-weight="400" fill="#222">waive_reason</text>
+<text x="2120" y="1114" text-anchor="end" font-family="Consolas, monospace" font-size="11" fill="#5f6b76">VARCHAR(160)</text>
+<rect x="1781" y="1120" width="348" height="20" fill="#f7f9fb"/>
+<path d="M1796,1125.4 L1800.6,1130 L1796,1134.6 L1791.4,1130 Z" fill="#2a9d8f" stroke="#2a9d8f" stroke-width="1"/>
+<text x="1814" y="1134" font-family="Consolas, monospace" font-size="12" font-weight="400" fill="#222">applied_at</text>
+<text x="2120" y="1134" text-anchor="end" font-family="Consolas, monospace" font-size="11" fill="#5f6b76">TIMESTAMP</text>
+</g>
+<g id="tbl_penalty_rules">
+<rect x="1780" y="1230" width="290" height="160" rx="3" fill="#fff" stroke="#7d7d7d" stroke-width="1.2"/>
+<path d="M1780,1260 V1233 Q1780,1230 1783,1230 H2067 Q2070,1230 2070,1233 V1260 Z" fill="#f5e08a" stroke="#7d7d7d" stroke-width="1.2"/>
+<rect x="1789" y="1239" width="12" height="12" fill="#fff" stroke="#5b6b7a"/><path d="M1789,1244 H1801 M1794,1239 V1251" stroke="#5b6b7a"/>
+<text x="1810" y="1250" font-family="Segoe UI, Arial, sans-serif" font-size="14" font-weight="700" fill="#222">penalty_rules</text>
+<circle cx="1793.5" cy="1267.5" r="3.4" fill="#f2c200" stroke="#9a7b00"/><path d="M1795.5,1269.5 L1801,1275 M1798.5,1272.5 L1800.5,1270.5 M1800,1274 L1802,1272" stroke="#9a7b00" stroke-width="1.6" fill="none"/>
+<text x="1814" y="1274" font-family="Consolas, monospace" font-size="12" font-weight="700" fill="#222">id</text>
+<text x="2060" y="1274" text-anchor="end" font-family="Consolas, monospace" font-size="11" fill="#5f6b76">INT UNSIGNED</text>
+<rect x="1781" y="1280" width="288" height="20" fill="#f7f9fb"/>
+<path d="M1796,1285.4 L1800.6,1290 L1796,1294.6 L1791.4,1290 Z" fill="#2a9d8f" stroke="#2a9d8f" stroke-width="1"/>
+<text x="1814" y="1294" font-family="Consolas, monospace" font-size="12" font-weight="400" fill="#222">name</text>
+<text x="2060" y="1294" text-anchor="end" font-family="Consolas, monospace" font-size="11" fill="#5f6b76">VARCHAR(150)</text>
+<path d="M1796,1305.4 L1800.6,1310 L1796,1314.6 L1791.4,1310 Z" fill="#2a9d8f" stroke="#2a9d8f" stroke-width="1"/>
+<text x="1814" y="1314" font-family="Consolas, monospace" font-size="12" font-weight="400" fill="#222">condition_type</text>
+<text x="2060" y="1314" text-anchor="end" font-family="Consolas, monospace" font-size="11" fill="#5f6b76">VARCHAR(100)</text>
+<rect x="1781" y="1320" width="288" height="20" fill="#f7f9fb"/>
+<path d="M1796,1325.4 L1800.6,1330 L1796,1334.6 L1791.4,1330 Z" fill="#2a9d8f" stroke="#2a9d8f" stroke-width="1"/>
+<text x="1814" y="1334" font-family="Consolas, monospace" font-size="12" font-weight="400" fill="#222">amount</text>
+<text x="2060" y="1334" text-anchor="end" font-family="Consolas, monospace" font-size="11" fill="#5f6b76">DECIMAL(10,2)</text>
+<path d="M1796,1345.4 L1800.6,1350 L1796,1354.6 L1791.4,1350 Z" fill="#2a9d8f" stroke="#2a9d8f" stroke-width="1"/>
+<text x="1814" y="1354" font-family="Consolas, monospace" font-size="12" font-weight="400" fill="#222">active</text>
+<text x="2060" y="1354" text-anchor="end" font-family="Consolas, monospace" font-size="11" fill="#5f6b76">TINYINT(1)</text>
+<rect x="1781" y="1360" width="288" height="20" fill="#f7f9fb"/>
+<path d="M1796,1365.4 L1800.6,1370 L1796,1374.6 L1791.4,1370 Z" fill="#2a9d8f" stroke="#2a9d8f" stroke-width="1"/>
+<text x="1814" y="1374" font-family="Consolas, monospace" font-size="12" font-weight="400" fill="#222">created_at</text>
+<text x="2060" y="1374" text-anchor="end" font-family="Consolas, monospace" font-size="11" fill="#5f6b76">TIMESTAMP</text>
+</g>
+<g id="tbl_rent_charges">
+<rect x="2330" y="70" width="270" height="180" rx="3" fill="#fff" stroke="#7d7d7d" stroke-width="1.2"/>
+<path d="M2330,100 V73 Q2330,70 2333,70 H2597 Q2600,70 2600,73 V100 Z" fill="#f5e08a" stroke="#7d7d7d" stroke-width="1.2"/>
+<rect x="2339" y="79" width="12" height="12" fill="#fff" stroke="#5b6b7a"/><path d="M2339,84 H2351 M2344,79 V91" stroke="#5b6b7a"/>
+<text x="2360" y="90" font-family="Segoe UI, Arial, sans-serif" font-size="14" font-weight="700" fill="#222">rent_charges</text>
+<circle cx="2343.5" cy="107.5" r="3.4" fill="#f2c200" stroke="#9a7b00"/><path d="M2345.5,109.5 L2351,115 M2348.5,112.5 L2350.5,110.5 M2350,114 L2352,112" stroke="#9a7b00" stroke-width="1.6" fill="none"/>
+<text x="2364" y="114" font-family="Consolas, monospace" font-size="12" font-weight="700" fill="#222">id</text>
+<text x="2590" y="114" text-anchor="end" font-family="Consolas, monospace" font-size="11" fill="#5f6b76">INT UNSIGNED</text>
+<rect x="2331" y="120" width="268" height="20" fill="#f7f9fb"/>
+<path d="M2346,125.4 L2350.6,130 L2346,134.6 L2341.4,130 Z" fill="#c0392b" stroke="#c0392b" stroke-width="1"/>
+<text x="2364" y="134" font-family="Consolas, monospace" font-size="12" font-weight="400" fill="#222">boarder_id</text>
+<text x="2590" y="134" text-anchor="end" font-family="Consolas, monospace" font-size="11" fill="#5f6b76">INT UNSIGNED</text>
+<path d="M2346,145.4 L2350.6,150 L2346,154.6 L2341.4,150 Z" fill="#2a9d8f" stroke="#2a9d8f" stroke-width="1"/>
+<text x="2364" y="154" font-family="Consolas, monospace" font-size="12" font-weight="400" fill="#222">period</text>
+<text x="2590" y="154" text-anchor="end" font-family="Consolas, monospace" font-size="11" fill="#5f6b76">CHAR(10)</text>
+<rect x="2331" y="160" width="268" height="20" fill="#f7f9fb"/>
+<path d="M2346,165.4 L2350.6,170 L2346,174.6 L2341.4,170 Z" fill="#2a9d8f" stroke="#2a9d8f" stroke-width="1"/>
+<text x="2364" y="174" font-family="Consolas, monospace" font-size="12" font-weight="400" fill="#222">monthly_rate</text>
+<text x="2590" y="174" text-anchor="end" font-family="Consolas, monospace" font-size="11" fill="#5f6b76">DECIMAL(10,2)</text>
+<path d="M2346,185.4 L2350.6,190 L2346,194.6 L2341.4,190 Z" fill="#2a9d8f" stroke="#2a9d8f" stroke-width="1"/>
+<text x="2364" y="194" font-family="Consolas, monospace" font-size="12" font-weight="400" fill="#222">amount</text>
+<text x="2590" y="194" text-anchor="end" font-family="Consolas, monospace" font-size="11" fill="#5f6b76">DECIMAL(10,2)</text>
+<rect x="2331" y="200" width="268" height="20" fill="#f7f9fb"/>
+<path d="M2346,205.4 L2350.6,210 L2346,214.6 L2341.4,210 Z" fill="#fff" stroke="#2a9d8f" stroke-width="1"/>
+<text x="2364" y="214" font-family="Consolas, monospace" font-size="12" font-weight="400" fill="#222">due_date</text>
+<text x="2590" y="214" text-anchor="end" font-family="Consolas, monospace" font-size="11" fill="#5f6b76">DATE</text>
+<path d="M2346,225.4 L2350.6,230 L2346,234.6 L2341.4,230 Z" fill="#2a9d8f" stroke="#2a9d8f" stroke-width="1"/>
+<text x="2364" y="234" font-family="Consolas, monospace" font-size="12" font-weight="400" fill="#222">created_at</text>
+<text x="2590" y="234" text-anchor="end" font-family="Consolas, monospace" font-size="11" fill="#5f6b76">TIMESTAMP</text>
+</g>
+<g id="tbl_room_types">
+<rect x="60" y="70" width="320" height="280" rx="3" fill="#fff" stroke="#7d7d7d" stroke-width="1.2"/>
+<path d="M60,100 V73 Q60,70 63,70 H377 Q380,70 380,73 V100 Z" fill="#f5e08a" stroke="#7d7d7d" stroke-width="1.2"/>
+<rect x="69" y="79" width="12" height="12" fill="#fff" stroke="#5b6b7a"/><path d="M69,84 H81 M74,79 V91" stroke="#5b6b7a"/>
+<text x="90" y="90" font-family="Segoe UI, Arial, sans-serif" font-size="14" font-weight="700" fill="#222">room_types</text>
+<circle cx="73.5" cy="107.5" r="3.4" fill="#f2c200" stroke="#9a7b00"/><path d="M75.5,109.5 L81,115 M78.5,112.5 L80.5,110.5 M80,114 L82,112" stroke="#9a7b00" stroke-width="1.6" fill="none"/>
+<text x="94" y="114" font-family="Consolas, monospace" font-size="12" font-weight="700" fill="#222">id</text>
+<text x="370" y="114" text-anchor="end" font-family="Consolas, monospace" font-size="11" fill="#5f6b76">INT UNSIGNED</text>
+<rect x="61" y="120" width="318" height="20" fill="#f7f9fb"/>
+<path d="M76,125.4 L80.6,130 L76,134.6 L71.4,130 Z" fill="#2a9d8f" stroke="#2a9d8f" stroke-width="1"/>
+<text x="94" y="134" font-family="Consolas, monospace" font-size="12" font-weight="400" fill="#222">code</text>
+<text x="289.4" y="134" text-anchor="end" font-family="Consolas, monospace" font-size="10" font-weight="700" fill="#2a9d8f">UQ</text>
+<text x="370" y="134" text-anchor="end" font-family="Consolas, monospace" font-size="11" fill="#5f6b76">VARCHAR(20)</text>
+<path d="M76,145.4 L80.6,150 L76,154.6 L71.4,150 Z" fill="#2a9d8f" stroke="#2a9d8f" stroke-width="1"/>
+<text x="94" y="154" font-family="Consolas, monospace" font-size="12" font-weight="400" fill="#222">name</text>
+<text x="282.8" y="154" text-anchor="end" font-family="Consolas, monospace" font-size="10" font-weight="700" fill="#2a9d8f">UQ</text>
+<text x="370" y="154" text-anchor="end" font-family="Consolas, monospace" font-size="11" fill="#5f6b76">VARCHAR(100)</text>
+<rect x="61" y="160" width="318" height="20" fill="#f7f9fb"/>
+<path d="M76,165.4 L80.6,170 L76,174.6 L71.4,170 Z" fill="#2a9d8f" stroke="#2a9d8f" stroke-width="1"/>
+<text x="94" y="174" font-family="Consolas, monospace" font-size="12" font-weight="400" fill="#222">capacity</text>
+<text x="370" y="174" text-anchor="end" font-family="Consolas, monospace" font-size="11" fill="#5f6b76">INT UNSIGNED</text>
+<path d="M76,185.4 L80.6,190 L76,194.6 L71.4,190 Z" fill="#2a9d8f" stroke="#2a9d8f" stroke-width="1"/>
+<text x="94" y="194" font-family="Consolas, monospace" font-size="12" font-weight="400" fill="#222">capacity_label</text>
+<text x="370" y="194" text-anchor="end" font-family="Consolas, monospace" font-size="11" fill="#5f6b76">VARCHAR(60)</text>
+<rect x="61" y="200" width="318" height="20" fill="#f7f9fb"/>
+<path d="M76,205.4 L80.6,210 L76,214.6 L71.4,210 Z" fill="#2a9d8f" stroke="#2a9d8f" stroke-width="1"/>
+<text x="94" y="214" font-family="Consolas, monospace" font-size="12" font-weight="400" fill="#222">price</text>
+<text x="370" y="214" text-anchor="end" font-family="Consolas, monospace" font-size="11" fill="#5f6b76">DECIMAL(10,2)</text>
+<path d="M76,225.4 L80.6,230 L76,234.6 L71.4,230 Z" fill="#2a9d8f" stroke="#2a9d8f" stroke-width="1"/>
+<text x="94" y="234" font-family="Consolas, monospace" font-size="12" font-weight="400" fill="#222">price_unit</text>
+<text x="370" y="234" text-anchor="end" font-family="Consolas, monospace" font-size="11" fill="#5f6b76">ENUM(&#x27;room&#x27;,&#x27;bed&#x27;)</text>
+<rect x="61" y="240" width="318" height="20" fill="#f7f9fb"/>
+<path d="M76,245.4 L80.6,250 L76,254.6 L71.4,250 Z" fill="#fff" stroke="#2a9d8f" stroke-width="1"/>
+<text x="94" y="254" font-family="Consolas, monospace" font-size="12" font-weight="400" fill="#222">badge</text>
+<text x="370" y="254" text-anchor="end" font-family="Consolas, monospace" font-size="11" fill="#5f6b76">VARCHAR(40)</text>
+<path d="M76,265.4 L80.6,270 L76,274.6 L71.4,270 Z" fill="#2a9d8f" stroke="#2a9d8f" stroke-width="1"/>
+<text x="94" y="274" font-family="Consolas, monospace" font-size="12" font-weight="400" fill="#222">is_popular</text>
+<text x="370" y="274" text-anchor="end" font-family="Consolas, monospace" font-size="11" fill="#5f6b76">TINYINT(1)</text>
+<rect x="61" y="280" width="318" height="20" fill="#f7f9fb"/>
+<path d="M76,285.4 L80.6,290 L76,294.6 L71.4,290 Z" fill="#2a9d8f" stroke="#2a9d8f" stroke-width="1"/>
+<text x="94" y="294" font-family="Consolas, monospace" font-size="12" font-weight="400" fill="#222">features</text>
+<text x="370" y="294" text-anchor="end" font-family="Consolas, monospace" font-size="11" fill="#5f6b76">TEXT</text>
+<path d="M76,305.4 L80.6,310 L76,314.6 L71.4,310 Z" fill="#2a9d8f" stroke="#2a9d8f" stroke-width="1"/>
+<text x="94" y="314" font-family="Consolas, monospace" font-size="12" font-weight="400" fill="#222">sort_order</text>
+<text x="370" y="314" text-anchor="end" font-family="Consolas, monospace" font-size="11" fill="#5f6b76">INT</text>
+<rect x="61" y="320" width="318" height="20" fill="#f7f9fb"/>
+<path d="M76,325.4 L80.6,330 L76,334.6 L71.4,330 Z" fill="#2a9d8f" stroke="#2a9d8f" stroke-width="1"/>
+<text x="94" y="334" font-family="Consolas, monospace" font-size="12" font-weight="400" fill="#222">created_at</text>
+<text x="370" y="334" text-anchor="end" font-family="Consolas, monospace" font-size="11" fill="#5f6b76">TIMESTAMP</text>
+</g>
+<g id="tbl_rooms">
+<rect x="60" y="430" width="270" height="180" rx="3" fill="#fff" stroke="#7d7d7d" stroke-width="1.2"/>
+<path d="M60,460 V433 Q60,430 63,430 H327 Q330,430 330,433 V460 Z" fill="#f5e08a" stroke="#7d7d7d" stroke-width="1.2"/>
+<rect x="69" y="439" width="12" height="12" fill="#fff" stroke="#5b6b7a"/><path d="M69,444 H81 M74,439 V451" stroke="#5b6b7a"/>
+<text x="90" y="450" font-family="Segoe UI, Arial, sans-serif" font-size="14" font-weight="700" fill="#222">rooms</text>
+<circle cx="73.5" cy="467.5" r="3.4" fill="#f2c200" stroke="#9a7b00"/><path d="M75.5,469.5 L81,475 M78.5,472.5 L80.5,470.5 M80,474 L82,472" stroke="#9a7b00" stroke-width="1.6" fill="none"/>
+<text x="94" y="474" font-family="Consolas, monospace" font-size="12" font-weight="700" fill="#222">id</text>
+<text x="320" y="474" text-anchor="end" font-family="Consolas, monospace" font-size="11" fill="#5f6b76">INT UNSIGNED</text>
+<rect x="61" y="480" width="268" height="20" fill="#f7f9fb"/>
+<path d="M76,485.4 L80.6,490 L76,494.6 L71.4,490 Z" fill="#2a9d8f" stroke="#2a9d8f" stroke-width="1"/>
+<text x="94" y="494" font-family="Consolas, monospace" font-size="12" font-weight="400" fill="#222">room_number</text>
+<text x="239.4" y="494" text-anchor="end" font-family="Consolas, monospace" font-size="10" font-weight="700" fill="#2a9d8f">UQ</text>
+<text x="320" y="494" text-anchor="end" font-family="Consolas, monospace" font-size="11" fill="#5f6b76">VARCHAR(20)</text>
+<path d="M76,505.4 L80.6,510 L76,514.6 L71.4,510 Z" fill="#fff" stroke="#2a9d8f" stroke-width="1"/>
+<text x="94" y="514" font-family="Consolas, monospace" font-size="12" font-weight="400" fill="#222">floor</text>
+<text x="320" y="514" text-anchor="end" font-family="Consolas, monospace" font-size="11" fill="#5f6b76">VARCHAR(20)</text>
+<rect x="61" y="520" width="268" height="20" fill="#f7f9fb"/>
+<path d="M76,525.4 L80.6,530 L76,534.6 L71.4,530 Z" fill="#fff" stroke="#c0392b" stroke-width="1"/>
+<text x="94" y="534" font-family="Consolas, monospace" font-size="12" font-weight="400" fill="#222">room_type_id</text>
+<text x="320" y="534" text-anchor="end" font-family="Consolas, monospace" font-size="11" fill="#5f6b76">INT UNSIGNED</text>
+<path d="M76,545.4 L80.6,550 L76,554.6 L71.4,550 Z" fill="#2a9d8f" stroke="#2a9d8f" stroke-width="1"/>
+<text x="94" y="554" font-family="Consolas, monospace" font-size="12" font-weight="400" fill="#222">capacity</text>
+<text x="320" y="554" text-anchor="end" font-family="Consolas, monospace" font-size="11" fill="#5f6b76">INT UNSIGNED</text>
+<rect x="61" y="560" width="268" height="20" fill="#f7f9fb"/>
+<path d="M76,565.4 L80.6,570 L76,574.6 L71.4,570 Z" fill="#2a9d8f" stroke="#2a9d8f" stroke-width="1"/>
+<text x="94" y="574" font-family="Consolas, monospace" font-size="12" font-weight="400" fill="#222">base_price</text>
+<text x="320" y="574" text-anchor="end" font-family="Consolas, monospace" font-size="11" fill="#5f6b76">DECIMAL(10,2)</text>
+<path d="M76,585.4 L80.6,590 L76,594.6 L71.4,590 Z" fill="#2a9d8f" stroke="#2a9d8f" stroke-width="1"/>
+<text x="94" y="594" font-family="Consolas, monospace" font-size="12" font-weight="400" fill="#222">created_at</text>
+<text x="320" y="594" text-anchor="end" font-family="Consolas, monospace" font-size="11" fill="#5f6b76">TIMESTAMP</text>
+</g>
+<g id="tbl_schema_migrations">
+<rect x="60" y="1370" width="250" height="80" rx="3" fill="#fff" stroke="#7d7d7d" stroke-width="1.2"/>
+<path d="M60,1400 V1373 Q60,1370 63,1370 H307 Q310,1370 310,1373 V1400 Z" fill="#f5e08a" stroke="#7d7d7d" stroke-width="1.2"/>
+<rect x="69" y="1379" width="12" height="12" fill="#fff" stroke="#5b6b7a"/><path d="M69,1384 H81 M74,1379 V1391" stroke="#5b6b7a"/>
+<text x="90" y="1390" font-family="Segoe UI, Arial, sans-serif" font-size="14" font-weight="700" fill="#222">schema_migrations</text>
+<circle cx="73.5" cy="1407.5" r="3.4" fill="#f2c200" stroke="#9a7b00"/><path d="M75.5,1409.5 L81,1415 M78.5,1412.5 L80.5,1410.5 M80,1414 L82,1412" stroke="#9a7b00" stroke-width="1.6" fill="none"/>
+<text x="94" y="1414" font-family="Consolas, monospace" font-size="12" font-weight="700" fill="#222">filename</text>
+<text x="300" y="1414" text-anchor="end" font-family="Consolas, monospace" font-size="11" fill="#5f6b76">VARCHAR(255)</text>
+<rect x="61" y="1420" width="248" height="20" fill="#f7f9fb"/>
+<path d="M76,1425.4 L80.6,1430 L76,1434.6 L71.4,1430 Z" fill="#2a9d8f" stroke="#2a9d8f" stroke-width="1"/>
+<text x="94" y="1434" font-family="Consolas, monospace" font-size="12" font-weight="400" fill="#222">applied_at</text>
+<text x="300" y="1434" text-anchor="end" font-family="Consolas, monospace" font-size="11" fill="#5f6b76">TIMESTAMP</text>
+</g>
+<g id="tbl_settings">
+<rect x="1120" y="70" width="270" height="120" rx="3" fill="#fff" stroke="#7d7d7d" stroke-width="1.2"/>
+<path d="M1120,100 V73 Q1120,70 1123,70 H1387 Q1390,70 1390,73 V100 Z" fill="#f5e08a" stroke="#7d7d7d" stroke-width="1.2"/>
+<rect x="1129" y="79" width="12" height="12" fill="#fff" stroke="#5b6b7a"/><path d="M1129,84 H1141 M1134,79 V91" stroke="#5b6b7a"/>
+<text x="1150" y="90" font-family="Segoe UI, Arial, sans-serif" font-size="14" font-weight="700" fill="#222">settings</text>
+<circle cx="1133.5" cy="107.5" r="3.4" fill="#f2c200" stroke="#9a7b00"/><path d="M1135.5,109.5 L1141,115 M1138.5,112.5 L1140.5,110.5 M1140,114 L1142,112" stroke="#9a7b00" stroke-width="1.6" fill="none"/>
+<text x="1154" y="114" font-family="Consolas, monospace" font-size="12" font-weight="700" fill="#222">setting_key</text>
+<text x="1380" y="114" text-anchor="end" font-family="Consolas, monospace" font-size="11" fill="#5f6b76">VARCHAR(64)</text>
+<rect x="1121" y="120" width="268" height="20" fill="#f7f9fb"/>
+<path d="M1136,125.4 L1140.6,130 L1136,134.6 L1131.4,130 Z" fill="#fff" stroke="#2a9d8f" stroke-width="1"/>
+<text x="1154" y="134" font-family="Consolas, monospace" font-size="12" font-weight="400" fill="#222">setting_value</text>
+<text x="1380" y="134" text-anchor="end" font-family="Consolas, monospace" font-size="11" fill="#5f6b76">TEXT</text>
+<path d="M1136,145.4 L1140.6,150 L1136,154.6 L1131.4,150 Z" fill="#fff" stroke="#c0392b" stroke-width="1"/>
+<text x="1154" y="154" font-family="Consolas, monospace" font-size="12" font-weight="400" fill="#222">updated_by</text>
+<text x="1380" y="154" text-anchor="end" font-family="Consolas, monospace" font-size="11" fill="#5f6b76">INT UNSIGNED</text>
+<rect x="1121" y="160" width="268" height="20" fill="#f7f9fb"/>
+<path d="M1136,165.4 L1140.6,170 L1136,174.6 L1131.4,170 Z" fill="#2a9d8f" stroke="#2a9d8f" stroke-width="1"/>
+<text x="1154" y="174" font-family="Consolas, monospace" font-size="12" font-weight="400" fill="#222">updated_at</text>
+<text x="1380" y="174" text-anchor="end" font-family="Consolas, monospace" font-size="11" fill="#5f6b76">TIMESTAMP</text>
+</g>
+<g id="tbl_sos_alerts">
+<rect x="550" y="1290" width="290" height="180" rx="3" fill="#fff" stroke="#7d7d7d" stroke-width="1.2"/>
+<path d="M550,1320 V1293 Q550,1290 553,1290 H837 Q840,1290 840,1293 V1320 Z" fill="#f5e08a" stroke="#7d7d7d" stroke-width="1.2"/>
+<rect x="559" y="1299" width="12" height="12" fill="#fff" stroke="#5b6b7a"/><path d="M559,1304 H571 M564,1299 V1311" stroke="#5b6b7a"/>
+<text x="580" y="1310" font-family="Segoe UI, Arial, sans-serif" font-size="14" font-weight="700" fill="#222">sos_alerts</text>
+<circle cx="563.5" cy="1327.5" r="3.4" fill="#f2c200" stroke="#9a7b00"/><path d="M565.5,1329.5 L571,1335 M568.5,1332.5 L570.5,1330.5 M570,1334 L572,1332" stroke="#9a7b00" stroke-width="1.6" fill="none"/>
+<text x="584" y="1334" font-family="Consolas, monospace" font-size="12" font-weight="700" fill="#222">id</text>
+<text x="830" y="1334" text-anchor="end" font-family="Consolas, monospace" font-size="11" fill="#5f6b76">INT UNSIGNED</text>
+<rect x="551" y="1340" width="288" height="20" fill="#f7f9fb"/>
+<path d="M566,1345.4 L570.6,1350 L566,1354.6 L561.4,1350 Z" fill="#c0392b" stroke="#c0392b" stroke-width="1"/>
+<text x="584" y="1354" font-family="Consolas, monospace" font-size="12" font-weight="400" fill="#222">boarder_id</text>
+<text x="830" y="1354" text-anchor="end" font-family="Consolas, monospace" font-size="11" fill="#5f6b76">INT UNSIGNED</text>
+<path d="M566,1365.4 L570.6,1370 L566,1374.6 L561.4,1370 Z" fill="#fff" stroke="#c0392b" stroke-width="1"/>
+<text x="584" y="1374" font-family="Consolas, monospace" font-size="12" font-weight="400" fill="#222">room_id</text>
+<text x="830" y="1374" text-anchor="end" font-family="Consolas, monospace" font-size="11" fill="#5f6b76">INT UNSIGNED</text>
+<rect x="551" y="1380" width="288" height="20" fill="#f7f9fb"/>
+<path d="M566,1385.4 L570.6,1390 L566,1394.6 L561.4,1390 Z" fill="#2a9d8f" stroke="#2a9d8f" stroke-width="1"/>
+<text x="584" y="1394" font-family="Consolas, monospace" font-size="12" font-weight="400" fill="#222">status</text>
+<text x="830" y="1394" text-anchor="end" font-family="Consolas, monospace" font-size="11" fill="#5f6b76">ENUM(...)</text>
+<path d="M566,1405.4 L570.6,1410 L566,1414.6 L561.4,1410 Z" fill="#fff" stroke="#c0392b" stroke-width="1"/>
+<text x="584" y="1414" font-family="Consolas, monospace" font-size="12" font-weight="400" fill="#222">acknowledged_by</text>
+<text x="830" y="1414" text-anchor="end" font-family="Consolas, monospace" font-size="11" fill="#5f6b76">INT UNSIGNED</text>
+<rect x="551" y="1420" width="288" height="20" fill="#f7f9fb"/>
+<path d="M566,1425.4 L570.6,1430 L566,1434.6 L561.4,1430 Z" fill="#2a9d8f" stroke="#2a9d8f" stroke-width="1"/>
+<text x="584" y="1434" font-family="Consolas, monospace" font-size="12" font-weight="400" fill="#222">created_at</text>
+<text x="830" y="1434" text-anchor="end" font-family="Consolas, monospace" font-size="11" fill="#5f6b76">TIMESTAMP</text>
+<path d="M566,1445.4 L570.6,1450 L566,1454.6 L561.4,1450 Z" fill="#fff" stroke="#2a9d8f" stroke-width="1"/>
+<text x="584" y="1454" font-family="Consolas, monospace" font-size="12" font-weight="400" fill="#222">resolved_at</text>
+<text x="830" y="1454" text-anchor="end" font-family="Consolas, monospace" font-size="11" fill="#5f6b76">TIMESTAMP</text>
+</g>
+<g id="tbl_users">
+<rect x="1120" y="530" width="490" height="340" rx="3" fill="#fff" stroke="#7d7d7d" stroke-width="1.2"/>
+<path d="M1120,560 V533 Q1120,530 1123,530 H1607 Q1610,530 1610,533 V560 Z" fill="#f5e08a" stroke="#7d7d7d" stroke-width="1.2"/>
+<rect x="1129" y="539" width="12" height="12" fill="#fff" stroke="#5b6b7a"/><path d="M1129,544 H1141 M1134,539 V551" stroke="#5b6b7a"/>
+<text x="1150" y="550" font-family="Segoe UI, Arial, sans-serif" font-size="14" font-weight="700" fill="#222">users</text>
+<circle cx="1133.5" cy="567.5" r="3.4" fill="#f2c200" stroke="#9a7b00"/><path d="M1135.5,569.5 L1141,575 M1138.5,572.5 L1140.5,570.5 M1140,574 L1142,572" stroke="#9a7b00" stroke-width="1.6" fill="none"/>
+<text x="1154" y="574" font-family="Consolas, monospace" font-size="12" font-weight="700" fill="#222">id</text>
+<text x="1600" y="574" text-anchor="end" font-family="Consolas, monospace" font-size="11" fill="#5f6b76">INT UNSIGNED</text>
+<rect x="1121" y="580" width="488" height="20" fill="#f7f9fb"/>
+<path d="M1136,585.4 L1140.6,590 L1136,594.6 L1131.4,590 Z" fill="#2a9d8f" stroke="#2a9d8f" stroke-width="1"/>
+<text x="1154" y="594" font-family="Consolas, monospace" font-size="12" font-weight="400" fill="#222">role</text>
+<text x="1600" y="594" text-anchor="end" font-family="Consolas, monospace" font-size="11" fill="#5f6b76">ENUM(&#x27;admin&#x27;,&#x27;staff&#x27;,&#x27;boarder&#x27;)</text>
+<path d="M1136,605.4 L1140.6,610 L1136,614.6 L1131.4,610 Z" fill="#2a9d8f" stroke="#2a9d8f" stroke-width="1"/>
+<text x="1154" y="614" font-family="Consolas, monospace" font-size="12" font-weight="400" fill="#222">name</text>
+<text x="1600" y="614" text-anchor="end" font-family="Consolas, monospace" font-size="11" fill="#5f6b76">VARCHAR(150)</text>
+<rect x="1121" y="620" width="488" height="20" fill="#f7f9fb"/>
+<path d="M1136,625.4 L1140.6,630 L1136,634.6 L1131.4,630 Z" fill="#2a9d8f" stroke="#2a9d8f" stroke-width="1"/>
+<text x="1154" y="634" font-family="Consolas, monospace" font-size="12" font-weight="400" fill="#222">email</text>
+<text x="1512.8" y="634" text-anchor="end" font-family="Consolas, monospace" font-size="10" font-weight="700" fill="#2a9d8f">UQ</text>
+<text x="1600" y="634" text-anchor="end" font-family="Consolas, monospace" font-size="11" fill="#5f6b76">VARCHAR(150)</text>
+<path d="M1136,645.4 L1140.6,650 L1136,654.6 L1131.4,650 Z" fill="#fff" stroke="#2a9d8f" stroke-width="1"/>
+<text x="1154" y="654" font-family="Consolas, monospace" font-size="12" font-weight="400" fill="#222">phone</text>
+<text x="1600" y="654" text-anchor="end" font-family="Consolas, monospace" font-size="11" fill="#5f6b76">VARCHAR(30)</text>
+<rect x="1121" y="660" width="488" height="20" fill="#f7f9fb"/>
+<path d="M1136,665.4 L1140.6,670 L1136,674.6 L1131.4,670 Z" fill="#2a9d8f" stroke="#2a9d8f" stroke-width="1"/>
+<text x="1154" y="674" font-family="Consolas, monospace" font-size="12" font-weight="400" fill="#222">password_hash</text>
+<text x="1600" y="674" text-anchor="end" font-family="Consolas, monospace" font-size="11" fill="#5f6b76">VARCHAR(255)</text>
+<path d="M1136,685.4 L1140.6,690 L1136,694.6 L1131.4,690 Z" fill="#2a9d8f" stroke="#2a9d8f" stroke-width="1"/>
+<text x="1154" y="694" font-family="Consolas, monospace" font-size="12" font-weight="400" fill="#222">status</text>
+<text x="1600" y="694" text-anchor="end" font-family="Consolas, monospace" font-size="11" fill="#5f6b76">VARCHAR(50)</text>
+<rect x="1121" y="700" width="488" height="20" fill="#f7f9fb"/>
+<path d="M1136,705.4 L1140.6,710 L1136,714.6 L1131.4,710 Z" fill="#2a9d8f" stroke="#2a9d8f" stroke-width="1"/>
+<text x="1154" y="714" font-family="Consolas, monospace" font-size="12" font-weight="400" fill="#222">must_change_password</text>
+<text x="1600" y="714" text-anchor="end" font-family="Consolas, monospace" font-size="11" fill="#5f6b76">TINYINT(1)</text>
+<path d="M1136,725.4 L1140.6,730 L1136,734.6 L1131.4,730 Z" fill="#fff" stroke="#2a9d8f" stroke-width="1"/>
+<text x="1154" y="734" font-family="Consolas, monospace" font-size="12" font-weight="400" fill="#222">password_changed_at</text>
+<text x="1600" y="734" text-anchor="end" font-family="Consolas, monospace" font-size="11" fill="#5f6b76">TIMESTAMP</text>
+<rect x="1121" y="740" width="488" height="20" fill="#f7f9fb"/>
+<path d="M1136,745.4 L1140.6,750 L1136,754.6 L1131.4,750 Z" fill="#fff" stroke="#2a9d8f" stroke-width="1"/>
+<text x="1154" y="754" font-family="Consolas, monospace" font-size="12" font-weight="400" fill="#222">temp_password_expires_at</text>
+<text x="1600" y="754" text-anchor="end" font-family="Consolas, monospace" font-size="11" fill="#5f6b76">TIMESTAMP</text>
+<path d="M1136,765.4 L1140.6,770 L1136,774.6 L1131.4,770 Z" fill="#fff" stroke="#2a9d8f" stroke-width="1"/>
+<text x="1154" y="774" font-family="Consolas, monospace" font-size="12" font-weight="400" fill="#222">last_login_at</text>
+<text x="1600" y="774" text-anchor="end" font-family="Consolas, monospace" font-size="11" fill="#5f6b76">TIMESTAMP</text>
+<rect x="1121" y="780" width="488" height="20" fill="#f7f9fb"/>
+<path d="M1136,785.4 L1140.6,790 L1136,794.6 L1131.4,790 Z" fill="#fff" stroke="#2a9d8f" stroke-width="1"/>
+<text x="1154" y="794" font-family="Consolas, monospace" font-size="12" font-weight="400" fill="#222">archived_at</text>
+<text x="1600" y="794" text-anchor="end" font-family="Consolas, monospace" font-size="11" fill="#5f6b76">TIMESTAMP</text>
+<path d="M1136,805.4 L1140.6,810 L1136,814.6 L1131.4,810 Z" fill="#fff" stroke="#c0392b" stroke-width="1"/>
+<text x="1154" y="814" font-family="Consolas, monospace" font-size="12" font-weight="400" fill="#222">archived_by</text>
+<text x="1600" y="814" text-anchor="end" font-family="Consolas, monospace" font-size="11" fill="#5f6b76">INT UNSIGNED</text>
+<rect x="1121" y="820" width="488" height="20" fill="#f7f9fb"/>
+<path d="M1136,825.4 L1140.6,830 L1136,834.6 L1131.4,830 Z" fill="#fff" stroke="#2a9d8f" stroke-width="1"/>
+<text x="1154" y="834" font-family="Consolas, monospace" font-size="12" font-weight="400" fill="#222">archive_reason</text>
+<text x="1600" y="834" text-anchor="end" font-family="Consolas, monospace" font-size="11" fill="#5f6b76">VARCHAR(255)</text>
+<path d="M1136,845.4 L1140.6,850 L1136,854.6 L1131.4,850 Z" fill="#2a9d8f" stroke="#2a9d8f" stroke-width="1"/>
+<text x="1154" y="854" font-family="Consolas, monospace" font-size="12" font-weight="400" fill="#222">created_at</text>
+<text x="1600" y="854" text-anchor="end" font-family="Consolas, monospace" font-size="11" fill="#5f6b76">TIMESTAMP</text>
+</g>
+</svg>

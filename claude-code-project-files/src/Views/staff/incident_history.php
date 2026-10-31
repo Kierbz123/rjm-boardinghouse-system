@@ -1,56 +1,135 @@
 <?php
 $pageTitle = 'Incident History';
 ob_start();
+// Counts come from the database over everything the filters match; counting $history would
+// only ever describe the 50 rows on this page (WP-21).
+$counts = $counts ?? ['total' => count($history ?? []), 'resolved' => 0, 'open' => 0];
+$totalHistory = $counts['total'];
+$resolvedCount = $counts['resolved'];
+$openCount = $counts['open'];
 
-$totalHistory = $totalCount ?? count($history ?? []);
-$resolvedCount = count(array_filter($history ?? [], fn($h) => !empty($h['resolved'])));
-$openCount = count(array_filter($history ?? [], fn($h) => empty($h['resolved'])));
+$filters = $filters ?? ['q' => '', 'status' => ''];
+$isFiltered = implode('', $filters) !== '';
+// A resident reaches this page from their own sidebar: the staff-only shortcuts would 403 them.
+$isResident = ($_SESSION['role'] ?? '') === 'boarder';
+/** This page's URL with one page number, so paging never loses the search. */
+$pageUrl = fn (int $n) => '/staff/incidents/history?' . http_build_query(array_filter($filters) + ['page' => $n]);
+
+
 $currentPage = $page ?? 1;
 $totalPages = $totalPages ?? 1;
 ?>
 <div class="max-w-5xl mx-auto px-5 py-5 space-y-5">
 
-    <!-- Page Banner -->
-    <div class="page-banner">
-        <div>
-            <h1 class="text-heading-lg font-bold">Incident History</h1>
-            <p class="text-body-sm">Complete record of all incidents with full details and resolution tracking</p>
+    <!-- Executive Page Banner with Quick Launch Command Bar -->
+    <header class="dash-hero-banner">
+        <div class="dash-hero-top">
+            <div>
+                <h1 class="dash-hero-title">
+                    <span>Incident History</span>
+                </h1>
+                <p class="dash-hero-sub">Complete historical record of resolved community disputes, infractions, and safety incidents.</p>
+            </div>
+
+            <div class="flex items-center gap-2.5 flex-wrap">
+                <span class="badge" style="background:rgba(255,255,255,0.08); color:#8cc2a2; border:1px solid rgba(255,255,255,0.15); padding:0.35rem 0.85rem; font-size:0.75rem; font-weight:600; border-radius:9999px; display:inline-flex; align-items:center;">
+                    <span class="live-pulse-dot" style="margin-right:0.45rem;"></span>
+                    Full Archive Active
+                </span>
+                <span class="badge" style="background:rgba(255,255,255,0.05); color:#a3a19b; border:1px solid rgba(255,255,255,0.1); padding:0.35rem 0.75rem; font-size:0.75rem; border-radius:9999px; display:inline-flex; align-items:center; gap:0.35rem;">
+                    <?= \App\Support\Icon::svg('calendar', 13) ?>
+                    <span><?= date('l, M j, Y') ?></span>
+                </span>
+            </div>
         </div>
-        <span class="badge badge-info" style="background:rgba(255,255,255,0.12); color:#dea27c; border:1px solid rgba(255,255,255,0.15);">
-            <span style="width:0.4rem;height:0.4rem;border-radius:50%;background:#bd6b36;display:inline-block;margin-right:0.4rem;"></span>
-            Full Archive
-        </span>
-    </div>
+
+        <!-- Quick Launch Command Bar -->
+        <div class="dash-cmd-bar">
+            <span style="font-size:0.6875rem; font-weight:700; text-transform:uppercase; letter-spacing:0.06em; color:rgba(255,255,255,0.5); margin-right:0.35rem;">
+                Quick Launch:
+            </span>
+            <a href="/staff/incidents" class="dash-cmd-btn highlight" title="Open active incidents registry">
+                <?= \App\Support\Icon::svg('alert-triangle', 14) ?>
+                <span>Active Incidents (<?= $openCount ?> open)</span>
+            </a>
+            <a href="#incidents-history-table" class="dash-cmd-btn" title="Jump to incident records table">
+                <?= \App\Support\Icon::svg('clipboard', 14) ?>
+                <span>Resolved Cases (<?= $resolvedCount ?>)</span>
+            </a>
+            <?php if (!$isResident): ?>
+            <a href="/staff/maintenance/history" class="dash-cmd-btn" title="Open maintenance history records">
+                <?= \App\Support\Icon::svg('wrench', 14) ?>
+                <span>Maintenance History</span>
+            </a>
+            <a href="/staff/dashboard" class="dash-cmd-btn" title="Back to staff dashboard">
+                <?= \App\Support\Icon::svg('dashboard', 14) ?>
+                <span>Staff Dashboard</span>
+            </a>
+            <?php endif; ?>
+        </div>
+    </header>
 
     <!-- KPI Metric Cards -->
-    <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
-        <div class="reveal-card card p-4 metric-accent-primary">
-            <p class="text-caption font-semibold text-neutral-500 uppercase tracking-wider">Total Records</p>
-            <p class="text-3xl font-bold text-neutral-900 mt-1.5"><?= $totalHistory ?></p>
-            <p class="text-caption text-neutral-400 mt-1">All-time incidents</p>
-        </div>
-        <div class="reveal-card card p-4 metric-accent-success">
-            <p class="text-caption font-semibold text-neutral-500 uppercase tracking-wider">Resolved</p>
-            <p class="text-3xl font-bold text-neutral-900 mt-1.5"><?= $resolvedCount ?></p>
-            <p class="text-caption text-neutral-400 mt-1">Closed cases</p>
-        </div>
-        <div class="reveal-card card p-4 metric-accent-warning">
-            <p class="text-caption font-semibold text-neutral-500 uppercase tracking-wider">Open Cases</p>
-            <p class="text-3xl font-bold <?= $openCount > 0 ? 'text-amber-600' : 'text-neutral-900' ?> mt-1.5"><?= $openCount ?></p>
-            <p class="text-caption text-neutral-400 mt-1">Awaiting resolution</p>
-        </div>
-        <div class="reveal-card card p-4 metric-accent-info">
-            <p class="text-caption font-semibold text-neutral-500 uppercase tracking-wider">Page <?= $currentPage ?> / <?= $totalPages ?></p>
-            <p class="text-caption text-neutral-400 mt-1">Showing 50 per page</p>
-        </div>
+    <div class="kpi-grid">
+        <a href="#incidents-history-table" class="reveal-card kpi-card metric-accent-primary" title="View all incident records">
+            <div class="kpi-card-header">
+                <span class="kpi-label">Total Records</span>
+                <span class="kpi-icon"><?= \App\Support\Icon::svg('file-text') ?></span>
+            </div>
+            <div class="kpi-value"><?= $totalHistory ?></div>
+            <div class="kpi-subtext">
+                <span class="text-neutral-400">All-time incidents</span>
+            </div>
+        </a>
+
+        <a href="#incidents-history-table" class="reveal-card kpi-card metric-accent-success" title="View resolved incident records">
+            <div class="kpi-card-header">
+                <span class="kpi-label">Resolved</span>
+                <span class="kpi-icon"><?= \App\Support\Icon::svg('shield-check') ?></span>
+            </div>
+            <div class="kpi-value"><?= $resolvedCount ?></div>
+            <div class="kpi-subtext">
+                <span class="text-neutral-400">Closed cases</span>
+            </div>
+        </a>
+
+        <a href="/staff/incidents" class="reveal-card kpi-card metric-accent-warning" title="Open active incidents registry">
+            <div class="kpi-card-header">
+                <span class="kpi-label">Open Cases</span>
+                <span class="kpi-icon"><?= \App\Support\Icon::svg('alert-triangle') ?></span>
+            </div>
+            <div class="kpi-value <?= $openCount > 0 ? 'text-amber-600' : 'text-neutral-900' ?>"><?= $openCount ?></div>
+            <div class="kpi-subtext">
+                <span class="text-neutral-400">Awaiting resolution</span>
+            </div>
+        </a>
+
+        <a href="#incidents-history-table" class="reveal-card kpi-card metric-accent-info" title="Current pagination page">
+            <div class="kpi-card-header">
+                <span class="kpi-label">Page <?= $currentPage ?> / <?= $totalPages ?></span>
+                <span class="kpi-icon"><?= \App\Support\Icon::svg('calendar') ?></span>
+            </div>
+            <div class="kpi-value"><?= $currentPage ?></div>
+            <div class="kpi-subtext">
+                <span class="text-neutral-400">Showing 50 per page</span>
+            </div>
+        </a>
     </div>
 
     <!-- Main History Table Card -->
-    <div class="space-y-2.5">
+    <div class="space-y-2.5" id="incidents-history-table">
+        <?php
+        $historyAction = "/staff/incidents/history";
+        $historySearchHint = "Type, description, reporter or notes";
+        $historyStatuses = ["" => "Any status", "open" => "Open", "resolved" => "Resolved"];
+        $historyTiers = [];
+        include __DIR__ . "/../shared/_history_filters.php";
+        ?>
+
         <div class="section-header">
             <div class="flex items-center gap-2">
                 <h2 class="text-heading-sm font-semibold text-neutral-900">Complete Incident Log</h2>
-                <span class="badge badge-neutral"><?= $totalHistory ?> records</span>
+                <span class="badge badge-neutral"><?= $totalHistory ?> <?= $isFiltered ? "matching" : "" ?> records</span>
             </div>
             <span class="text-caption text-neutral-400">Order: Most recent first</span>
         </div>
@@ -165,8 +244,8 @@ $totalPages = $totalPages ?? 1;
                                 <td colspan="8">
                                     <div class="py-12 text-center text-neutral-400">
                                         <span class="empty-icon"><?= \App\Support\Icon::svg('clipboard') ?></span>
-                                        <p class="font-semibold text-neutral-700 text-body-sm">No incident history.</p>
-                                        <p class="text-caption text-neutral-400 mt-0.5">No incidents have been recorded yet.</p>
+                                        <p class="font-semibold text-neutral-700 text-body-sm"><?= $isFiltered ? "No records match your search." : "No incident history." ?></p>
+                                        <p class="text-caption text-neutral-400 mt-0.5"><?= $isFiltered ? "Try a different term, or reset the filters above." : "No incidents have been recorded yet." ?></p>
                                     </div>
                                 </td>
                             </tr>
@@ -180,11 +259,11 @@ $totalPages = $totalPages ?? 1;
         <?php if ($totalPages > 1): ?>
         <div class="flex items-center justify-between mt-4 pt-4 border-t border-neutral-200">
             <div class="text-sm text-neutral-600">
-                Showing <?= ($currentPage - 1) * 50 + 1 ?>-<?= min($currentPage * 50, $totalHistory) ?> of <?= $totalHistory ?> records
+                Showing <?= ($currentPage - 1) * 50 + 1 ?>-<?= min($currentPage * 50, $totalHistory) ?> of <?= $totalHistory ?> <?= $isFiltered ? "matching" : "" ?> records
             </div>
             <div class="flex items-center gap-2">
                 <?php if ($currentPage > 1): ?>
-                    <a href="?page=<?= $currentPage - 1 ?>" class="px-3 py-1.5 text-sm font-medium text-neutral-700 bg-white border border-neutral-300 rounded hover:bg-neutral-50 transition-colors">
+                    <a href="<?= $pageUrl($currentPage - 1) ?>" class="px-3 py-1.5 text-sm font-medium text-neutral-700 bg-white border border-neutral-300 rounded hover:bg-neutral-50 transition-colors">
                         Previous
                     </a>
                 <?php endif; ?>
@@ -195,14 +274,14 @@ $totalPages = $totalPages ?? 1;
                             <?= $i ?>
                         </span>
                     <?php else: ?>
-                        <a href="?page=<?= $i ?>" class="px-3 py-1.5 text-sm font-medium text-neutral-700 bg-white border border-neutral-300 rounded hover:bg-neutral-50 transition-colors">
+                        <a href="<?= $pageUrl($i) ?>" class="px-3 py-1.5 text-sm font-medium text-neutral-700 bg-white border border-neutral-300 rounded hover:bg-neutral-50 transition-colors">
                             <?= $i ?>
                         </a>
                     <?php endif; ?>
                 <?php endfor; ?>
                 
                 <?php if ($currentPage < $totalPages): ?>
-                    <a href="?page=<?= $currentPage + 1 ?>" class="px-3 py-1.5 text-sm font-medium text-neutral-700 bg-white border border-neutral-300 rounded hover:bg-neutral-50 transition-colors">
+                    <a href="<?= $pageUrl($currentPage + 1) ?>" class="px-3 py-1.5 text-sm font-medium text-neutral-700 bg-white border border-neutral-300 rounded hover:bg-neutral-50 transition-colors">
                         Next
                     </a>
                 <?php endif; ?>

@@ -20,7 +20,7 @@ $when = function (?string $ts, string $format = 'M j, Y'): string {
     $t = strtotime($ts);
     return '<time datetime="' . date('c', $t) . '" title="' . date('Y-m-d H:i T', $t) . '">' . htmlspecialchars(date($format, $t)) . '</time>';
 };
-$passwordHint = "At least 15 characters; a short phrase of unrelated words works well. At most 72 bytes: accented letters and emoji take more than one. It works for {$hours} hours and they must choose their own password when they first sign in.";
+$passwordHint = "At least 10 characters. At most 72 bytes: accented letters and emoji take more than one. It works for {$hours} hours and they must choose their own password when they first sign in.";
 $rules = [
     ['wrench', 'Staff do repairs, incidents and SOS only; penalties, expenses and payments stay with you.'],
     ['log-out', 'Deactivating someone signs them out at once and stops them logging in; their records and history are kept.'],
@@ -33,15 +33,51 @@ $hint = 'text-xs text-neutral-500 mt-1.5 leading-relaxed';
 ?>
 <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
 
-    <div class="page-banner">
-        <div>
-            <h1>Staff Accounts</h1>
-            <p>Add, reset and deactivate the people who handle maintenance, incidents and SOS alerts.</p>
+    <!-- Executive Page Banner with Quick Launch Command Bar -->
+    <header class="dash-hero-banner">
+        <div class="dash-hero-top">
+            <div>
+                <h1 class="dash-hero-title">
+                    <span>Staff Accounts</span>
+                </h1>
+                <p class="dash-hero-sub">Add, reset and deactivate the people who handle maintenance, incidents and SOS alerts.</p>
+            </div>
+
+            <div class="flex items-center gap-2.5 flex-wrap">
+                <span class="badge" style="background:rgba(255,255,255,0.08); color:#8cc2a2; border:1px solid rgba(255,255,255,0.15); padding:0.35rem 0.85rem; font-size:0.75rem; font-weight:600; border-radius:9999px; display:inline-flex; align-items:center;">
+                    <span class="live-pulse-dot" style="margin-right:0.45rem;"></span>
+                    <?= $activeCount ?> Staff Active
+                </span>
+                <span class="badge" style="background:rgba(255,255,255,0.05); color:#a3a19b; border:1px solid rgba(255,255,255,0.1); padding:0.35rem 0.75rem; font-size:0.75rem; border-radius:9999px; display:inline-flex; align-items:center; gap:0.35rem;">
+                    <?= \App\Support\Icon::svg('calendar', 13) ?>
+                    <span><?= date('l, M j, Y') ?></span>
+                </span>
+            </div>
         </div>
-        <span class="badge" style="background:rgb(255 255 255 / 0.1); color:#fff; box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.18); padding:0.4rem 0.85rem;">
-            <?= $activeCount ?> active
-        </span>
-    </div>
+
+        <!-- Quick Launch Command Bar -->
+        <div class="dash-cmd-bar">
+            <span style="font-size:0.6875rem; font-weight:700; text-transform:uppercase; letter-spacing:0.06em; color:rgba(255,255,255,0.5); margin-right:0.35rem;">
+                Quick Launch:
+            </span>
+            <a href="#add-staff" class="dash-cmd-btn highlight" title="Add a new staff member">
+                <?= \App\Support\Icon::svg('plus', 14) ?>
+                <span>Add Staff Member</span>
+            </a>
+            <a href="#staff-directory" class="dash-cmd-btn" title="Jump to staff directory list">
+                <?= \App\Support\Icon::svg('users', 14) ?>
+                <span>Staff Roster (<?= $activeCount ?> active)</span>
+            </a>
+            <a href="#staff-rules-heading" class="dash-cmd-btn" title="Staff operational policies and rules">
+                <?= \App\Support\Icon::svg('clipboard', 14) ?>
+                <span>Operations Rules</span>
+            </a>
+            <a href="/admin/staff" class="dash-cmd-btn" title="View all users in system">
+                <?= \App\Support\Icon::svg('arrow-left', 14) ?>
+                <span>All Users</span>
+            </a>
+        </div>
+    </header>
 
     <?php $userTab = 'staff'; require __DIR__ . '/_user_tabs.php'; ?>
 
@@ -63,12 +99,12 @@ $hint = 'text-xs text-neutral-500 mt-1.5 leading-relaxed';
                     </div>
                     <div>
                         <label for="staff-phone" class="<?= $label ?>">Phone <span class="font-normal text-neutral-500">(optional)</span></label>
-                        <input id="staff-phone" name="phone" type="tel" maxlength="30" class="input w-full" autocomplete="off" placeholder="0917 123 4567" aria-describedby="staff-phone-hint">
+                        <input id="staff-phone" name="phone" type="tel" inputmode="numeric" data-digits="15" class="input w-full" autocomplete="off" placeholder="09171234567" aria-describedby="staff-phone-hint">
                         <p id="staff-phone-hint" class="<?= $hint ?>">For SOS backup: residents see it beside the SOS button.</p>
                     </div>
                     <div>
                         <label for="staff-password" class="<?= $label ?>">Temporary password</label>
-                        <input id="staff-password" name="password" type="password" data-max-bytes="72" required minlength="15" class="input w-full" autocomplete="new-password" aria-describedby="staff-password-hint">
+                        <input id="staff-password" name="password" type="password" data-max-bytes="72" required minlength="10" class="input w-full" autocomplete="new-password" aria-describedby="staff-password-hint">
                         <label class="mt-2 inline-flex items-center gap-1.5 text-xs text-neutral-600"><input type="checkbox" data-show-password="staff-password"> Show password</label>
                         <p id="staff-password-hint" class="<?= $hint ?>"><?= htmlspecialchars($passwordHint) ?></p>
                     </div>
@@ -92,7 +128,7 @@ $hint = 'text-xs text-neutral-500 mt-1.5 leading-relaxed';
         </aside>
     </div>
 
-    <section class="card p-0 overflow-hidden" aria-labelledby="staff-list-heading">
+    <section id="staff-directory" class="card p-0 overflow-hidden" aria-labelledby="staff-list-heading">
         <div class="flex items-center justify-between gap-3 px-5 sm:px-6 pt-5 pb-4">
             <h2 id="staff-list-heading" class="text-base font-semibold text-neutral-900">Current staff</h2>
             <span class="badge badge-neutral"><?= count($staff) ?> total</span>
@@ -129,7 +165,7 @@ $hint = 'text-xs text-neutral-500 mt-1.5 leading-relaxed';
                             <form method="post" action="/admin/staff/<?= $sid ?>/phone" class="flex items-center gap-1.5">
                                 <?= \App\Support\Csrf::field() ?>
                                 <label for="staff-phone-<?= $sid ?>" class="sr-only">Phone for <?= htmlspecialchars($s['name']) ?></label>
-                                <input id="staff-phone-<?= $sid ?>" name="phone" type="tel" maxlength="30" class="input input-sm w-32"
+                                <input id="staff-phone-<?= $sid ?>" name="phone" type="tel" inputmode="numeric" data-digits="15" class="input input-sm w-32"
                                        value="<?= htmlspecialchars((string) ($s['phone'] ?? '')) ?>" placeholder="None yet">
                                 <button type="submit" class="btn btn-secondary btn-sm">Save</button>
                             </form>
@@ -213,7 +249,7 @@ $hint = 'text-xs text-neutral-500 mt-1.5 leading-relaxed';
         <h3 id="reset-dialog-title" class="modal-title text-center">Reset password</h3>
         <p class="modal-text text-center" style="margin-bottom:1.25rem;">Set a new temporary password for <strong id="reset-name" class="text-neutral-900"></strong>. They will be signed out.</p>
         <label for="staff-reset" class="<?= $label ?>">New temporary password</label>
-        <input id="staff-reset" name="new_password" type="password" data-max-bytes="72" required minlength="15" class="input w-full" autocomplete="new-password" aria-describedby="staff-reset-hint">
+        <input id="staff-reset" name="new_password" type="password" data-max-bytes="72" required minlength="10" class="input w-full" autocomplete="new-password" aria-describedby="staff-reset-hint">
         <label class="mt-2 inline-flex items-center gap-1.5 text-xs text-neutral-600"><input type="checkbox" data-show-password="staff-reset"> Show password</label>
         <p id="staff-reset-hint" class="<?= $hint ?>"><?= htmlspecialchars($passwordHint) ?></p>
         <div class="modal-actions mt-6">

@@ -20,17 +20,51 @@ $latestExpense = !empty($expenses) ? $expenses[0] : null;
 ?>
 <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
 
-    <!-- Page Banner -->
-    <div class="page-banner">
-        <div>
-            <h1>Operating Expenses</h1>
-            <p>Operational expenditures, maintenance costs &amp; facility disbursements</p>
+    <!-- Executive Page Banner with Quick Launch Command Bar -->
+    <header class="dash-hero-banner">
+        <div class="dash-hero-top">
+            <div>
+                <h1 class="dash-hero-title">
+                    <span>Operating Expenses</span>
+                </h1>
+                <p class="dash-hero-sub">Operational expenditures, maintenance costs, and facility disbursements.</p>
+            </div>
+
+            <div class="flex items-center gap-2.5 flex-wrap">
+                <span class="badge" style="background:rgba(255,255,255,0.08); color:#8cc2a2; border:1px solid rgba(255,255,255,0.15); padding:0.35rem 0.85rem; font-size:0.75rem; font-weight:600; border-radius:9999px; display:inline-flex; align-items:center;">
+                    <span class="live-pulse-dot" style="margin-right:0.45rem;"></span>
+                    Financials Active
+                </span>
+                <span class="badge" style="background:rgba(255,255,255,0.05); color:#a3a19b; border:1px solid rgba(255,255,255,0.1); padding:0.35rem 0.75rem; font-size:0.75rem; border-radius:9999px; display:inline-flex; align-items:center; gap:0.35rem;">
+                    <?= \App\Support\Icon::svg('calendar', 13) ?>
+                    <span><?= date('l, M j, Y') ?></span>
+                </span>
+            </div>
         </div>
-        <span class="badge badge-success" style="background:rgba(255,255,255,0.12); color:#8cc2a2; border:1px solid rgba(255,255,255,0.18); padding:0.4rem 0.85rem; font-size:0.75rem;">
-            <span style="width:0.45rem;height:0.45rem;border-radius:50%;background:#5fae84;display:inline-block;margin-right:0.4rem;"></span>
-            Financials Active
-        </span>
-    </div>
+
+        <!-- Quick Launch Command Bar -->
+        <div class="dash-cmd-bar">
+            <span style="font-size:0.6875rem; font-weight:700; text-transform:uppercase; letter-spacing:0.06em; color:rgba(255,255,255,0.5); margin-right:0.35rem;">
+                Quick Launch:
+            </span>
+            <a href="#log-expense-form" class="dash-cmd-btn highlight" title="Log a new operating expense">
+                <?= \App\Support\Icon::svg('plus', 14) ?>
+                <span>Log Expense</span>
+            </a>
+            <a href="#expense-records" class="dash-cmd-btn" title="Jump to expense entries table">
+                <?= \App\Support\Icon::svg('clipboard', 14) ?>
+                <span>Expense Ledger (<?= $totalCount ?>)</span>
+            </a>
+            <a href="/admin/payments" class="dash-cmd-btn" title="View collections and receipts">
+                <?= \App\Support\Icon::svg('banknote', 14) ?>
+                <span>Payments &amp; Collections</span>
+            </a>
+            <a href="/admin/ledger/export?from=<?= date('Y-m-01') ?>&to=<?= date('Y-m-d') ?>" class="dash-cmd-btn" title="Export monthly general ledger">
+                <?= \App\Support\Icon::svg('download', 14) ?>
+                <span>Export Ledger</span>
+            </a>
+        </div>
+    </header>
 
     <?php if ($error): ?>
         <div class="bg-error-50 text-error-700 text-body-sm rounded-lg p-3.5 border border-error-500 flex items-center gap-2.5" role="alert">
@@ -47,54 +81,65 @@ $latestExpense = !empty($expenses) ? $expenses[0] : null;
     <?php endif; ?>
 
     <!-- KPI Cards -->
-    <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <div class="reveal-card card p-4 metric-accent-primary">
-            <div class="flex items-center justify-between mb-1">
-                <span class="text-caption font-semibold text-neutral-500 uppercase tracking-wider">Total Entries</span>
-                <?= \App\Support\Icon::svg('file-text', 18) ?>
+    <div class="kpi-grid">
+        <a href="#expense-records" class="reveal-card kpi-card metric-accent-primary" title="View all logged expenses">
+            <div class="kpi-card-header">
+                <span class="kpi-label">Total Entries</span>
+                <span class="kpi-icon"><?= \App\Support\Icon::svg('file-text') ?></span>
             </div>
-            <p class="text-3xl font-bold text-neutral-900 mt-1" style="font-variant-numeric: tabular-nums;"><?= $totalCount ?></p>
-            <p class="text-caption text-neutral-400 mt-1">Disbursements logged</p>
-        </div>
-        <div class="reveal-card card p-4 metric-accent-error">
-            <div class="flex items-center justify-between mb-1">
-                <span class="text-caption font-semibold text-neutral-500 uppercase tracking-wider">Total Disbursed</span>
-                <?= \App\Support\Icon::svg('banknote', 18) ?>
+            <div class="kpi-value"><?= $totalCount ?></div>
+            <div class="kpi-subtext">
+                <span class="text-neutral-400">Disbursements logged</span>
             </div>
-            <p class="text-3xl font-bold text-neutral-900 mt-1" style="font-variant-numeric: tabular-nums;">₱<?= number_format($totalAmount, 2) ?></p>
-            <p class="text-caption text-neutral-400 mt-1">Cumulative expenditure</p>
-        </div>
-        <div class="reveal-card card p-4 metric-accent-warning">
-            <div class="flex items-center justify-between mb-1">
-                <span class="text-caption font-semibold text-neutral-500 uppercase tracking-wider">Top Category</span>
-                <?= \App\Support\Icon::svg('tag', 18) ?>
+        </a>
+
+        <a href="#expense-records" class="reveal-card kpi-card metric-accent-error" title="View total disbursement records">
+            <div class="kpi-card-header">
+                <span class="kpi-label">Total Disbursed</span>
+                <span class="kpi-icon"><?= \App\Support\Icon::svg('banknote') ?></span>
             </div>
-            <p class="text-2xl font-bold text-neutral-900 mt-1 truncate" title="<?= htmlspecialchars($topCategory) ?>">
+            <div class="kpi-value">₱<?= number_format($totalAmount, 2) ?></div>
+            <div class="kpi-subtext">
+                <span class="text-neutral-400">Cumulative expenditure</span>
+            </div>
+        </a>
+
+        <a href="#log-expense-form" class="reveal-card kpi-card metric-accent-warning" title="Log expense or review categories">
+            <div class="kpi-card-header">
+                <span class="kpi-label">Top Category</span>
+                <span class="kpi-icon"><?= \App\Support\Icon::svg('tag') ?></span>
+            </div>
+            <div class="kpi-value" title="<?= htmlspecialchars($topCategory) ?>">
                 <?= htmlspecialchars($topCategory) ?>
-            </p>
-            <p class="text-caption text-amber-600 mt-1 font-semibold" style="font-variant-numeric: tabular-nums;">
-                <?= !empty($categorySpending) ? '₱' . number_format(reset($categorySpending), 2) : '—' ?>
-            </p>
-        </div>
-        <div class="reveal-card card p-4 metric-accent-info">
-            <div class="flex items-center justify-between mb-1">
-                <span class="text-caption font-semibold text-neutral-500 uppercase tracking-wider">Latest Entry</span>
-                <span style="font-size:1.1rem; line-height:1;">⏱️</span>
             </div>
-            <p class="text-2xl font-bold text-neutral-900 mt-1" style="font-variant-numeric: tabular-nums;">
+            <div class="kpi-subtext">
+                <span class="text-amber-600 font-semibold" style="font-variant-numeric: tabular-nums;">
+                    <?= !empty($categorySpending) ? '₱' . number_format(reset($categorySpending), 2) : '—' ?>
+                </span>
+            </div>
+        </a>
+
+        <a href="#expense-records" class="reveal-card kpi-card metric-accent-info" title="View most recent transactions">
+            <div class="kpi-card-header">
+                <span class="kpi-label">Latest Entry</span>
+                <span class="kpi-icon"><?= \App\Support\Icon::svg('calendar') ?></span>
+            </div>
+            <div class="kpi-value">
                 <?= $latestExpense ? '₱' . number_format((float)$latestExpense['amount'], 2) : '—' ?>
-            </p>
-            <p class="text-caption text-neutral-400 mt-1">
-                <?= $latestExpense && !empty($latestExpense['created_at']) ? date('M j, Y', strtotime($latestExpense['created_at'])) : 'No records' ?>
-            </p>
-        </div>
+            </div>
+            <div class="kpi-subtext">
+                <span class="text-neutral-400">
+                    <?= $latestExpense && !empty($latestExpense['created_at']) ? date('M j, Y', strtotime($latestExpense['created_at'])) : 'No records' ?>
+                </span>
+            </div>
+        </a>
     </div>
 
     <!-- Main Content Layout (Table + Log Form) -->
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
 
         <!-- Left 2 Cols: Expenses Table -->
-        <div class="lg:col-span-2 space-y-4">
+        <div class="lg:col-span-2 space-y-4" id="expense-records">
             <div class="section-header">
                 <div class="flex items-center gap-2">
                     <h2>Expense Records</h2>
@@ -102,9 +147,9 @@ $latestExpense = !empty($expenses) ? $expenses[0] : null;
                         <?= $totalCount ?> entry<?= $totalCount !== 1 ? 's' : '' ?>
                     </span>
                 </div>
-                <a href="/admin/ledger/export"
+                <a href="/admin/ledger/export?from=<?= date('Y-m-01') ?>&to=<?= date('Y-m-d') ?>"
                    class="btn btn-secondary !py-1.5 !px-3.5 !text-xs inline-flex items-center gap-1.5 shadow-xs font-semibold"
-                   title="Export detailed financial ledger with user names, descriptions, and proper formatting">
+                   title="Download this month's financial statement and general ledger (payments, expenses, penalties) as an Excel workbook">
                     <span><?= \App\Support\Icon::svg('bar-chart') ?></span>
                     <span>Export Ledger</span>
                 </a>
@@ -182,7 +227,7 @@ $latestExpense = !empty($expenses) ? $expenses[0] : null;
                 <h2>New Expenditure</h2>
             </div>
 
-            <form method="post" action="/admin/expenses" class="form-card">
+            <form method="post" action="/admin/expenses" class="form-card" id="log-expense-form">
                 <div class="flex items-center gap-2 pb-2 border-b border-neutral-100">
                     <?= \App\Support\Icon::svg('banknote', 18) ?>
                     <h3 class="text-body font-semibold text-neutral-900">Log Operating Expense</h3>
@@ -224,6 +269,7 @@ $latestExpense = !empty($expenses) ? $expenses[0] : null;
                     </label>
                     <textarea name="description"
                               rows="3"
+                              maxlength="255"
                               placeholder="Add notes, invoice/receipt details, vendor name..."
                               class="input text-body-sm"
                               style="resize:vertical;"></textarea>

@@ -1,0 +1,11 @@
+-- Deliberately does nothing.
+--
+-- The up migration removed the "+", spaces and dashes from stored phone numbers. Which characters
+-- a number used to carry, and where, is not recoverable from the digits that are left, so there is
+-- nothing faithful to put back: "639171234567" could have been "+63 917 123 4567", "+639171234567"
+-- or "(63) 917-123-4567". Rolling back past this migration therefore leaves the numbers normalised,
+-- which stays valid for every version of the schema -- digits are accepted by the old 50-character
+-- columns and by App\Support\Phone alike.
+--
+-- migrate.php skips statements that are only comments, so this file runs cleanly and simply
+-- un-records the migration.

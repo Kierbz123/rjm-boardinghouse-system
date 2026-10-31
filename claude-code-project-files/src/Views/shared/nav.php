@@ -731,22 +731,50 @@ function renderNavSvg(string $icon): string {
     const railToggle = document.getElementById('sidebar-rail-toggle');
 
     if (railToggle) {
-        railToggle.addEventListener('click', function () {
+        railToggle.addEventListener('click', function (e) {
+            e.preventDefault();
+            e.stopPropagation();
+            const prevScroll = window.scrollY;
             const isRail = document.body.classList.toggle('sidebar-rail');
             localStorage.setItem('rjm_sidebar_rail', isRail ? 'true' : 'false');
+            if (window.scrollY !== prevScroll) {
+                window.scrollTo({ top: prevScroll, behavior: 'instant' });
+            }
         });
+    }
+
+    // Keep the sidebar's scroll position across full page loads
+    const navScroll = document.querySelector('#app-sidebar nav.sidebar-scrollbar');
+    if (navScroll) {
+        try {
+            const saved = sessionStorage.getItem('rjm_sidebar_scroll');
+            if (saved !== null) navScroll.scrollTop = +saved;
+            window.addEventListener('pagehide', () =>
+                sessionStorage.setItem('rjm_sidebar_scroll', navScroll.scrollTop));
+        } catch (e) {}
     }
 
     // Expandable/Collapsible Navigation Groups
     const groupToggleBtns = document.querySelectorAll('.section-toggle-btn');
     groupToggleBtns.forEach(btn => {
-        btn.addEventListener('click', function () {
+        btn.addEventListener('click', function (e) {
+            e.preventDefault();
+            e.stopPropagation();
             const group = this.closest('.section-group');
             if (!group) return;
             group.classList.toggle('collapsed');
             const isCollapsed = group.classList.contains('collapsed');
             this.setAttribute('aria-expanded', isCollapsed ? 'false' : 'true');
         });
+    });
+
+    // Guard any '#' links from scrolling to top
+    document.addEventListener('click', function (e) {
+        const link = e.target.closest('a[href="#"]');
+        if (link) {
+            e.preventDefault();
+            e.stopPropagation();
+        }
     });
 })();
 

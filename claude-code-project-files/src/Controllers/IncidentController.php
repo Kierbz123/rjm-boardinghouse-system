@@ -93,13 +93,19 @@ class IncidentController
 
     public static function history(): void
     {
-        $page = max(1, (int) ($_GET['page'] ?? 1));
         $limit = 50; // Show 50 records per page
-        $offset = ($page - 1) * $limit;
+        $filters = [
+            'q' => mb_substr(trim((string) ($_GET['q'] ?? '')), 0, 100),
+            'status' => in_array($_GET['status'] ?? '', ['open', 'resolved'], true) ? (string) $_GET['status'] : '',
+        ];
 
-        $history = Incident::allWithDetails($limit, $offset, self::reporterScope());
-        $totalCount = Incident::countAll(self::reporterScope());
-        $totalPages = ceil($totalCount / $limit);
+        $counts = Incident::historyCounts(self::reporterScope(), $filters);
+        $totalCount = $counts['total'];
+        $totalPages = max(1, (int) ceil($totalCount / $limit));
+        // A page number beyond the end lands on the last page instead of an empty table.
+        $page = min(max(1, (int) ($_GET['page'] ?? 1)), $totalPages);
+
+        $history = Incident::allWithDetails($limit, ($page - 1) * $limit, self::reporterScope(), $filters);
 
         require __DIR__ . '/../Views/staff/incident_history.php';
     }

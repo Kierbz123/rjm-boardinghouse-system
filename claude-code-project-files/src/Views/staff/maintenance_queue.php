@@ -34,29 +34,52 @@ $tierBadges = [
     </div>
 
     <!-- KPI Metric Cards -->
-    <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
-        <div class="reveal-card card p-4 metric-accent-primary">
-            <p class="text-caption font-semibold text-neutral-500 uppercase tracking-wider">Total in Queue</p>
-            <p class="text-3xl font-bold text-neutral-900 mt-1.5"><?= $totalInQueue ?></p>
-            <p class="text-caption text-neutral-400 mt-1">Open repair tickets</p>
-        </div>
-        <div class="reveal-card card p-4 metric-accent-error <?= $criticalCount > 0 ? 'ring-1 ring-red-300' : '' ?>">
-            <p class="text-caption font-semibold text-neutral-500 uppercase tracking-wider">Critical Urgency</p>
-            <p class="text-3xl font-bold <?= $criticalCount > 0 ? 'text-red-600' : 'text-neutral-900' ?> mt-1.5"><?= $criticalCount ?></p>
-            <p class="text-caption <?= $criticalCount > 0 ? 'text-red-600 font-semibold' : 'text-neutral-400' ?> mt-1">
-                <?= $criticalCount > 0 ? 'Immediate action required' : 'Zero safety emergencies' ?>
-            </p>
-        </div>
-        <div class="reveal-card card p-4 metric-accent-warning">
-            <p class="text-caption font-semibold text-neutral-500 uppercase tracking-wider">High Priority</p>
-            <p class="text-3xl font-bold <?= $highCount > 0 ? 'text-amber-600' : 'text-neutral-900' ?> mt-1.5"><?= $highCount ?></p>
-            <p class="text-caption text-neutral-400 mt-1"><?= $highCount > 0 ? 'Requires prompt dispatch' : 'Normal queue levels' ?></p>
-        </div>
-        <div class="reveal-card card p-4 metric-accent-info">
-            <p class="text-caption font-semibold text-neutral-500 uppercase tracking-wider">Medium &amp; Low</p>
-            <p class="text-3xl font-bold text-neutral-900 mt-1.5"><?= $medLowCount ?></p>
-            <p class="text-caption text-neutral-400 mt-1">Routine maintenance tickets</p>
-        </div>
+    <div class="kpi-grid">
+        <button type="button" onclick="filterQueue('all')" class="reveal-card kpi-card metric-accent-primary" title="Show all repair tickets">
+            <div class="kpi-card-header">
+                <span class="kpi-label">Total in Queue</span>
+                <span class="kpi-icon"><?= \App\Support\Icon::svg('wrench') ?></span>
+            </div>
+            <div class="kpi-value"><?= $totalInQueue ?></div>
+            <div class="kpi-subtext">
+                <span class="text-neutral-400">Open repair tickets</span>
+            </div>
+        </button>
+
+        <button type="button" onclick="filterQueue('critical')" class="reveal-card kpi-card metric-accent-error <?= $criticalCount > 0 ? 'ring-1 ring-red-300' : '' ?>" title="Show critical urgency tickets">
+            <div class="kpi-card-header">
+                <span class="kpi-label">Critical Urgency</span>
+                <span class="kpi-icon"><?= \App\Support\Icon::svg('alert-triangle') ?></span>
+            </div>
+            <div class="kpi-value <?= $criticalCount > 0 ? 'text-red-600' : 'text-neutral-900' ?>"><?= $criticalCount ?></div>
+            <div class="kpi-subtext">
+                <span class="<?= $criticalCount > 0 ? 'text-red-600 font-semibold' : 'text-neutral-400' ?>">
+                    <?= $criticalCount > 0 ? 'Immediate action required' : 'Zero safety emergencies' ?>
+                </span>
+            </div>
+        </button>
+
+        <button type="button" onclick="filterQueue('high')" class="reveal-card kpi-card metric-accent-warning" title="Show high priority tickets">
+            <div class="kpi-card-header">
+                <span class="kpi-label">High Priority</span>
+                <span class="kpi-icon"><?= \App\Support\Icon::svg('alert-circle') ?></span>
+            </div>
+            <div class="kpi-value <?= $highCount > 0 ? 'text-amber-600' : 'text-neutral-900' ?>"><?= $highCount ?></div>
+            <div class="kpi-subtext">
+                <span class="text-neutral-400"><?= $highCount > 0 ? 'Requires prompt dispatch' : 'Normal queue levels' ?></span>
+            </div>
+        </button>
+
+        <button type="button" onclick="filterQueue('routine')" class="reveal-card kpi-card metric-accent-info" title="Show medium & low routine tickets">
+            <div class="kpi-card-header">
+                <span class="kpi-label">Medium &amp; Low</span>
+                <span class="kpi-icon"><?= \App\Support\Icon::svg('circle-dot') ?></span>
+            </div>
+            <div class="kpi-value"><?= $medLowCount ?></div>
+            <div class="kpi-subtext">
+                <span class="text-neutral-400">Routine maintenance tickets</span>
+            </div>
+        </button>
     </div>
 
     <!-- Main Queue Table Card -->
@@ -102,9 +125,9 @@ $tierBadges = [
                             <th class="p-3 font-semibold text-right">Update Workflow</th>
                         </tr>
                     </thead>
-                    <tbody class="divide-y divide-neutral-100">
+                    <tbody class="divide-y divide-neutral-100" id="queue-table-body">
                         <?php foreach ($queue as $q): ?>
-                            <tr class="hover:bg-neutral-50 transition-colors">
+                            <tr class="hover:bg-neutral-50 transition-colors" data-tier="<?= htmlspecialchars(strtolower($q['priority_tier'] ?? 'low')) ?>">
                                 <td class="p-3">
                                     <div class="flex flex-col gap-1 items-start">
                                         <span class="priority-badge badge <?= $tierBadges[$q['priority_tier'] ?? ''] ?? 'badge-neutral' ?> uppercase !text-[10px] font-bold tracking-wider">
@@ -191,6 +214,21 @@ $tierBadges = [
 </div>
 
 <script>
+function filterQueue(tier) {
+    const rows = document.querySelectorAll('#queue-table-body tr[data-tier]');
+    rows.forEach(row => {
+        const rowTier = row.getAttribute('data-tier');
+        if (tier === 'all') {
+            row.style.display = '';
+        } else if (tier === 'routine') {
+            row.style.display = (rowTier === 'medium' || rowTier === 'low' || rowTier === 'routine') ? '' : 'none';
+        } else {
+            row.style.display = (rowTier === tier) ? '' : 'none';
+        }
+    });
+    document.getElementById('queue-table-body')?.scrollIntoView({behavior:'smooth'});
+}
+
 /* Signature moment: priority badges settle into place on load */
 if (window.gsap) {
     let mm = gsap.matchMedia();

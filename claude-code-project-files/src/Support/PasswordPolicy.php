@@ -5,8 +5,10 @@ namespace App\Support;
 /**
  * The single password rule, used by every form and by the User model itself.
  *
- * Length (NIST SP 800-63B-4, where the password is the only sign-in factor): at least 15 characters,
- * counted as Unicode code points, and no "must contain a symbol" rules. bcrypt only reads the first
+ * Length: at least 10 characters, counted as Unicode code points, and no "must contain a symbol" rules.
+ * This is a deliberate relaxation (owner decision, 24 Oct 2026) of the 15 characters NIST SP 800-63B-4
+ * asks for when the password is the only sign-in factor; the guessability check below still applies, so
+ * do not raise it back without the owner. bcrypt only reads the first
  * 72 BYTES, so anything longer would be silently cut and a wrong password with the same first 72 bytes
  * would log in. Hence a byte limit on top: accented letters and emoji take more than one byte each.
  *
@@ -16,7 +18,7 @@ namespace App\Support;
  */
 final class PasswordPolicy
 {
-    public const MIN_CHARS = 15;
+    public const MIN_CHARS = 10;
     public const MAX_BYTES = 72;
 
     /** What is left after removing these (and the account's own name / e-mail, spaces, punctuation) must be 8+ characters. */
@@ -35,7 +37,7 @@ final class PasswordPolicy
     {
         // A NUL byte would end bcrypt's input early on PHP < 8.4: the same silent truncation as length.
         if (mb_strlen($password) < self::MIN_CHARS || strlen($password) > self::MAX_BYTES || str_contains($password, "\0")) {
-            return 'The password must be at least 15 characters and no more than 72 bytes (accented letters and emoji use more than one byte). A short phrase of unrelated words works well.';
+            return 'The password must be at least ' . self::MIN_CHARS . ' characters and no more than ' . self::MAX_BYTES . ' bytes (accented letters and emoji use more than one byte).';
         }
         $plain = mb_strtolower($password);
         if (count(array_unique(mb_str_split($plain))) < 5) {

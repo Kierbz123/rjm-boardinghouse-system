@@ -321,13 +321,51 @@ $returnTo = '/admin/staff?view=boarders' . (!empty($showArchived) ? '&archived=1
 
 <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
 
-    <div class="page-banner">
-        <div>
-            <h1>Boarders</h1>
-            <p>Every resident, their bed, status and balance. Add or place a resident on the <a href="/admin/boarders" class="underline">Boarders page</a>.</p>
+    <!-- Executive Page Banner with Quick Launch Command Bar -->
+    <header class="dash-hero-banner">
+        <div class="dash-hero-top">
+            <div>
+                <h1 class="dash-hero-title">
+                    <span>Boarders</span>
+                </h1>
+                <p class="dash-hero-sub">Every resident, their bed, status and balance. Add or place a resident on the <a href="/admin/boarders" class="underline hover:text-white transition-colors">Boarders page</a>.</p>
+            </div>
+
+            <div class="flex items-center gap-2.5 flex-wrap">
+                <span class="badge" style="background:rgba(255,255,255,0.08); color:#8cc2a2; border:1px solid rgba(255,255,255,0.15); padding:0.35rem 0.85rem; font-size:0.75rem; font-weight:600; border-radius:9999px; display:inline-flex; align-items:center;">
+                    <span class="live-pulse-dot" style="margin-right:0.45rem;"></span>
+                    <?= $activeBoarders ?> Active Living Here
+                </span>
+                <span class="badge" style="background:rgba(255,255,255,0.05); color:#a3a19b; border:1px solid rgba(255,255,255,0.1); padding:0.35rem 0.75rem; font-size:0.75rem; border-radius:9999px; display:inline-flex; align-items:center; gap:0.35rem;">
+                    <?= \App\Support\Icon::svg('calendar', 13) ?>
+                    <span><?= date('l, M j, Y') ?></span>
+                </span>
+            </div>
         </div>
-        <a href="/admin/boarders#add-boarder" class="btn btn-secondary btn-sm"><?= \App\Support\Icon::svg('plus', 14) ?> Add boarder</a>
-    </div>
+
+        <!-- Quick Launch Command Bar -->
+        <div class="dash-cmd-bar">
+            <span style="font-size:0.6875rem; font-weight:700; text-transform:uppercase; letter-spacing:0.06em; color:rgba(255,255,255,0.5); margin-right:0.35rem;">
+                Quick Launch:
+            </span>
+            <a href="/admin/boarders#add-boarder" class="dash-cmd-btn highlight" title="Add a resident or place in bed">
+                <?= \App\Support\Icon::svg('plus', 14) ?>
+                <span>Add Boarder</span>
+            </a>
+            <a href="#resident-directory-table" class="dash-cmd-btn" title="Jump to resident directory table">
+                <?= \App\Support\Icon::svg('users', 14) ?>
+                <span>Resident Directory (<?= $totalBoarders ?>)</span>
+            </a>
+            <a href="/admin/boarders" class="dash-cmd-btn" title="Open onboarding & placement page">
+                <?= \App\Support\Icon::svg('bed', 14) ?>
+                <span>Bed Assignment</span>
+            </a>
+            <a href="/admin/staff" class="dash-cmd-btn" title="View all users in system">
+                <?= \App\Support\Icon::svg('arrow-left', 14) ?>
+                <span>All Users</span>
+            </a>
+        </div>
+    </header>
 
     <?php $userTab = 'boarders'; require __DIR__ . '/_user_tabs.php'; ?>
 
@@ -346,7 +384,7 @@ $returnTo = '/admin/staff?view=boarders' . (!empty($showArchived) ? '&archived=1
     <?php endif; ?>
 
     <!-- Boarders Directory Section -->
-    <div>
+    <div id="resident-directory-table">
         <div class="section-headline-wrap">
             <div>
                 <h2 class="section-headline-title">Resident Directory</h2>
@@ -539,11 +577,11 @@ $returnTo = '/admin/staff?view=boarders' . (!empty($showArchived) ? '&archived=1
                                             </div>
                                             <div>
                                                 <label class="field-label">Contact Number</label>
-                                                <input name="contact_number" value="<?= htmlspecialchars($b['contact_number'] ?? '') ?>" placeholder="e.g. 09123456789" class="field-input">
+                                                <input name="contact_number" type="tel" inputmode="numeric" data-digits="15" value="<?= htmlspecialchars($b['contact_number'] ?? '') ?>" placeholder="e.g. 09123456789" class="field-input">
                                             </div>
                                             <div>
                                                 <label class="field-label">Emergency Contact Number</label>
-                                                <input name="emergency_contact_number" value="<?= htmlspecialchars($b['emergency_contact_number'] ?? '') ?>" placeholder="e.g. 09987654321" class="field-input">
+                                                <input name="emergency_contact_number" type="tel" inputmode="numeric" data-digits="15" value="<?= htmlspecialchars($b['emergency_contact_number'] ?? '') ?>" placeholder="e.g. 09987654321" class="field-input">
                                             </div>
                                         </div>
 

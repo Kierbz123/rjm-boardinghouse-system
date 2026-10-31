@@ -19,56 +19,101 @@ $reversedTrend = array_reverse($trend ?? []);
 ?>
 <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
 
-    <!-- Page Banner -->
-    <div class="page-banner">
-        <div>
-            <h1>Occupancy Trends</h1>
-            <p>Historical capacity utilization &amp; 30-day bed occupancy telemetry</p>
+    <!-- Executive Page Banner with Quick Launch Command Bar -->
+    <header class="dash-hero-banner">
+        <div class="dash-hero-top">
+            <div>
+                <h1 class="dash-hero-title">
+                    <span>Occupancy Trends</span>
+                </h1>
+                <p class="dash-hero-sub">Historical capacity utilization, 30-day bed occupancy telemetry, and space forecasting.</p>
+            </div>
+
+            <div class="flex items-center gap-2.5 flex-wrap">
+                <span class="badge" style="background:rgba(255,255,255,0.08); color:#8cc2a2; border:1px solid rgba(255,255,255,0.15); padding:0.35rem 0.85rem; font-size:0.75rem; font-weight:600; border-radius:9999px; display:inline-flex; align-items:center;">
+                    <span class="live-pulse-dot" style="margin-right:0.45rem;"></span>
+                    Telemetry Active
+                </span>
+                <span class="badge" style="background:rgba(255,255,255,0.05); color:#a3a19b; border:1px solid rgba(255,255,255,0.1); padding:0.35rem 0.75rem; font-size:0.75rem; border-radius:9999px; display:inline-flex; align-items:center; gap:0.35rem;">
+                    <?= \App\Support\Icon::svg('calendar', 13) ?>
+                    <span><?= date('l, M j, Y') ?></span>
+                </span>
+            </div>
         </div>
-        <span class="badge badge-success" style="background:rgba(255,255,255,0.12); color:#8cc2a2; border:1px solid rgba(255,255,255,0.18); padding:0.4rem 0.85rem; font-size:0.75rem;">
-            <span style="width:0.45rem;height:0.45rem;border-radius:50%;background:#5fae84;display:inline-block;margin-right:0.4rem;"></span>
-            Live Telemetry
-        </span>
-    </div>
+
+        <!-- Quick Launch Command Bar -->
+        <div class="dash-cmd-bar">
+            <span style="font-size:0.6875rem; font-weight:700; text-transform:uppercase; letter-spacing:0.06em; color:rgba(255,255,255,0.5); margin-right:0.35rem;">
+                Quick Launch:
+            </span>
+            <a href="#capacity-distribution" class="dash-cmd-btn highlight" title="Jump to capacity distribution breakdown">
+                <?= \App\Support\Icon::svg('bar-chart', 14) ?>
+                <span>Capacity Distribution</span>
+            </a>
+            <a href="#snapshot-log" class="dash-cmd-btn" title="Jump to daily snapshot log">
+                <?= \App\Support\Icon::svg('clipboard', 14) ?>
+                <span>Snapshot Log (<?= $totalSnapshots ?>)</span>
+            </a>
+            <a href="/admin/staff?view=boarders&status=active" class="dash-cmd-btn" title="View active boarders">
+                <?= \App\Support\Icon::svg('users', 14) ?>
+                <span>Active Residents (<?= $latestOccupied ?>)</span>
+            </a>
+            <a href="/admin/rooms" class="dash-cmd-btn" title="Manage rooms and bed slots">
+                <?= \App\Support\Icon::svg('home', 14) ?>
+                <span>Rooms &amp; Beds</span>
+            </a>
+        </div>
+    </header>
 
     <!-- KPI Cards -->
-    <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <div class="reveal-card card p-4 metric-accent-primary">
-            <div class="flex items-center justify-between mb-1">
-                <span class="text-caption font-semibold text-neutral-500 uppercase tracking-wider">Current Occupancy</span>
-                <?= \App\Support\Icon::svg('trending-up', 18) ?>
+    <div class="kpi-grid">
+        <a href="#capacity-distribution" class="reveal-card kpi-card metric-accent-primary" title="View capacity distribution">
+            <div class="kpi-card-header">
+                <span class="kpi-label">Current Occupancy</span>
+                <span class="kpi-icon"><?= \App\Support\Icon::svg('trending-up') ?></span>
             </div>
-            <p class="text-3xl font-bold text-neutral-900 mt-1" style="font-variant-numeric: tabular-nums;"><?= $latestPct ?>%</p>
-            <p class="text-caption text-neutral-400 mt-1"><?= $latestOccupied ?> of <?= $latestTotal ?> beds filled</p>
-        </div>
-        <div class="reveal-card card p-4 metric-accent-warning">
-            <div class="flex items-center justify-between mb-1">
-                <span class="text-caption font-semibold text-neutral-500 uppercase tracking-wider">Occupied Beds</span>
-                <?= \App\Support\Icon::svg('users', 18) ?>
+            <div class="kpi-value"><?= $latestPct ?>%</div>
+            <div class="kpi-subtext">
+                <span class="text-neutral-400"><?= $latestOccupied ?> of <?= $latestTotal ?> beds filled</span>
             </div>
-            <p class="text-3xl font-bold text-neutral-900 mt-1" style="font-variant-numeric: tabular-nums;"><?= $latestOccupied ?></p>
-            <p class="text-caption text-neutral-400 mt-1">Active residents</p>
-        </div>
-        <div class="reveal-card card p-4 metric-accent-success">
-            <div class="flex items-center justify-between mb-1">
-                <span class="text-caption font-semibold text-neutral-500 uppercase tracking-wider">Available Beds</span>
-                <?= \App\Support\Icon::svg('circle-dot', 18) ?>
+        </a>
+
+        <a href="/admin/staff?view=boarders&status=active" class="reveal-card kpi-card metric-accent-warning" title="View active residents">
+            <div class="kpi-card-header">
+                <span class="kpi-label">Occupied Beds</span>
+                <span class="kpi-icon"><?= \App\Support\Icon::svg('users') ?></span>
             </div>
-            <p class="text-3xl font-bold <?= $latestVacant === 0 ? 'text-error-600' : 'text-neutral-900' ?> mt-1" style="font-variant-numeric: tabular-nums;"><?= $latestVacant ?></p>
-            <p class="text-caption text-neutral-400 mt-1">Vacant capacity</p>
-        </div>
-        <div class="reveal-card card p-4 metric-accent-info">
-            <div class="flex items-center justify-between mb-1">
-                <span class="text-caption font-semibold text-neutral-500 uppercase tracking-wider">30-Day Average</span>
-                <?= \App\Support\Icon::svg('bar-chart', 18) ?>
+            <div class="kpi-value"><?= $latestOccupied ?></div>
+            <div class="kpi-subtext">
+                <span class="text-neutral-400">Active residents</span>
             </div>
-            <p class="text-3xl font-bold text-neutral-900 mt-1" style="font-variant-numeric: tabular-nums;"><?= $avgPct ?>%</p>
-            <p class="text-caption text-neutral-400 mt-1">Peak: <?= $peakPct ?>% across <?= $totalSnapshots ?> days</p>
-        </div>
+        </a>
+
+        <a href="/admin/rooms" class="reveal-card kpi-card metric-accent-success" title="View room type offerings">
+            <div class="kpi-card-header">
+                <span class="kpi-label">Available Beds</span>
+                <span class="kpi-icon"><?= \App\Support\Icon::svg('circle-dot') ?></span>
+            </div>
+            <div class="kpi-value <?= $latestVacant === 0 ? 'text-error-600' : 'text-neutral-900' ?>"><?= $latestVacant ?></div>
+            <div class="kpi-subtext">
+                <span class="text-neutral-400">Vacant capacity</span>
+            </div>
+        </a>
+
+        <a href="#snapshot-log" class="reveal-card kpi-card metric-accent-info" title="View daily historical snapshot log">
+            <div class="kpi-card-header">
+                <span class="kpi-label">30-Day Average</span>
+                <span class="kpi-icon"><?= \App\Support\Icon::svg('bar-chart') ?></span>
+            </div>
+            <div class="kpi-value"><?= $avgPct ?>%</div>
+            <div class="kpi-subtext">
+                <span class="text-neutral-400">Peak: <?= $peakPct ?>% across <?= $totalSnapshots ?> days</span>
+            </div>
+        </a>
     </div>
 
     <!-- Current Capacity Status Breakdown Card -->
-    <div class="card p-5 space-y-3.5">
+    <div class="card p-5 space-y-3.5" id="capacity-distribution">
         <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
             <div>
                 <h3 class="text-body font-bold text-neutral-900">Current Capacity Distribution</h3>
@@ -109,7 +154,7 @@ $reversedTrend = array_reverse($trend ?? []);
     </div>
 
     <!-- Daily Snapshots History Table -->
-    <div>
+    <div id="snapshot-log">
         <div class="section-header">
             <div class="flex items-center gap-2">
                 <h2>Historical Snapshot Log</h2>

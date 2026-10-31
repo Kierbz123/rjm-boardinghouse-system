@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Database;
+use App\Support\Phone;
 
 /** Prospective-resident room inquiries, from the public website or logged by staff. */
 class Inquiry
@@ -17,7 +18,8 @@ class Inquiry
     {
         $f = fn (string $k) => trim((string) ($in[$k] ?? ''));
         $name = $f('name');
-        $phone = $f('phone');
+        $phoneRaw = $in['phone'] ?? '';
+        $phone = Phone::digits($phoneRaw);
         $email = $f('email');
         $roomType = $f('room_type') !== '' ? $f('room_type') : 'General Inquiry';
         $moveIn = $f('move_in_date');
@@ -28,7 +30,7 @@ class Inquiry
 
         $error = match (true) {
             $name === '' || mb_strlen($name) > 150 => 'Please enter your name (150 characters max).',
-            !preg_match('/^[0-9+()\-\s]{7,20}$/', $phone) => 'Please enter a valid contact number.',
+            ($phoneProblem = Phone::problem($phoneRaw, true)) !== null => $phoneProblem,
             $email !== '' && (!filter_var($email, FILTER_VALIDATE_EMAIL) || mb_strlen($email) > 150) => 'Please enter a valid email address.',
             mb_strlen($roomType) > 100 => 'Please choose a room type.',
             $moveIn !== '' && (!($d = \DateTimeImmutable::createFromFormat('!Y-m-d', $moveIn)) || $d->format('Y-m-d') !== $moveIn) => 'Please enter a valid move-in date.',

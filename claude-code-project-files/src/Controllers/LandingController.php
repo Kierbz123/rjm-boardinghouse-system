@@ -31,6 +31,8 @@ class LandingController
             'admin_email'    => 'admin@rjmboardinghouse.ph',
             'facebook_url'   => 'https://facebook.com/rjmboardinghouse',
             'messenger_url'  => 'https://m.me/rjmboardinghouse',
+            'twitter_url'    => 'https://twitter.com/rjmboardinghouse',
+            'instagram_url'  => 'https://instagram.com/rjmboardinghouse',
             'address_line1'  => 'Zone 3, Purok Sanctuary',
             'address_line2'  => 'Tupi, South Cotabato, 9505 Philippines',
             'office_hours'   => 'Mon – Sat: 8:00 AM – 6:00 PM | Sun: 1:00 PM – 5:00 PM',

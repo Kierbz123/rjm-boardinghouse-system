@@ -10,3 +10,13 @@
 test_cookie*.txt
 
 /database/backups/
+
+# Unused prototype hero videos, overlays, and font experiments (dropped in d3de751)
+/public/assets/videos/
+/public/assets/images/hero-bob-overlay.png
+/public/assets/images/hero-rain-cover.webp
+/public/assets/fonts/caveat-*.woff2
+/public/assets/fonts/ibm-plex-mono-*.woff2
+/public/assets/fonts/inter-*.woff2
+/public/assets/fonts/newsreader-*.woff2
+

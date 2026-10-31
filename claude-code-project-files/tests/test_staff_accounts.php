@@ -1,6 +1,6 @@
 <?php
 /**
- * Staff Accounts audit (14 Oct 2026): password rule (15 characters to 72 bytes, guessable passwords
+ * Staff Accounts audit (14 Oct 2026): password rule (10 characters to 72 bytes since 24 Oct 2026, guessable passwords
  * refused), temporary passwords that must be replaced and expire, lower-case unique e-mails,
  * deactivate / reactivate, admin-only + CSRF on every action, and an audit trail for each action.
  */
@@ -15,10 +15,10 @@ $addStaff = fn (string $email, string $password, string $name = 'Crew Member') =
 $idOf = fn (string $email) => (int) q1('SELECT id FROM users WHERE email = ?', [$email]);
 
 section('Password length: characters and bytes');
-$p14 = 'violet-harbor1';
-$p15 = 'violet-harbor12';
-check(mb_strlen($p14) === 14 && !$ok($p14), '14 characters refused');
-check(mb_strlen($p15) === 15 && $ok($p15), '15 characters accepted');
+$p9 = 'violet-ha';    // refused on length alone
+$p10 = 'violet-har';  // 9 characters of residue after the guessable parts: clears that check too
+check(mb_strlen($p9) === 9 && !$ok($p9), '9 characters refused');
+check(mb_strlen($p10) === 10 && $ok($p10), '10 characters accepted');
 $b72 = substr(str_repeat('amber lantern quiet harbor ', 3), 0, 72);
 check(strlen($b72) === 72 && $ok($b72) && !$ok($b72 . 'x'), '72 bytes accepted, 73 refused');
 $cjk = '黄河远上白云间一片孤城万仞山羌笛';               // 16 characters, 48 bytes
@@ -27,7 +27,7 @@ $accented = 'crème brûlée à la café';                     // 22 characters,
 check(mb_strlen($accented) >= 15 && $ok($accented), 'accented letters and spaces are allowed');
 $emoji = str_repeat("\u{1F600}\u{1F33B}\u{1F680}\u{1F308}\u{1F34E}\u{1F3B8}", 3); // 18 characters, 72 bytes
 check(strlen($emoji) === 72 && $ok($emoji) && !$ok($emoji . "\u{1F431}"), 'emoji: 72 bytes accepted, one more emoji (76 bytes) refused');
-check(str_contains((string) PasswordPolicy::problem('short'), '15 characters') && str_contains((string) PasswordPolicy::problem('short'), '72 bytes'), 'the message names both limits');
+check(str_contains((string) PasswordPolicy::problem('short'), '10 characters') && str_contains((string) PasswordPolicy::problem('short'), '72 bytes'), 'the message names both limits');
 
 section('Guessable passwords are refused with a reason');
 check(!$ok('rjm boarding house 2026!'), 'the boarding house name plus a year');
@@ -168,16 +168,16 @@ check($staffC->get("/payments/{$paymentId}/receipt")->code === 404 && $admin->ge
 
 section('Owner decisions, 15 Oct 2026: staff phone numbers for SOS backup');
 $pe = 'phone' . uniq() . '@t.test';
-check(flashHas($admin, $admin->post('/admin/staff', ['name' => 'Phone Bad', 'email' => $pe, 'password' => 'Tmp-cobalt-river-fern', 'phone' => 'call me']), 'phone number') && !$idOf($pe), 'a malformed phone number is refused on create');
+check(flashHas($admin, $admin->post('/admin/staff', ['name' => 'Phone Bad', 'email' => $pe, 'password' => 'Tmp-cobalt-river-fern', 'phone' => 'call me']), 'digits only') && !$idOf($pe), 'a malformed phone number is refused on create');
 $admin->post('/admin/staff', ['name' => 'Rosa Dela Cruz', 'email' => $pe, 'password' => 'Tmp-cobalt-river-fern', 'phone' => ' 0917  555 0101 ']);
 $pid = $idOf($pe);
-check($pid > 0 && q1('SELECT phone FROM users WHERE id = ?', [$pid]) === '0917 555 0101', 'the phone is stored trimmed with single spaces');
-check($admin->get('/admin/staff?view=staff')->has('0917 555 0101'), 'the staff list shows it');
+check($pid > 0 && q1('SELECT phone FROM users WHERE id = ?', [$pid]) === '09175550101', 'the phone is stored as digits only');
+check($admin->get('/admin/staff?view=staff')->has('09175550101'), 'the staff list shows it');
 $portal = $resident['client']->get('/portal/dashboard')->body;
 check(str_contains($portal, 'Call Rosa Dela Cruz') && str_contains($portal, 'href="tel:09175550101"'), 'residents see "Call <name>: <number>" beside the SOS button, as a tap-to-call link');
 $admin->post("/admin/staff/{$pid}/phone", ['phone' => '+63 917 555 0202']);
-check(q1('SELECT phone FROM users WHERE id = ?', [$pid]) === '+63 917 555 0202', 'the admin changes it from the list');
-check(flashHas($admin, $admin->post("/admin/staff/{$pid}/phone", ['phone' => '12']), 'phone number') && q1('SELECT phone FROM users WHERE id = ?', [$pid]) === '+63 917 555 0202', 'a too-short number is refused and the old one kept');
+check(q1('SELECT phone FROM users WHERE id = ?', [$pid]) === '639175550202', 'the admin changes it from the list, + and spaces dropped');
+check(flashHas($admin, $admin->post("/admin/staff/{$pid}/phone", ['phone' => '12']), 'digits only') && q1('SELECT phone FROM users WHERE id = ?', [$pid]) === '639175550202', 'a too-short number is refused and the old one kept');
 $trail = q("SELECT details FROM audit_log WHERE entity_type = 'user' AND entity_id = ? AND action = 'staff_phone_changed'", [$pid]);
 check(count($trail) === 1 && !str_contains((string) $trail[0]['details'], '0202'), 'the change is in the history, without the number itself');
 check($staffC->post("/admin/staff/{$pid}/phone", ['phone' => '0917 000 0000'])->code === 403 && $admin->post("/admin/staff/{$pid}/phone", ['phone' => '0917 000 0000'], false)->code === 400, 'staff get 403 and a missing CSRF token gets 400');

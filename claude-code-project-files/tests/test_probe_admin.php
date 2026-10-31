@@ -15,6 +15,11 @@ $r = $admin->post('/admin/rooms', ['room_number' => $number, 'floor' => '2', 'ca
 check(flashHas($admin, $r, "Room {$number} added"), 'create a room');
 $roomId = (int) q1('SELECT id FROM rooms WHERE room_number = ?', [$number]);
 check(flashHas($admin, $admin->post('/admin/rooms', ['room_number' => $number, 'capacity' => 2, 'base_price' => 3000]), 'already exists'), 'duplicate room number refused');
+$roomsPageHtml = $admin->get('/admin/rooms')->body;
+check((bool) (preg_match('/<input[^>]+id="add-room-number"[^>]*>/i', $roomsPageHtml, $m) && str_contains($m[0], 'type="number"')), 'room number input is INT (type="number")');
+check((bool) (preg_match('/<input[^>]+id="add-room-floor"[^>]*>/i', $roomsPageHtml, $m) && str_contains($m[0], 'type="number"')), 'floor input is INT (type="number")');
+check(str_contains($roomsPageHtml, 'id="room-exists-dialog"') && str_contains($roomsPageHtml, 'Room Already Exists'), 'duplicate room popout dialog is present on /admin/rooms');
+check(flashHas($admin, $admin->post('/admin/rooms', ['room_number' => $number, 'floor' => '2', 'capacity' => 2, 'base_price' => 3000]), 'Floor 2'), 'duplicate room error notes existing floor');
 check(flashHas($admin, $admin->post('/admin/rooms', ['room_number' => 'Z' . uniq(), 'capacity' => 0, 'base_price' => 3000]), 'capacity must be greater'), 'capacity 0 refused');
 check(flashHas($admin, $admin->post('/admin/rooms', ['room_number' => 'Z' . uniq(), 'capacity' => 2, 'base_price' => -5]), 'Monthly price'), 'negative price refused');
 check(flashHas($admin, $admin->post('/admin/rooms', ['room_number' => 'Z' . uniq(), 'capacity' => 2, 'base_price' => 'abc']), 'Monthly price'), 'non-numeric price refused');
@@ -43,7 +48,7 @@ check(q1('SELECT status FROM boarder_profiles WHERE user_id = ?', [$one]) === 'p
 check(flashHas($admin, $mk([]), 'already in use'), 'duplicate e-mail refused');
 check(flashHas($admin, $mk(['email' => strtoupper($email)]), 'already in use'), 'duplicate e-mail in other letter case refused');
 check(flashHas($admin, $mk(['email' => 'not-an-email']), 'valid email'), 'invalid e-mail refused');
-check(flashHas($admin, $mk(['email' => 's' . uniq() . '@t.test', 'password' => '1234567']), '15 characters'), 'password under 15 characters refused');
+check(flashHas($admin, $mk(['email' => 's' . uniq() . '@t.test', 'password' => '1234567']), '10 characters'), 'password under 10 characters refused');
 $long = 'l' . uniq() . '@t.test';
 $mk(['email' => $long, 'password' => str_repeat('p', 100) . 'A']);
 $accepted = (bool) q1('SELECT COUNT(*) FROM users WHERE email = ?', [$long]);
@@ -141,7 +146,7 @@ $admin->post("/admin/staff/{$arch['id']}/status", ['status' => 'inactive']);
 check(q1('SELECT status FROM users WHERE id = ?', [$arch['id']]) === 'active', 'the staff route cannot deactivate a resident');
 $admin->post('/admin/staff/1/status', ['status' => 'inactive']);
 check(q1('SELECT status FROM users WHERE id = 1') === 'active', 'the staff route cannot deactivate the admin');
-check(flashHas($admin, $admin->post("/admin/staff/{$s2}/password", ['new_password' => 'x']), '15 characters'), 'a staff reset needs 15 characters to 72 bytes');
+check(flashHas($admin, $admin->post("/admin/staff/{$s2}/password", ['new_password' => 'x']), '10 characters'), 'a staff reset needs 10 characters to 72 bytes');
 
 section('Electricity bills');
 $room = makeRoom($admin, 2, 3000, 2);

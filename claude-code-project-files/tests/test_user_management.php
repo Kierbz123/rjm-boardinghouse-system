@@ -46,6 +46,11 @@ check(in_array($res['id'], $ids, true) && !in_array($paulo, $ids, true), 'type=b
 $ids = $rowsOf($admin->get('/admin/staff?q=' . urlencode($tag) . '&status=archived'));
 check($ids === [$arch['id']], 'status=archived shows the archived resident');
 check($rowsOf($admin->get('/admin/staff?q=' . urlencode($room['number']))) === [$res['id']], 'search finds a resident by room number');
+// Paulo's number is stored as "0917 555 0303": an admin may type it any of these ways.
+foreach (['09175550303', '0917-555-0303', '+63 917 555 0303', '9175550303'] as $typed) {
+    check(in_array($paulo, $rowsOf($admin->get('/admin/staff?q=' . urlencode($typed))), true), "search finds a phone number typed as {$typed}");
+}
+check(!$rowsOf($admin->get('/admin/staff?q=' . urlencode('zzz' . $tag))), 'a search with no digits does not match every account that has a phone');
 $r = $admin->post("/admin/staff/{$paulo}/status", ['status' => 'inactive']);
 check($r->loc === '/admin/staff?view=staff', 'a staff action returns to the Staff tab');
 $ids = $rowsOf($admin->get('/admin/staff?q=' . urlencode($tag) . '&status=inactive'));
@@ -62,6 +67,8 @@ $p1 = $admin->get('/admin/staff?q=' . urlencode($pg) . '&type=staff');
 check(count($rowsOf($p1)) === 25 && $p1->has('26 people'), 'page 1 holds 25 of 26 matches and says how many matched');
 check($p1->has('page=2') && $p1->has('q=' . urlencode($pg)) && $p1->has('type=staff'), 'the next-page link keeps the search and filters');
 $p2 = $admin->get('/admin/staff?q=' . urlencode($pg) . '&type=staff&page=2');
+check(!str_contains((string) (preg_match('/href="([^"]*type=staff[^"]*)"[^>]*class="[^"]*kpi-card/', $p2->body, $m) ? $m[1] : 'page='), 'page='),
+    'changing the filter from a later page starts again at page 1');
 check($rowsOf($p2) === [$idOf("pg{$tag}n26@t.test")], 'page 2 holds the last one, sorted by name');
 $newest = $rowsOf($admin->get('/admin/staff?q=' . urlencode($pg) . '&sort=newest'));
 check(($newest[0] ?? 0) === $idOf("pg{$tag}n26@t.test"), 'sort=newest puts the latest account first');
@@ -86,8 +93,8 @@ check($r->has('id="boarder-row-' . $res['id'] . '"') && !$r->has('id="boarder-ro
 check($r->has('href="/admin/staff?view=boarders" class="btn btn-sm btn-primary" aria-current="page"'), 'the Boarders tab is highlighted');
 check($admin->get('/admin/staff?view=boarders&archived=1')->has('id="boarder-row-' . $arch['id'] . '"'), 'Show archived lists the archived resident');
 $boardersPage = $admin->get('/admin/boarders');
-check($boardersPage->has('data-user-tabs') && $boardersPage->has('id="add-boarder"') && !$boardersPage->has('id="boarders-table"'),
-    'the Boarders page keeps Add Boarder and the tabs, without the directory');
+check($boardersPage->has('id="add-boarder"') && !$boardersPage->has('id="boarders-table"'),
+    'the Boarders page keeps Add Boarder, without the directory');
 $r = $admin->post("/admin/boarders/{$res['id']}/info", ['name' => "Mira {$tag}", 'email' => $res['email'], 'status' => '', 'return_to' => '/admin/staff?view=boarders']);
 check($r->loc === '/admin/staff?view=boarders', 'saving a resident from the directory returns to the directory');
 $r = $admin->post("/admin/boarders/{$res['id']}/info", ['name' => "Mira {$tag}", 'email' => $res['email'], 'status' => '', 'return_to' => '//evil.example/admin/boarders']);

@@ -12,6 +12,10 @@ $when = function (?string $ts, string $format = 'M j, Y'): string {
 };
 // The current filters, minus defaults, so links stay short and paging keeps what the admin chose.
 $link = function (array $change) use ($filters, $page): string {
+    // Changing what is listed goes back to page 1; staying on page 5 of a one-page result shows nothing.
+    if (array_intersect_key($change, array_flip(['q', 'type', 'status', 'sort']))) {
+        $change += ['page' => 1];
+    }
     $params = array_merge($filters + ['page' => $page], $change);
     $params = array_filter($params, fn ($v, $k) => $v !== '' && !($k === 'page' && (int) $v === 1) && !($k === 'sort' && $v === 'name'), ARRAY_FILTER_USE_BOTH);
     return '/admin/staff' . ($params ? '?' . http_build_query($params) : '');
@@ -38,26 +42,83 @@ $label = 'block text-xs font-medium text-neutral-600 mb-1';
 ?>
 <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
 
-    <div class="page-banner">
-        <div>
-            <h1>User Management</h1>
-            <p>Manage boarders, staff members, and their accounts in one place.</p>
+    <!-- Executive Page Banner with Quick Launch Command Bar -->
+    <header class="dash-hero-banner">
+        <div class="dash-hero-top">
+            <div>
+                <h1 class="dash-hero-title">
+                    <span>User Management</span>
+                </h1>
+                <p class="dash-hero-sub">Manage boarders, staff members, permissions, and accounts in one unified console.</p>
+            </div>
+
+            <div class="flex items-center gap-2.5 flex-wrap">
+                <span class="badge" style="background:rgba(255,255,255,0.08); color:#8cc2a2; border:1px solid rgba(255,255,255,0.15); padding:0.35rem 0.85rem; font-size:0.75rem; font-weight:600; border-radius:9999px; display:inline-flex; align-items:center;">
+                    <span class="live-pulse-dot" style="margin-right:0.45rem;"></span>
+                    Directory Active
+                </span>
+                <span class="badge" style="background:rgba(255,255,255,0.05); color:#a3a19b; border:1px solid rgba(255,255,255,0.1); padding:0.35rem 0.75rem; font-size:0.75rem; border-radius:9999px; display:inline-flex; align-items:center; gap:0.35rem;">
+                    <?= \App\Support\Icon::svg('calendar', 13) ?>
+                    <span><?= date('l, M j, Y') ?></span>
+                </span>
+            </div>
         </div>
-        <div class="flex flex-wrap gap-2">
-            <a href="/admin/boarders#add-boarder" class="btn btn-secondary btn-sm"><?= \App\Support\Icon::svg('plus', 14) ?> Add boarder</a>
-            <a href="/admin/staff?view=staff#add-staff" class="btn btn-secondary btn-sm"><?= \App\Support\Icon::svg('plus', 14) ?> Add staff</a>
+
+        <!-- Quick Launch Command Bar -->
+        <div class="dash-cmd-bar">
+            <span style="font-size:0.6875rem; font-weight:700; text-transform:uppercase; letter-spacing:0.06em; color:rgba(255,255,255,0.5); margin-right:0.35rem;">
+                Quick Launch:
+            </span>
+            <a href="/admin/boarders#add-boarder" class="dash-cmd-btn highlight" title="Add a resident or place in bed">
+                <?= \App\Support\Icon::svg('plus', 14) ?>
+                <span>Add Boarder</span>
+            </a>
+            <a href="/admin/staff?view=staff#add-staff" class="dash-cmd-btn" title="Create staff member account">
+                <?= \App\Support\Icon::svg('plus', 14) ?>
+                <span>Add Staff</span>
+            </a>
+            <a href="/admin/staff?view=boarders" class="dash-cmd-btn" title="Open resident directory tab">
+                <?= \App\Support\Icon::svg('users', 14) ?>
+                <span>Boarders Tab</span>
+            </a>
+            <a href="/admin/staff?view=staff" class="dash-cmd-btn" title="Open staff directory tab">
+                <?= \App\Support\Icon::svg('wrench', 14) ?>
+                <span>Staff Tab</span>
+            </a>
         </div>
-    </div>
+    </header>
 
     <?php require __DIR__ . '/_user_tabs.php'; ?>
 
-    <div class="grid gap-3" style="grid-template-columns: repeat(auto-fit, minmax(10.5rem, 1fr));">
-        <?php foreach ($stats as [$key, $title, $sub, $accent]): ?>
-            <div class="card p-4 <?= $accent ?>">
-                <p class="text-caption font-semibold text-neutral-500 uppercase tracking-wider"><?= $title ?></p>
-                <p class="text-3xl font-bold text-neutral-900 mt-1.5 tabular" data-stat="<?= $key ?>"><?= (int) $counts[$key] ?></p>
-                <p class="text-caption text-neutral-400 mt-1"><?= $sub ?></p>
-            </div>
+    <div class="kpi-grid-5">
+        <?php foreach ($stats as [$key, $title, $sub, $accent]):
+            $href = match ($key) {
+                'total' => $link(['type' => '', 'status' => '']),
+                'boarders' => $link(['type' => 'boarder']),
+                'staff' => $link(['type' => 'staff']),
+                'active' => $link(['status' => 'active']),
+                'inactive' => $link(['status' => 'inactive']),
+                default => '/admin/staff',
+            };
+            $icon = match ($key) {
+                'total' => 'users',
+                'boarders' => 'building',
+                'staff' => 'wrench',
+                'active' => 'check-circle',
+                'inactive' => 'alert-circle',
+                default => 'users',
+            };
+        ?>
+            <a href="<?= htmlspecialchars($href) ?>" class="reveal-card kpi-card <?= $accent ?>" title="Filter by <?= htmlspecialchars($title) ?>">
+                <div class="kpi-card-header">
+                    <span class="kpi-label"><?= $title ?></span>
+                    <span class="kpi-icon"><?= \App\Support\Icon::svg($icon) ?></span>
+                </div>
+                <div class="kpi-value tabular" data-stat="<?= $key ?>"><?= (int) $counts[$key] ?></div>
+                <div class="kpi-subtext">
+                    <span class="text-neutral-400"><?= $sub ?></span>
+                </div>
+            </a>
         <?php endforeach; ?>
     </div>
 

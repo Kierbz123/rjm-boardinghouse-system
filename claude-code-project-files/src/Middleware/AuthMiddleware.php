@@ -49,7 +49,25 @@ class AuthMiddleware
             exit;
         }
 
-        $_SESSION['last_activity'] = time();
+        // A background poll is the browser talking, not the person: counting it as activity would
+        // keep any open tab signed in for ever (the notification bell asks every 15 seconds).
+        // The idle check above still runs, so a session that has gone stale ends on the poll itself.
+        if (!self::isBackgroundPoll()) {
+            $_SESSION['last_activity'] = time();
+        }
+    }
+
+    /**
+     * Polls that must not extend a session. /api/sos/active is deliberately NOT one of them:
+     * the on-duty staff keep the dashboard open at the front desk to see emergencies, and
+     * signing them out would hide the next alert.
+     */
+    private static function isBackgroundPoll(): bool
+    {
+        $path = (string) parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH);
+        // The router answers HEAD as GET, so HEAD has to be covered here too.
+        return in_array($_SERVER['REQUEST_METHOD'] ?? 'GET', ['GET', 'HEAD'], true)
+            && $path === '/api/notifications/unread';
     }
 
     private static function allowedWhilePasswordMustChange(): bool

@@ -17,18 +17,55 @@ $totalCollected = array_sum(array_map(
 ?>
 <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
 
-    <!-- Page Banner -->
-    <div class="page-banner">
-        <div>
-            <h1>Payments &amp; Collections</h1>
-            <p>Rent tracking, proof-of-payment verifications &amp; ledger records</p>
-            <a href="/admin/payments/record" class="btn btn-primary mt-3 inline-block">Record a payment taken in person</a>
+    <!-- Executive Page Banner with Quick Launch Command Bar -->
+    <header class="dash-hero-banner">
+        <div class="dash-hero-top">
+            <div>
+                <h1 class="dash-hero-title">
+                    <span>Payments &amp; Collections</span>
+                </h1>
+                <p class="dash-hero-sub">Rent tracking, proof-of-payment verifications, and financial ledger records.</p>
+            </div>
+
+            <div class="flex items-center gap-2.5 flex-wrap">
+                <span class="badge" style="background:rgba(255,255,255,0.08); color:#8cc2a2; border:1px solid rgba(255,255,255,0.15); padding:0.35rem 0.85rem; font-size:0.75rem; font-weight:600; border-radius:9999px; display:inline-flex; align-items:center;">
+                    <span class="live-pulse-dot" style="margin-right:0.45rem;"></span>
+                    Audit Active
+                </span>
+                <span class="badge" style="background:rgba(255,255,255,0.05); color:#a3a19b; border:1px solid rgba(255,255,255,0.1); padding:0.35rem 0.75rem; font-size:0.75rem; border-radius:9999px; display:inline-flex; align-items:center; gap:0.35rem;">
+                    <?= \App\Support\Icon::svg('calendar', 13) ?>
+                    <span><?= date('l, M j, Y') ?></span>
+                </span>
+            </div>
         </div>
-        <span class="badge badge-success" style="background:rgba(255,255,255,0.12); color:#8cc2a2; border:1px solid rgba(255,255,255,0.18); padding:0.4rem 0.85rem; font-size:0.75rem;">
-            <span style="width:0.45rem;height:0.45rem;border-radius:50%;background:#5fae84;display:inline-block;margin-right:0.4rem;"></span>
-            Audit Active
-        </span>
-    </div>
+
+        <!-- Quick Launch Command Bar -->
+        <div class="dash-cmd-bar">
+            <span style="font-size:0.6875rem; font-weight:700; text-transform:uppercase; letter-spacing:0.06em; color:rgba(255,255,255,0.5); margin-right:0.35rem;">
+                Quick Launch:
+            </span>
+            <a href="/admin/payments/record" class="dash-cmd-btn highlight" title="Record an in-person cash or walk-in payment">
+                <?= \App\Support\Icon::svg('plus', 14) ?>
+                <span>Record Payment</span>
+            </a>
+            <button type="button" onclick="const b=document.querySelector('[data-status=pending]');if(b)b.click();document.getElementById('payments-table')?.scrollIntoView({behavior:'smooth'});" class="dash-cmd-btn" title="Filter pending reviews">
+                <?= \App\Support\Icon::svg('alert-circle', 14) ?>
+                <span>Pending Approvals (<?= $pendingPaymentsCount ?>)</span>
+            </button>
+            <a href="/admin/expenses" class="dash-cmd-btn" title="View operational expenses">
+                <?= \App\Support\Icon::svg('banknote', 14) ?>
+                <span>Expenses</span>
+            </a>
+            <a href="/admin/penalty-rules" class="dash-cmd-btn" title="Manage penalty rules and late fees">
+                <?= \App\Support\Icon::svg('scale', 14) ?>
+                <span>Penalties</span>
+            </a>
+            <a href="/admin/ledger/export" class="dash-cmd-btn" title="Export payments ledger as CSV">
+                <?= \App\Support\Icon::svg('download', 14) ?>
+                <span>Export Ledger</span>
+            </a>
+        </div>
+    </header>
 
     <?php if ($error): ?>
         <div class="bg-error-50 text-error-700 text-body-sm rounded-lg p-3.5 border border-error-500 flex items-center gap-2.5" role="alert">
@@ -45,43 +82,54 @@ $totalCollected = array_sum(array_map(
     <?php endif; ?>
 
     <!-- KPI Cards -->
-    <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <div class="reveal-card card p-4 metric-accent-primary">
-            <div class="flex items-center justify-between mb-1">
-                <span class="text-caption font-semibold text-neutral-500 uppercase tracking-wider">Total Recorded</span>
-                <?= \App\Support\Icon::svg('file-text', 18) ?>
+    <div class="kpi-grid">
+        <button type="button" onclick="const b=document.querySelector('[data-status=all]');if(b)b.click();document.getElementById('payments-table')?.scrollIntoView({behavior:'smooth'});" class="reveal-card kpi-card metric-accent-primary" title="Show all payment records">
+            <div class="kpi-card-header">
+                <span class="kpi-label">Total Recorded</span>
+                <span class="kpi-icon"><?= \App\Support\Icon::svg('file-text') ?></span>
             </div>
-            <p class="text-3xl font-bold text-neutral-900 mt-1" style="font-variant-numeric: tabular-nums;"><?= $totalPayments ?></p>
-            <p class="text-caption text-neutral-400 mt-1">Transactions logged</p>
-        </div>
-        <div class="reveal-card card p-4 metric-accent-warning">
-            <div class="flex items-center justify-between mb-1">
-                <span class="text-caption font-semibold text-neutral-500 uppercase tracking-wider">Pending Review</span>
-                <span style="font-size:1.1rem; line-height:1;">⏳</span>
+            <div class="kpi-value"><?= $totalPayments ?></div>
+            <div class="kpi-subtext">
+                <span class="text-neutral-400">Transactions logged</span>
             </div>
-            <p class="text-3xl font-bold <?= $pendingPaymentsCount > 0 ? 'text-amber-600' : 'text-neutral-900' ?> mt-1" style="font-variant-numeric: tabular-nums;"><?= $pendingPaymentsCount ?></p>
-            <?php if ($pendingPaymentsCount > 0): ?>
-                <p class="text-caption text-amber-600 mt-1 font-semibold">Requires verification</p>
-            <?php else: ?>
-                <p class="text-caption text-neutral-400 mt-1">All up to date</p>
-            <?php endif; ?>
-        </div>
-        <div class="reveal-card card p-4 metric-accent-success">
-            <div class="flex items-center justify-between mb-1">
-                <span class="text-caption font-semibold text-neutral-500 uppercase tracking-wider">Verified / Approved</span>
-                <?= \App\Support\Icon::svg('check', 18) ?>
+        </button>
+
+        <button type="button" onclick="const b=document.querySelector('[data-status=pending]');if(b)b.click();document.getElementById('payments-table')?.scrollIntoView({behavior:'smooth'});" class="reveal-card kpi-card metric-accent-warning" title="Filter pending review payments">
+            <div class="kpi-card-header">
+                <span class="kpi-label">Pending Review</span>
+                <span class="kpi-icon"><?= \App\Support\Icon::svg('calendar') ?></span>
             </div>
-            <p class="text-3xl font-bold text-neutral-900 mt-1" style="font-variant-numeric: tabular-nums;"><?= $verifiedPaymentsCount ?></p>
-            <p class="text-caption text-neutral-400 mt-1">Confirmed payments</p>
-        </div>
-        <div class="reveal-card card p-4 metric-accent-info">
-            <div class="flex items-center justify-between mb-1">
-                <span class="text-caption font-semibold text-neutral-500 uppercase tracking-wider">Total Collected</span>
-                <span style="font-size:1.1rem; line-height:1;">₱</span>
+            <div class="kpi-value <?= $pendingPaymentsCount > 0 ? 'text-amber-600' : 'text-neutral-900' ?>"><?= $pendingPaymentsCount ?></div>
+            <div class="kpi-subtext">
+                <?php if ($pendingPaymentsCount > 0): ?>
+                    <span class="text-amber-600 font-semibold">Requires verification</span>
+                <?php else: ?>
+                    <span class="text-neutral-400">All up to date</span>
+                <?php endif; ?>
             </div>
-            <p class="text-3xl font-bold text-neutral-900 mt-1" style="font-variant-numeric: tabular-nums;">₱<?= number_format($totalCollected, 2) ?></p>
-            <p class="text-caption text-neutral-400 mt-1">Verified revenue</p>
-        </div>
+        </button>
+
+        <button type="button" onclick="const b=document.querySelector('[data-status=verified]');if(b)b.click();document.getElementById('payments-table')?.scrollIntoView({behavior:'smooth'});" class="reveal-card kpi-card metric-accent-success" title="Filter verified payments">
+            <div class="kpi-card-header">
+                <span class="kpi-label">Verified / Approved</span>
+                <span class="kpi-icon"><?= \App\Support\Icon::svg('check-circle') ?></span>
+            </div>
+            <div class="kpi-value"><?= $verifiedPaymentsCount ?></div>
+            <div class="kpi-subtext">
+                <span class="text-neutral-400">Confirmed payments</span>
+            </div>
+        </button>
+
+        <a href="/admin/expenses" class="reveal-card kpi-card metric-accent-info" title="View expense disbursements">
+            <div class="kpi-card-header">
+                <span class="kpi-label">Total Collected</span>
+                <span class="kpi-icon"><?= \App\Support\Icon::svg('banknote') ?></span>
+            </div>
+            <div class="kpi-value">₱<?= number_format($totalCollected, 2) ?></div>
+            <div class="kpi-subtext">
+                <span class="text-neutral-400">Verified revenue</span>
+            </div>
+        </a>
     </div>
 
     <!-- Payments Ledger Section -->
@@ -103,30 +151,53 @@ $totalCollected = array_sum(array_map(
             </div>
         </div>
 
-        <!-- Filter & Search Bar -->
-        <div class="card p-3 mb-3 flex flex-wrap items-center justify-between gap-3 bg-white">
-            <div class="flex items-center gap-1.5 flex-wrap">
-                <span class="text-caption font-semibold text-neutral-500 uppercase tracking-wider mr-1">Filter:</span>
-                <button type="button" class="btn btn-secondary !py-1.5 !px-3 !text-xs filter-btn active-filter cursor-pointer" data-status="all">
-                    All (<?= $totalPayments ?>)
+        <!-- Sticky Command / Navigation Bar -->
+        <div class="rooms-sticky-nav" id="payments-command-bar">
+            <!-- Segmented Tab Navigation -->
+            <nav class="rooms-nav-list" id="payments-subnav" aria-label="Payments filter navigation">
+                <button type="button" class="rooms-nav-tab filter-btn active active-filter" data-status="all" title="View all payment records">
+                    <svg class="icon" xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="10"></circle></svg>
+                    <span>All Transactions</span>
+                    <span class="rooms-nav-badge"><?= $totalPayments ?></span>
                 </button>
-                <button type="button" class="btn btn-secondary !py-1.5 !px-3 !text-xs filter-btn cursor-pointer" data-status="pending">
-                    Pending Review (<?= $pendingPaymentsCount ?>)
+                <button type="button" class="rooms-nav-tab filter-btn" data-status="pending" title="Filter pending payments requiring review">
+                    <svg class="icon" xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+                    <span>Pending Review</span>
+                    <span class="rooms-nav-badge" style="<?= $pendingPaymentsCount > 0 ? 'background:#e09b52; color:#fff;' : '' ?>"><?= $pendingPaymentsCount ?></span>
                 </button>
-                <button type="button" class="btn btn-secondary !py-1.5 !px-3 !text-xs filter-btn cursor-pointer" data-status="verified">
-                    Verified (<?= $verifiedPaymentsCount ?>)
+                <button type="button" class="rooms-nav-tab filter-btn" data-status="verified" title="Filter verified and confirmed receipts">
+                    <svg class="icon" xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+                    <span>Verified</span>
+                    <span class="rooms-nav-badge"><?= $verifiedPaymentsCount ?></span>
                 </button>
-                <button type="button" class="btn btn-secondary !py-1.5 !px-3 !text-xs filter-btn cursor-pointer" data-status="rejected">
-                    Rejected (<?= $rejectedPaymentsCount ?>)
+                <button type="button" class="rooms-nav-tab filter-btn" data-status="rejected" title="Filter rejected payments">
+                    <svg class="icon" xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="10"></circle><line x1="15" y1="9" x2="9" y2="15"></line><line x1="9" y1="9" x2="15" y2="15"></line></svg>
+                    <span>Rejected</span>
+                    <span class="rooms-nav-badge"><?= $rejectedPaymentsCount ?></span>
                 </button>
-            </div>
-            <div class="relative flex-1 sm:max-w-xs min-w-[220px]">
-                <input type="text"
-                       id="payment-search"
-                       placeholder="Search boarder or period..."
-                       class="input input-sm w-full"
-                       style="padding-left: 2.25rem !important; padding-right: 1rem !important; height: 2.25rem;">
-                <span style="position:absolute;left:0.75rem;top:50%;transform:translateY(-50%);color:#9d9b97;font-size:0.875rem;pointer-events:none;"><?= \App\Support\Icon::svg('search') ?></span>
+            </nav>
+
+            <!-- Search, Density & Quick Actions -->
+            <div class="nav-toolbar-controls">
+                <div class="nav-search-wrap">
+                    <input type="text" id="payment-search" placeholder="Search boarder or period..." class="nav-search-input" autocomplete="off">
+                    <span class="nav-search-icon">
+                        <svg class="icon" xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+                    </span>
+                    <button type="button" id="payment-search-clear" class="nav-search-clear" aria-label="Clear search">×</button>
+                </div>
+                <div class="view-mode-toggle" id="payment-view-mode-toggle" title="Switch table display density">
+                    <button type="button" class="view-mode-btn active" data-density="normal">
+                        Standard
+                    </button>
+                    <button type="button" class="view-mode-btn" data-density="compact">
+                        Compact
+                    </button>
+                </div>
+                <a href="/admin/payments/record" class="btn btn-primary !py-1.5 !px-3 !text-xs inline-flex items-center gap-1.5 font-semibold" title="Record in-person payment">
+                    <svg class="icon" xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+                    <span>Record</span>
+                </a>
             </div>
         </div>
 
@@ -419,19 +490,51 @@ document.addEventListener('DOMContentLoaded', () => {
 
     filterButtons.forEach(btn => {
         btn.addEventListener('click', () => {
-            filterButtons.forEach(b => b.classList.remove('active-filter'));
+            filterButtons.forEach(b => {
+                b.classList.remove('active-filter');
+                b.classList.remove('active');
+            });
             btn.classList.add('active-filter');
+            btn.classList.add('active');
             currentStatus = btn.getAttribute('data-status');
             applyFilters();
         });
     });
 
+    const searchClear = document.getElementById('payment-search-clear');
     if (searchInput) {
         searchInput.addEventListener('input', (e) => {
             searchQuery = e.target.value.toLowerCase().trim();
+            if (searchClear) searchClear.classList.toggle('visible', searchQuery.length > 0);
             applyFilters();
         });
+        if (searchClear) {
+            searchClear.addEventListener('click', () => {
+                searchInput.value = '';
+                searchClear.classList.remove('visible');
+                searchQuery = '';
+                applyFilters();
+                searchInput.focus();
+            });
+        }
     }
+
+    // Table display density toggle
+    const densityBtns = document.querySelectorAll('#payment-view-mode-toggle .view-mode-btn');
+    const paymentTable = document.getElementById('payments-table');
+    densityBtns.forEach(btn => {
+        btn.addEventListener('click', () => {
+            const density = btn.getAttribute('data-density');
+            densityBtns.forEach(b => b.classList.toggle('active', b === btn));
+            if (paymentTable) {
+                if (density === 'compact') {
+                    paymentTable.classList.add('table-compact');
+                } else {
+                    paymentTable.classList.remove('table-compact');
+                }
+            }
+        });
+    });
 
 
 

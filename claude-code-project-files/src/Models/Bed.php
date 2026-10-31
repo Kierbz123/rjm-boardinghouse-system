@@ -7,14 +7,28 @@ use RuntimeException;
 
 class Bed
 {
-    public static function all(): array
+    public static function all(string $orderBy = 'desc'): array
     {
-        $sql = 'SELECT beds.*, rooms.room_number, rooms.room_type_id, u.name AS boarder_name
+        $direction = strtolower($orderBy) === 'asc' ? 'ASC' : 'DESC';
+        $sql = "SELECT beds.*, rooms.room_number, rooms.room_type_id, u.name AS boarder_name
                 FROM beds
                 JOIN rooms ON rooms.id = beds.room_id
                 LEFT JOIN users u ON u.id = beds.current_boarder_id
-                ORDER BY rooms.room_number, beds.label';
-        return Database::getConnection()->query($sql)->fetchAll();
+                ORDER BY (rooms.room_number REGEXP '^[0-9]+$') DESC,
+                         CAST(rooms.room_number AS UNSIGNED) {$direction},
+                         rooms.room_number {$direction},
+                         beds.label ASC";
+        $rows = Database::getConnection()->query($sql)->fetchAll();
+
+        usort($rows, function ($a, $b) use ($direction) {
+            $roomCmp = strnatcasecmp((string) $a['room_number'], (string) $b['room_number']);
+            if ($roomCmp !== 0) {
+                return $direction === 'ASC' ? $roomCmp : -$roomCmp;
+            }
+            return strnatcasecmp((string) $a['label'], (string) $b['label']);
+        });
+
+        return $rows;
     }
 
     public static function find(int $id): ?array

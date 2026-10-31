@@ -29,29 +29,52 @@ $tierBadges = [
     </div>
 
     <!-- KPI Metric Cards -->
-    <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
-        <div class="reveal-card card p-4 metric-accent-error <?= $activeSosCount > 0 ? 'ring-1 ring-red-300' : '' ?>">
-            <p class="text-caption font-semibold text-neutral-500 uppercase tracking-wider">Active SOS Alerts</p>
-            <p class="text-3xl font-bold <?= $activeSosCount > 0 ? 'text-red-600' : 'text-neutral-900' ?> mt-1.5"><?= $activeSosCount ?></p>
-            <p class="text-caption <?= $activeSosCount > 0 ? 'text-red-600 font-semibold' : 'text-neutral-400' ?> mt-1">
-                <?= $activeSosCount > 0 ? 'Requires immediate response' : 'No active emergencies' ?>
-            </p>
-        </div>
-        <div class="reveal-card card p-4 metric-accent-warning">
-            <p class="text-caption font-semibold text-neutral-500 uppercase tracking-wider">Queue Pending</p>
-            <p class="text-3xl font-bold text-neutral-900 mt-1.5"><?= $queueCount ?></p>
-            <p class="text-caption text-neutral-400 mt-1">Awaiting repair or triage</p>
-        </div>
-        <div class="reveal-card card p-4 metric-accent-error">
-            <p class="text-caption font-semibold text-neutral-500 uppercase tracking-wider">Critical Tickets</p>
-            <p class="text-3xl font-bold <?= $criticalCount > 0 ? 'text-red-600' : 'text-neutral-900' ?> mt-1.5"><?= $criticalCount ?></p>
-            <p class="text-caption text-neutral-400 mt-1"><?= $criticalCount > 0 ? 'Urgent facility risks' : 'Zero critical issues' ?></p>
-        </div>
-        <div class="reveal-card card p-4 metric-accent-success">
-            <p class="text-caption font-semibold text-neutral-500 uppercase tracking-wider">Facility Telemetry</p>
-            <p class="text-3xl font-bold text-neutral-900 mt-1.5">24/7</p>
-            <p class="text-caption text-neutral-400 mt-1">Real-time alert polling active</p>
-        </div>
+    <div class="kpi-grid">
+        <a href="/staff/incidents" class="reveal-card kpi-card metric-accent-error <?= $activeSosCount > 0 ? 'ring-1 ring-red-300' : '' ?>" title="View active SOS alerts">
+            <div class="kpi-card-header">
+                <span class="kpi-label">Active SOS Alerts</span>
+                <span class="kpi-icon"><?= \App\Support\Icon::svg('siren') ?></span>
+            </div>
+            <div class="kpi-value <?= $activeSosCount > 0 ? 'text-red-600' : 'text-neutral-900' ?>"><?= $activeSosCount ?></div>
+            <div class="kpi-subtext">
+                <span class="<?= $activeSosCount > 0 ? 'text-red-600 font-semibold' : 'text-neutral-400' ?>">
+                    <?= $activeSosCount > 0 ? 'Requires immediate response' : 'No active emergencies' ?>
+                </span>
+            </div>
+        </a>
+
+        <a href="/staff/maintenance" class="reveal-card kpi-card metric-accent-warning" title="View maintenance queue">
+            <div class="kpi-card-header">
+                <span class="kpi-label">Queue Pending</span>
+                <span class="kpi-icon"><?= \App\Support\Icon::svg('wrench') ?></span>
+            </div>
+            <div class="kpi-value"><?= $queueCount ?></div>
+            <div class="kpi-subtext">
+                <span class="text-neutral-400">Awaiting repair or triage</span>
+            </div>
+        </a>
+
+        <a href="/staff/maintenance" class="reveal-card kpi-card metric-accent-error" title="View critical tickets">
+            <div class="kpi-card-header">
+                <span class="kpi-label">Critical Tickets</span>
+                <span class="kpi-icon"><?= \App\Support\Icon::svg('alert-triangle') ?></span>
+            </div>
+            <div class="kpi-value <?= $criticalCount > 0 ? 'text-red-600' : 'text-neutral-900' ?>"><?= $criticalCount ?></div>
+            <div class="kpi-subtext">
+                <span class="text-neutral-400"><?= $criticalCount > 0 ? 'Urgent facility risks' : 'Zero critical issues' ?></span>
+            </div>
+        </a>
+
+        <a href="/staff/incidents/history" class="reveal-card kpi-card metric-accent-success" title="View incidents history">
+            <div class="kpi-card-header">
+                <span class="kpi-label">Facility Telemetry</span>
+                <span class="kpi-icon"><?= \App\Support\Icon::svg('shield-check') ?></span>
+            </div>
+            <div class="kpi-value">24/7</div>
+            <div class="kpi-subtext">
+                <span class="text-neutral-400">Real-time alert polling active</span>
+            </div>
+        </a>
     </div>
 
     <!-- Section 1: Active Emergency SOS Alerts -->

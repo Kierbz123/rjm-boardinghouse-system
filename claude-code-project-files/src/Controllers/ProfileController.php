@@ -6,6 +6,7 @@ use App\Database;
 use App\Models\User;
 use App\Models\BoarderProfile;
 use App\Support\Csrf;
+use App\Support\Phone;
 
 class ProfileController
 {
@@ -102,8 +103,10 @@ class ProfileController
 
         $name = trim((string) ($_POST['name'] ?? ''));
         $email = trim((string) ($_POST['email'] ?? ''));
-        $contactNumber = trim((string) ($_POST['contact_number'] ?? ''));
-        $emergencyContact = trim((string) ($_POST['emergency_contact_number'] ?? ''));
+        $contactRaw = $_POST['contact_number'] ?? '';
+        $emergencyRaw = $_POST['emergency_contact_number'] ?? '';
+        $contactNumber = Phone::digits($contactRaw);
+        $emergencyContact = Phone::digits($emergencyRaw);
 
         if ($name === '' || $email === '') {
             $_SESSION['flash_error'] = 'Full name and email address are required.';
@@ -122,8 +125,8 @@ class ProfileController
             header('Location: /profile');
             exit;
         }
-        if (mb_strlen($contactNumber) > 50 || mb_strlen($emergencyContact) > 50) {
-            $_SESSION['flash_error'] = 'Contact numbers must be 50 characters or fewer.';
+        if (($phoneProblem = Phone::problem($contactRaw) ?? Phone::problem($emergencyRaw, false, 'emergency contact number')) !== null) {
+            $_SESSION['flash_error'] = $phoneProblem;
             header('Location: /profile');
             exit;
         }

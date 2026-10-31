@@ -5,6 +5,13 @@ $error = $_SESSION['flash_error'] ?? null; unset($_SESSION['flash_error']);
 $success = $_SESSION['flash_success'] ?? null; unset($_SESSION['flash_success']);
 
 $vacantBeds = array_values(array_filter($beds ?? [], fn($b) => ($b['status'] ?? '') === 'vacant'));
+usort($vacantBeds, function ($a, $b) {
+    $roomCmp = strnatcasecmp((string) $a['room_number'], (string) $b['room_number']);
+    if ($roomCmp !== 0) {
+        return -$roomCmp;
+    }
+    return strnatcasecmp((string) $a['label'], (string) $b['label']);
+});
 
 // Overview statistics
 $totalBoarders      = count($boarders);
@@ -87,92 +94,6 @@ $totalBalancesOwed  = array_sum(array_column($boarders, 'outstanding_balance'));
     font-size: 0.8125rem;
     color: #9d9b97;
     margin-top: 0.25rem;
-}
-/* KPI Cards Grid */
-.boarders-kpi-grid {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 0.875rem;
-    margin-bottom: 1.75rem;
-}
-@media (min-width: 640px) {
-    .boarders-kpi-grid {
-        grid-template-columns: repeat(3, minmax(0, 1fr));
-        gap: 1rem;
-    }
-}
-@media (min-width: 1024px) {
-    .boarders-kpi-grid {
-        grid-template-columns: repeat(5, minmax(0, 1fr));
-        gap: 1rem;
-    }
-}
-.kpi-card {
-    background: #ffffff;
-    border: 1px solid #e6e5e2;
-    border-radius: 0.75rem;
-    padding: 1.125rem 1.125rem 1rem;
-    box-shadow: 0 1px 3px rgba(10, 10, 10, 0.04);
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
-    min-width: 0;
-    transition: transform 180ms ease, box-shadow 180ms ease;
-}
-.kpi-card:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px -2px rgba(10, 10, 10, 0.08);
-}
-.kpi-card-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 0.5rem;
-    margin-bottom: 0.35rem;
-}
-.kpi-label {
-    font-size: 0.6875rem;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 0.06em;
-    color: #6b6b6b;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-}
-.kpi-icon {
-    font-size: 0.95rem;
-    line-height: 1;
-    opacity: 0.8;
-}
-.kpi-value {
-    font-size: 1.625rem;
-    font-weight: 800;
-    line-height: 1.2;
-    color: #0a0a0a;
-    font-variant-numeric: tabular-nums;
-    margin-top: 0.2rem;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-}
-.kpi-subtext {
-    font-size: 0.75rem;
-    color: #9d9b97;
-    margin-top: 0.35rem;
-    display: flex;
-    align-items: center;
-    gap: 0.35rem;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-}
-
-/* Card 5 responsive span */
-@media (max-width: 639px) {
-    .kpi-span-mobile-2 {
-        grid-column: span 2;
-    }
 }
 
 /* Management Actions Bottom Grid */
@@ -309,17 +230,51 @@ $totalBalancesOwed  = array_sum(array_column($boarders, 'outstanding_balance'));
 
 <div class="boarders-page-wrapper space-y-6">
 
-    <!-- Page Banner -->
-    <div class="boarders-banner">
-        <div>
-            <h1>Boarders</h1>
-            <p>Register residents, place them in a bed, and see the house at a glance</p>
-        </div>
-        <a href="/admin/staff?view=boarders" class="btn btn-secondary btn-sm"><?= \App\Support\Icon::svg('users', 14) ?> Resident directory</a>
-    </div>
+    <!-- Executive Page Banner with Quick Launch Command Bar -->
+    <header class="dash-hero-banner">
+        <div class="dash-hero-top">
+            <div>
+                <h1 class="dash-hero-title">
+                    <span>Boarders</span>
+                </h1>
+                <p class="dash-hero-sub">Register residents, place them in a bed, and manage active housing tenancies.</p>
+            </div>
 
-    <?php $userTab = ''; // the Boarders tab is the Resident Directory; this page is reached from the sidebar
-    require __DIR__ . '/_user_tabs.php'; ?>
+            <div class="flex items-center gap-2.5 flex-wrap">
+                <span class="badge" style="background:rgba(255,255,255,0.08); color:#8cc2a2; border:1px solid rgba(255,255,255,0.15); padding:0.35rem 0.85rem; font-size:0.75rem; font-weight:600; border-radius:9999px; display:inline-flex; align-items:center;">
+                    <span class="live-pulse-dot" style="margin-right:0.45rem;"></span>
+                    Boarder Operations
+                </span>
+                <span class="badge" style="background:rgba(255,255,255,0.05); color:#a3a19b; border:1px solid rgba(255,255,255,0.1); padding:0.35rem 0.75rem; font-size:0.75rem; border-radius:9999px; display:inline-flex; align-items:center; gap:0.35rem;">
+                    <?= \App\Support\Icon::svg('calendar', 13) ?>
+                    <span><?= date('l, M j, Y') ?></span>
+                </span>
+            </div>
+        </div>
+
+        <!-- Quick Launch Command Bar -->
+        <div class="dash-cmd-bar">
+            <span style="font-size:0.6875rem; font-weight:700; text-transform:uppercase; letter-spacing:0.06em; color:rgba(255,255,255,0.5); margin-right:0.35rem;">
+                Quick Launch:
+            </span>
+            <a href="#add-boarder" class="dash-cmd-btn highlight" title="Register new resident account">
+                <?= \App\Support\Icon::svg('plus', 14) ?>
+                <span>Add Boarder</span>
+            </a>
+            <a href="#assign-bed-card" class="dash-cmd-btn" title="Assign resident to vacant bed">
+                <?= \App\Support\Icon::svg('bed', 14) ?>
+                <span>Assign Bed (<?= $vacantBedsCount ?> vacant)</span>
+            </a>
+            <a href="/admin/staff?view=boarders" class="dash-cmd-btn" title="Open resident directory ledger">
+                <?= \App\Support\Icon::svg('users', 14) ?>
+                <span>Resident Directory (<?= $totalBoarders ?>)</span>
+            </a>
+            <a href="/admin/rooms" class="dash-cmd-btn" title="Manage rooms &amp; beds">
+                <?= \App\Support\Icon::svg('home', 14) ?>
+                <span>Rooms &amp; Beds</span>
+            </a>
+        </div>
+    </header>
 
     <?php if ($error): ?>
         <div class="bg-error-50 text-error-700 text-body-sm rounded-lg p-3.5 border border-error-500 flex items-center gap-2.5" role="alert">
@@ -377,13 +332,13 @@ $totalBalancesOwed  = array_sum(array_column($boarders, 'outstanding_balance'));
     <?php endif; ?>
 
     <!-- KPI Metric Cards (5 Cards) -->
-    <div class="boarders-kpi-grid">
-        <div class="reveal-card kpi-card metric-accent-primary">
+    <div class="kpi-grid-5">
+        <a href="/admin/staff?view=boarders" class="reveal-card kpi-card metric-accent-primary" title="View all residents in directory">
             <div class="kpi-card-header">
                 <span class="kpi-label">Total Residents</span>
                 <span class="kpi-icon"><?= \App\Support\Icon::svg('users') ?></span>
             </div>
-            <div class="kpi-value"><?= $totalBoarders ?></div>
+            <div class="kpi-value tabular"><?= $totalBoarders ?></div>
             <div class="kpi-subtext">
                 <?php if ($unassignedBoarders > 0): ?>
                     <span class="text-amber-600 font-semibold"><?= \App\Support\Icon::svg('alert-triangle') ?> <?= $unassignedBoarders ?> unassigned</span>
@@ -391,57 +346,57 @@ $totalBalancesOwed  = array_sum(array_column($boarders, 'outstanding_balance'));
                     <span class="text-neutral-400"><?= \App\Support\Icon::svg('check') ?> All assigned to beds</span>
                 <?php endif; ?>
             </div>
-        </div>
+        </a>
 
-        <div class="reveal-card kpi-card metric-accent-success">
+        <a href="/admin/staff?view=boarders&status=active" class="reveal-card kpi-card metric-accent-success" title="Filter active boarders">
             <div class="kpi-card-header">
                 <span class="kpi-label">Active Residents</span>
                 <span class="kpi-icon"><?= \App\Support\Icon::svg('circle-dot') ?></span>
             </div>
-            <div class="kpi-value"><?= $activeBoarders ?></div>
+            <div class="kpi-value tabular"><?= $activeBoarders ?></div>
             <div class="kpi-subtext">
                 <span class="text-neutral-400">Current active boarders</span>
             </div>
-        </div>
+        </a>
 
-        <div class="reveal-card kpi-card metric-accent-warning">
+        <a href="/admin/staff?view=boarders&status=pending" class="reveal-card kpi-card metric-accent-warning" title="Filter pending and on notice boarders">
             <div class="kpi-card-header">
                 <span class="kpi-label">Pending / Notice</span>
-                <span class="kpi-icon">⏳</span>
+                <span class="kpi-icon"><?= \App\Support\Icon::svg('calendar') ?></span>
             </div>
-            <div class="kpi-value <?= $pendingBoarders > 0 ? 'text-amber-600' : 'text-neutral-900' ?>">
+            <div class="kpi-value tabular <?= $pendingBoarders > 0 ? 'text-amber-600' : 'text-neutral-900' ?>">
                 <?= $pendingBoarders ?>
             </div>
             <div class="kpi-subtext">
                 <span class="text-neutral-400"><?= $pendingCount ?> pending &bull; <?= $onNoticeCount ?> notice</span>
             </div>
-        </div>
+        </a>
 
-        <div class="reveal-card kpi-card metric-accent-info">
+        <a href="/admin/rooms" class="reveal-card kpi-card metric-accent-info" title="View rooms and bed inventory">
             <div class="kpi-card-header">
                 <span class="kpi-label">Vacant Beds</span>
                 <span class="kpi-icon"><?= \App\Support\Icon::svg('bed') ?></span>
             </div>
-            <div class="kpi-value <?= $vacantBedsCount === 0 ? 'text-error-600' : 'text-neutral-900' ?>">
+            <div class="kpi-value tabular <?= $vacantBedsCount === 0 ? 'text-error-600' : 'text-neutral-900' ?>">
                 <?= $vacantBedsCount ?>
             </div>
             <div class="kpi-subtext">
                 <span class="text-neutral-400">Ready for occupancy</span>
             </div>
-        </div>
+        </a>
 
-        <div class="reveal-card kpi-card metric-accent-warning kpi-span-mobile-2">
+        <a href="/admin/payments" class="reveal-card kpi-card metric-accent-warning kpi-span-mobile-2" title="Review payment records and balances">
             <div class="kpi-card-header">
                 <span class="kpi-label">Balances Owed</span>
-                <span class="kpi-icon">₱</span>
+                <span class="kpi-icon"><?= \App\Support\Icon::svg('banknote') ?></span>
             </div>
-            <div class="kpi-value <?= $totalBalancesOwed > 0 ? 'text-amber-700' : 'text-emerald-700' ?>">
+            <div class="kpi-value tabular <?= $totalBalancesOwed > 0 ? 'text-amber-700' : 'text-emerald-700' ?>">
                 ₱<?= number_format($totalBalancesOwed, 2) ?>
             </div>
             <div class="kpi-subtext">
                 <span class="text-neutral-400">Cached total (synced)</span>
             </div>
-        </div>
+        </a>
     </div>
 
     <!-- Management Actions Section -->
@@ -452,6 +407,35 @@ $totalBalancesOwed  = array_sum(array_column($boarders, 'outstanding_balance'));
                 <p class="section-headline-subtitle">Register new resident accounts, assign room/bed allocations, or review system operations rules.</p>
             </div>
         </div>
+
+        <?php // The email from a failed submit belongs to someone; the inquiry banner above already covers its own match.
+        $ec = $emailConflict ?? null;
+        if ($ec !== null && (int) ($conversion['existing']['id'] ?? 0) !== (int) $ec['id']): ?>
+            <?php $ecArchived = $ec['status'] === 'archived' && $ec['role'] === 'boarder'; ?>
+            <div role="alert" id="add-boarder-email-conflict" style="margin-bottom:1rem; padding:0.85rem 1rem; border-radius:0.75rem; font-size:0.875rem; background:#fbf6e8; border:1px solid #efdfb4; color:#7a5300; display:flex; flex-wrap:wrap; gap:0.5rem 1rem; align-items:center; justify-content:space-between;">
+                <span>
+                    <strong><?= htmlspecialchars($ec['email']) ?> already has an account:</strong>
+                    <?php if ($ecArchived): ?>
+                        <?= htmlspecialchars($ec['name']) ?>, an archived resident. A second account with the same email cannot be created.
+                        If this is the same person, restore them instead; use a different email below if this is someone else.
+                    <?php else: ?>
+                        <?= htmlspecialchars($ec['name']) ?> (<?= htmlspecialchars($ec['role']) ?>). A second account with the same email cannot be created.
+                        Use a different email below if this is someone else.
+                    <?php endif; ?>
+                </span>
+                <span style="display:flex; gap:0.75rem; align-items:center; white-space:nowrap;">
+                    <?php if ($ec['role'] === 'boarder'): ?>
+                        <a href="/admin/boarders/<?= (int) $ec['id'] ?>" style="font-weight:600; text-decoration:underline;">Open their profile</a>
+                    <?php endif; ?>
+                    <?php if ($ecArchived): ?>
+                        <form method="post" action="/admin/boarders/<?= (int) $ec['id'] ?>/restore" style="margin:0;">
+                            <?= \App\Support\Csrf::field() ?>
+                            <button id="restore-conflicting-resident" class="btn btn-primary !py-1.5 !px-3 !text-xs font-semibold">Restore resident</button>
+                        </form>
+                    <?php endif; ?>
+                </span>
+            </div>
+        <?php endif; ?>
 
         <div class="boarders-management-grid">
 
@@ -479,7 +463,7 @@ $totalBalancesOwed  = array_sum(array_column($boarders, 'outstanding_balance'));
                     </div>
                     <div>
                         <label for="add-boarder-contact" class="field-label">Contact Number <span class="font-normal text-neutral-400">(optional)</span></label>
-                        <input id="add-boarder-contact" name="contact_number" type="tel" placeholder="+63 9XX XXX XXXX" maxlength="20" class="field-input" value="<?= htmlspecialchars($addForm['contact_number']) ?>">
+                        <input id="add-boarder-contact" name="contact_number" type="tel" inputmode="numeric" data-digits="15" placeholder="09171234567" class="field-input" value="<?= htmlspecialchars($addForm['contact_number']) ?>">
                     </div>
                     <div>
                         <label for="add-boarder-password" class="field-label">Temporary Password</label>
@@ -487,7 +471,8 @@ $totalBalancesOwed  = array_sum(array_column($boarders, 'outstanding_balance'));
                             <input id="add-boarder-password"
                                    name="password"
                                    type="password" data-max-bytes="72"
-                                   placeholder="At least 15 characters"
+                                   minlength="10" autocomplete="new-password"
+                                   placeholder="At least 10 characters"
                                    required<?= $addForm['inquiry_id'] ? ' autofocus' : '' ?>
                                    class="field-input password-input-with-toggle">
                             <button type="button"
@@ -512,7 +497,7 @@ $totalBalancesOwed  = array_sum(array_column($boarders, 'outstanding_balance'));
             </form>
 
             <!-- Card 2: Assign Boarder to Bed Form -->
-            <form method="post" action="/admin/beds/assign" class="mgmt-card accent-success">
+            <form method="post" action="/admin/beds/assign" class="mgmt-card accent-success" id="assign-bed-card">
                 <div class="mgmt-card-header">
                     <?= \App\Support\Icon::svg('bed', 18) ?>
                     <h3 class="mgmt-card-title">Assign to Bed</h3>
@@ -543,13 +528,16 @@ $totalBalancesOwed  = array_sum(array_column($boarders, 'outstanding_balance'));
                         <label for="assign-bed" class="field-label">Select Vacant Bed</label>
                         <select id="assign-bed" name="bed_id" required class="field-select">
                             <option value="">— Choose Vacant Bed —</option>
-                            <?php foreach ($vacantBeds as $b): ?>
-                                <option value="<?= (int) $b['id'] ?>" data-room-type="<?= (int) ($b['room_type_id'] ?? 0) ?>">Room <?= htmlspecialchars($b['room_number']) ?> / Bed <?= htmlspecialchars($b['label']) ?></option>
+                            <?php foreach ($vacantBeds as $b):
+                                $label = trim((string) ($b['label'] ?? ''));
+                                $bedText = str_starts_with(strtolower($label), 'bed') ? $label : 'Bed ' . $label;
+                            ?>
+                                <option value="<?= (int) $b['id'] ?>" data-room-type="<?= (int) ($b['room_type_id'] ?? 0) ?>">Room <?= htmlspecialchars($b['room_number']) ?> / <?= htmlspecialchars($bedText) ?></option>
                             <?php endforeach; ?>
                         </select>
                     </div>
                     <div class="assign-notice-box">
-                        <span style="font-size: 1rem; line-height: 1;">ℹ️</span>
+                        <span style="font-size: 1rem; line-height: 1;"><?= \App\Support\Icon::svg('alert-circle', 16) ?></span>
                         <span>Assigning a new bed to an already-assigned resident will safely relocate them and vacate their previous bed automatically.</span>
                     </div>
                 </div>

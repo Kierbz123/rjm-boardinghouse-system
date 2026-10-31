@@ -70,7 +70,7 @@ There is no public sign-up. Admins create boarders (Boarders page) and staff (Us
 5. **Rooms & beds** — bed-level occupancy; a bed can't be double-booked or exceed room capacity.
 6. **Resident lifecycle** — status changes are logged; *Remove* archives residents with payment history (restorable) and deletes only those with none.
 7. **Inquiries** — the public landing page form stores inquiries for admins (spam-protected).
-8. **Ledger** — *Export Ledger (CSV)* lists payments received, expenses and penalties with separate totals.
+8. **Ledger** — *Export Ledger* downloads an Excel workbook: a **Statement** sheet (cash received by method, expenses by category, receivables and net cash flow for the last three months, in the green statement layout) and a **General Ledger** sheet listing every payment, expense and penalty with a running balance. Add `&format=csv` to the link for the plain CSV.
 
 ## Tests
 

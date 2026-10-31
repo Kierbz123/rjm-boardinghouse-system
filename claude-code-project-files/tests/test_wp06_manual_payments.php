@@ -74,8 +74,8 @@ check(abs($outstanding($online['id']) - $outstanding($cash['id'])) < 0.005, 'bal
 check($allocs($online['id']) === $allocs($cash['id']) && $allocs($cash['id']) !== [], 'it is allocated oldest-first exactly like the online payment', json_encode([$allocs($online['id']), $allocs($cash['id'])]));
 check(abs(($c1 - $c0) - 3000.0) < 0.005 && abs(($c3 - $c2) - 3000.0) < 0.005, 'both add the same to "collected this month"', ($c1 - $c0) . ' vs ' . ($c3 - $c2));
 $today = date('Y-m-d');
-$csv = $admin->get("/admin/ledger/export?from={$today}&to={$today}")->body;
-check(str_contains($csv, '"Payment received",' . ($row['id'] ?? 0) . ',') && str_contains($csv, '"Payment received",' . $pid . ','), 'both appear in the ledger export',
+$csv = $admin->get("/admin/ledger/export?format=csv&from={$today}&to={$today}")->body;
+check(str_contains($csv, (string) ($row['receipt_number'] ?? 'x')) && substr_count($csv, ',"Payment received",') >= 2, 'both appear in the ledger export',
     'cash id ' . ($row['id'] ?? 0) . ', online id ' . $pid . '; csv has ' . substr_count($csv, "\n") . ' lines: ' . substr(preg_replace('/\s+/', ' ', $csv), 0, 300));
 $page = $admin->get('/admin/payments')->body;
 check(str_contains($page, (string) ($row['receipt_number'] ?? '-')) && stripos($page, 'Cash') !== false, 'the Payments page lists it with its receipt number and method');

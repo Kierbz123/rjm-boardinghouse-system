@@ -82,28 +82,80 @@ class MaintenanceRequest
     }
 
 
-    public static function allWithDetails(int $limit = 50, int $offset = 0): array
+    /** The archive's one FROM clause, shared by the page, the count and the totals. */
+    private const HISTORY_FROM = 'FROM maintenance_requests
+                JOIN users ON users.id = maintenance_requests.boarder_id
+                LEFT JOIN rooms ON rooms.id = maintenance_requests.room_id
+                LEFT JOIN users resolver ON resolver.id = maintenance_requests.resolved_by';
+
+    /**
+     * The archive's filters, as WHERE text plus its parameters.
+     * $filters: q (free text), status, tier — all already validated by the controller.
+     *
+     * @return array{0: string, 1: list<string>}
+     */
+    private static function historyWhere(array $filters): array
     {
-        $sql = "SELECT maintenance_requests.*, 
-                users.name AS boarder_name, 
+        $where = [];
+        $params = [];
+        if (($filters['q'] ?? '') !== '') {
+            // % and _ typed by the user are literals, not wildcards (same rule as User::managementList).
+            $like = '%' . addcslashes($filters['q'], '%_\\') . '%';
+            $where[] = '(maintenance_requests.description LIKE ? OR maintenance_requests.category LIKE ?
+                         OR users.name LIKE ? OR rooms.room_number LIKE ?)';
+            array_push($params, $like, $like, $like, $like);
+        }
+        if (($filters['status'] ?? '') !== '') {
+            $where[] = 'maintenance_requests.status = ?';
+            $params[] = $filters['status'];
+        }
+        if (($filters['tier'] ?? '') !== '') {
+            $where[] = 'maintenance_requests.priority_tier = ?';
+            $params[] = $filters['tier'];
+        }
+        return [$where ? ' WHERE ' . implode(' AND ', $where) : '', $params];
+    }
+
+    public static function allWithDetails(int $limit = 50, int $offset = 0, array $filters = []): array
+    {
+        [$where, $params] = self::historyWhere($filters);
+        $sql = 'SELECT maintenance_requests.*,
+                users.name AS boarder_name,
                 users.email AS boarder_email,
                 rooms.room_number,
                 resolver.name AS resolver_name
-                FROM maintenance_requests
-                JOIN users ON users.id = maintenance_requests.boarder_id
-                LEFT JOIN rooms ON rooms.id = maintenance_requests.room_id
-                LEFT JOIN users resolver ON resolver.id = maintenance_requests.resolved_by
+                ' . self::HISTORY_FROM . $where . '
                 ORDER BY maintenance_requests.created_at DESC
-                LIMIT ? OFFSET ?";
+                LIMIT ? OFFSET ?';
         $stmt = Database::getConnection()->prepare($sql);
-        $stmt->execute([$limit, $offset]);
+        foreach ([...$params, $limit, $offset] as $i => $value) {
+            $stmt->bindValue($i + 1, $value, is_int($value) ? \PDO::PARAM_INT : \PDO::PARAM_STR);
+        }
+        $stmt->execute();
         return $stmt->fetchAll();
     }
 
-    public static function countAll(): int
+    public static function countAll(array $filters = []): int
     {
-        $sql = "SELECT COUNT(*) FROM maintenance_requests";
-        return (int) Database::getConnection()->query($sql)->fetchColumn();
+        return self::historyCounts($filters)['total'];
+    }
+
+    /**
+     * Totals over everything the filters match, not just the page on screen — the KPI cards
+     * used to count the 50 rows they were handed, which made page 2 report nonsense.
+     *
+     * @return array{total: int, resolved: int, open: int}
+     */
+    public static function historyCounts(array $filters = []): array
+    {
+        [$where, $params] = self::historyWhere($filters);
+        $stmt = Database::getConnection()->prepare(
+            "SELECT COUNT(*) AS total, COALESCE(SUM(maintenance_requests.status = 'resolved'), 0) AS resolved "
+            . self::HISTORY_FROM . $where
+        );
+        $stmt->execute($params);
+        $row = $stmt->fetch() ?: ['total' => 0, 'resolved' => 0];
+        return ['total' => (int) $row['total'], 'resolved' => (int) $row['resolved'], 'open' => (int) $row['total'] - (int) $row['resolved']];
     }
 
     public static function allForBoarder(int $boarderId, int $limit = 10): array

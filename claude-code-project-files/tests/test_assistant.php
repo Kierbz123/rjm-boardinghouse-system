@@ -31,6 +31,8 @@ $sidebarBefore = [
         'Overview' => ['/admin/dashboard' => 'Dashboard', '/admin/inquiry-center' => 'Inquiry Center', '/admin/occupancy' => 'Occupancy'],
         'Boarding' => ['/admin/boarders' => 'Boarders', '/admin/rooms' => 'Rooms & Beds', '/admin/staff' => 'User Management'],
         'Finance' => ['/admin/payments' => 'Payments', '/admin/payments/record' => 'Record Payment', '/admin/expenses' => 'Expenses', '/admin/penalty-rules' => 'Penalties'],
+        // WP-21: admin could always open these two, but had no way to navigate to them.
+        'Active Tasks' => ['/staff/maintenance' => 'Maintenance Queue', '/staff/incidents' => 'Incidents'],
         'Records' => ['/staff/maintenance/history' => 'Maintenance History', '/staff/incidents/history' => 'Incident History'],
     ],
     'staff' => [
@@ -41,7 +43,7 @@ $sidebarBefore = [
     'boarder' => [
         'Overview' => ['/portal/dashboard' => 'Dashboard'],
         'Resident Services' => ['/portal/maintenance/new' => 'Report a Repair', '/portal/payments/new' => 'Pay Rent'],
-        'Community' => ['/staff/incidents' => 'Incidents'],
+        'Community' => ['/staff/incidents' => 'Incidents', '/staff/incidents/history' => 'Incident History'],
     ],
 ];
 foreach ($sidebarBefore as $role => $expected) {
@@ -107,6 +109,24 @@ check($card !== null && str_contains($card['reply'], 'signed in as an administra
 check(str_contains(AssistantService::answer('kumusta po', 'boarder', 'tl', 3)['reply'] ?? '', 'bilang residente'), 'a Tagalog greeting is answered in Tagalog');
 check(str_contains(AssistantService::answer('hi, where do I pay rent?', 'boarder', 'en', 3)['reply'] ?? '', 'receipt'), 'a greeting followed by a question still gets the answer');
 check(AssistantService::answer('hello', 'nobody', 'en') === null, 'an unknown role is not greeted');
+
+echo "== A bare \"nope\" or \"thanks\" is answered here, not by the model ==\n";
+foreach (['nope', 'no', 'wrong', "that's not it", 'hindi', 'mali'] as $text) {
+    $card = AssistantService::answer($text, 'admin', 'en', 1);
+    check($card !== null && str_contains($card['reply'] ?? '', 'what you were after'), "\"{$text}\" asks what was meant: " . ($card['reply'] ?? 'null'));
+}
+check(str_contains(AssistantService::answer('thanks', 'boarder', 'en', 3)['reply'] ?? '', 'welcome'), 'a thank-you is answered as one');
+check(str_contains(AssistantService::answer('salamat', 'boarder', 'tl', 3)['reply'] ?? '', 'Walang anuman'), 'a Tagalog thank-you is answered in Tagalog');
+check(isset(AssistantService::answer('no water in my room', 'boarder', 'en', 3)['actions'][0]['prefill']),
+    '"no water in my room" is still a repair report, not a bare "no"');
+
+echo "== The assistant can say what it is, instead of guessing a page ==\n";
+foreach (['who are you', 'what can you do', 'when were you first activated', 'sino ka'] as $text) {
+    $card = AssistantService::answer($text, 'admin', 'en', 1);
+    check(($card['source'] ?? '') === 'help' && !in_array('/staff/incidents/history', array_column($card['actions'] ?? [], 'href'), true),
+        "\"{$text}\" is answered by the assistant about itself, with no Incident History button");
+}
+check(str_contains(AssistantService::answer('ano ang kaya mong gawin', 'boarder', 'tl', 3)['reply'] ?? '', 'katulong'), 'the assistant describes itself in Tagalog');
 
 echo "== Lookups answer with real figures (plan A2) ==\n";
 $boarderId = 3; // seed.php: admin=1, staff=2, boarder=3 in Room 101, Bed A
